@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_editgoal_cancel"
+        android:icon="@drawable/ic_action_cancel"
+        android:title="@android:string/cancel"
+        yourapp:showAsAction="ifRoom|withText"/>
+    <item
+        android:id="@+id/action_editgoal_done"
+        android:icon="@drawable/ic_action_accept"
+        android:title="@android:string/ok"
+        yourapp:showAsAction="ifRoom|withText"/>
+</menu>

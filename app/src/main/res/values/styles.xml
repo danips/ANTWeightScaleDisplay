@@ -1,0 +1,99 @@
+<resources>
+
+    <!-- Base application theme. -->
+    <style name="AppTheme" parent="Theme.AppCompat">
+        <!-- Customize your theme here. -->>
+        <item name="colorPrimary">#0099cc</item>
+        <item name="colorAccent">#0099cc</item>
+        <!--item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item-->
+        <!--item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccent</item-->
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
+        <item name="colorPrimary">@color/background_material_dark_copy</item>
+    </style>
+
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Dark"/>
+
+    <style name="FillWrap">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="WrapWrap">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+    </style>
+    <style name="FillFill">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">match_parent</item>
+    </style>
+
+    <style name="TableRowFirst" parent="FillWrap">
+        <item name="android:orientation">horizontal</item>
+    </style>
+    <style name="TableRow" parent="FillWrap">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:layout_marginTop">16dp</item>
+    </style>
+    <style name="ImageViewMini" parent="WrapWrap">
+        <item name="android:visibility">invisible</item>
+    </style>
+    <style name="ImageView" parent="WrapWrap">
+        <item name="android:background">@drawable/rounded_blue</item>
+        <item name="android:onClick">getDescription</item>
+    </style>
+    <style name="ImageViewDisabled" parent="WrapWrap">
+        <item name="android:background">@drawable/rounded_grey</item>
+        <item name="android:onClick">getDescription</item>
+    </style>
+    <style name="LinearLayout" parent="FillFill">
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+    <style name="CellTextViewLarge" parent="FillWrap">
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:textAppearance">?android:textAppearanceLarge</item>
+    </style>
+    <style name="CellTextViewMedium" parent="FillWrap">
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:textAppearance">?android:textAppearanceMedium</item>
+    </style>
+    <style name="CellTextViewSmall" parent="FillWrap">
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:textAppearance">?android:textAppearanceSmall</item>
+    </style>
+    <style name="EditWeightIV" parent="WrapWrap">
+        <item name="android:background">@drawable/rounded_blue</item>
+        <item name="android:onClick">getDescription</item>
+        <item name="android:layout_marginBottom">16dp</item>
+    </style>
+    <style name="EditWeightDesc">
+        <item name="android:layout_margin">8dp</item>
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">0dp</item>
+        <item name="android:layout_gravity">fill</item>
+        <item name="android:gravity">center_vertical</item>
+    </style>
+    <style name="EditWeightValue" parent="WrapWrap">
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:textAppearance">?android:textAppearanceLarge</item>
+        <item name="android:inputType">numberDecimal</item>
+        <item name="android:digits">0123456789.,</item>
+    </style>
+    <style name="EditWeightInt" parent="WrapWrap">
+        <item name="android:paddingLeft">12dp</item>
+        <item name="android:textAppearance">?android:textAppearanceLarge</item>
+        <item name="android:inputType">number</item>
+    </style>
+    <style name="EditWeightUnits" parent="WrapWrap">
+        <item name="android:textAppearance">?android:textAppearanceMedium</item>
+    </style>
+</resources>

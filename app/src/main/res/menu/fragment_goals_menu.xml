@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_select_user"
+        android:title="@string/edit_user_fragment_user"
+        yourapp:actionViewClass="android.widget.Spinner"
+        yourapp:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_add_goal"
+        android:icon="@drawable/ic_action_add"
+        android:title="@string/users_fragment_action_add_user"
+        yourapp:showAsAction="ifRoom|withText"/>
+</menu>

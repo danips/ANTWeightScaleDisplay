@@ -1,0 +1,303 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+<TableLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingLeft="10dip"
+    android:paddingRight="10dip"
+    android:shrinkColumns="0">
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_name"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_user"
+            android:layout_gravity="center_vertical" />
+        <EditText
+            android:id="@+id/et_name"
+            android:layout_width="150dip"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:inputType="text"
+            android:hint="@string/edit_user_fragment_user"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_gender"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_gender"
+            android:layout_gravity="center_vertical"/>
+        <RadioGroup
+            android:id="@+id/rg_gender"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:checkedButton="@+id/rb_male"
+            android:orientation="horizontal">
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/rb_female"
+                android:text="@string/edit_user_fragment_gender_option_female" />
+            <RadioButton
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/rb_male"
+                android:text="@string/edit_user_fragment_gender_option_male" />
+        </RadioGroup>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_birthdate"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_birthdate"
+            android:layout_gravity="center_vertical"/>
+        <EditText
+            android:id="@+id/et_birthdate"
+            android:layout_width="150dip"
+            android:layout_height="wrap_content"
+            android:inputType="date"
+            android:hint="@string/edit_user_fragment_birthdate"
+            android:maxLines="1"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_units"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_units"
+            android:layout_gravity="center_vertical"/>
+
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sp_units"
+            android:entries="@array/units" />
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_height"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_height"
+            android:layout_gravity="center_vertical"/>
+        <LinearLayout
+            android:orientation="horizontal">
+            <LinearLayout
+                android:id="@+id/ll_height_metric"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <EditText
+                    android:id="@+id/et_height_cm"
+                    android:layout_weight="1"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:hint="@string/edit_user_fragment_units_tag_cm"
+                    android:maxLines="1"/>
+                <TextView
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/edit_user_fragment_units_tag_cm"
+                    android:layout_gravity="center_vertical"/>
+            </LinearLayout>
+            <LinearLayout
+                android:id="@+id/ll_height_imperial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="gone">
+                <EditText
+                    android:id="@+id/et_height_ft"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:hint="@string/edit_user_fragment_units_tag_ft"
+                    android:maxLines="1"/>
+                <TextView
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/edit_user_fragment_units_tag_ft"
+                    android:layout_gravity="center_vertical"/>
+                <EditText
+                    android:id="@+id/et_height_in"
+                    android:layout_weight="1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:inputType="number"
+                    android:hint="@string/edit_user_fragment_units_tag_in"
+                    android:maxLines="1"/>
+                <TextView
+                    android:textAppearance="?android:textAppearanceMedium"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/edit_user_fragment_units_tag_in"
+                    android:layout_gravity="center_vertical"/>
+            </LinearLayout>
+        </LinearLayout>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_activity"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_activity"
+            android:layout_gravity="center_vertical"/>
+        <Spinner
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/sp_activity"
+            android:entries="@array/activity"
+            android:layout_gravity="center_vertical"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_lifetime_athlete"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_athlete_mode"
+            android:layout_gravity="center_vertical"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cb_lifetime_athlete" />
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_gc"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_garmin_connect_category"
+            android:layout_span="2"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:layout_span="2"
+            android:layout_height="3dp"
+            android:layout_width="match_parent"
+            android:background="#11a9ed"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_gc_user"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_user"
+            android:layout_gravity="center_vertical"/>
+        <EditText
+            android:id="@+id/et_gc_user"
+            android:layout_width="150dip"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:hint="@string/edit_user_fragment_user"
+            android:inputType="textEmailAddress" />
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_gc_pass"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_password"
+            android:layout_gravity="center_vertical"/>
+        <EditText
+            android:id="@+id/et_gc_pass"
+            android:layout_width="150dip"
+            android:layout_height="wrap_content"
+            android:inputType="textPassword"
+            android:hint="@string/edit_user_fragment_password"
+            android:maxLines="1"/>
+    </TableRow>
+
+    <TableRow>
+        <EditText
+            android:layout_span="2"
+            android:id="@+id/et_email_to"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:padding="10dip"
+            android:drawablePadding="10dip"
+            android:drawableStart="@drawable/ic_gmail"
+            android:hint="@string/edit_user_fragment_email_category"
+            android:inputType="textEmailAddress"
+            android:drawableLeft="@drawable/ic_gmail"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_advanced_settings"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_advanced_settings_category"
+            android:layout_span="2"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:layout_span="2"
+            android:layout_height="3dip"
+            android:layout_width="match_parent"
+            android:background="#bebebe"/>
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_automatic_upload"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_automatic_upload"
+            android:layout_gravity="center_vertical"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cb_automatic_upload" />
+    </TableRow>
+
+    <TableRow>
+        <TextView
+            android:id="@+id/tv_fat_mass"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/edit_user_fragment_fat_mass"
+            android:layout_gravity="center_vertical"/>
+        <CheckBox
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/cb_fat_mass" />
+    </TableRow>
+
+</TableLayout>
+</ScrollView>

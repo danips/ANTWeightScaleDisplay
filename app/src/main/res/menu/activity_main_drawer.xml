@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_weight"
+            android:icon="@drawable/ic_weight_mini"
+            android:title="@string/lateral_menu_option_weight" />
+        <item
+            android:id="@+id/nav_goals"
+            android:icon="@drawable/ic_action_goals"
+            android:title="@string/lateral_menu_option_goals" />
+        <item
+            android:id="@+id/nav_graphs"
+            android:icon="@drawable/ic_menu_graphs"
+            android:title="@string/lateral_menu_option_graphs" />
+        <item
+            android:id="@+id/nav_history"
+            android:icon="@drawable/ic_menu_history"
+            android:title="@string/lateral_menu_option_history" />
+        <item
+            android:id="@+id/nav_users"
+            android:icon="@drawable/ic_action_person"
+            android:title="@string/lateral_menu_option_users" />
+    </group>
+
+</menu>

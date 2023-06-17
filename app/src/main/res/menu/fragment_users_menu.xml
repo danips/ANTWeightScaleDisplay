@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_database"
+        android:icon="@drawable/ic_action_save"
+        android:title="@string/history_fragment_action_database"
+        yourapp:showAsAction="ifRoom|withText">
+        <menu>
+            <item
+                android:id="@+id/action_database_backup"
+                android:title="@string/history_fragment_action_database_backup" />
+            <item
+                android:id="@+id/action_database_restore"
+                android:title="@string/history_fragment_action_database_restore" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/action_adduser"
+        android:icon="@drawable/ic_action_add_person"
+        android:title="@string/users_fragment_action_add_user"
+        yourapp:showAsAction="ifRoom|withText"/>
+</menu>

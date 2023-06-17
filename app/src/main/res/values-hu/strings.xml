@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	<string name="ant_radio_service">ANT Radio Service</string>
+	<string name="ant_usb_service">ANT USB Service</string>
+	<string name="app_name">ANT+ Weight Scale Display</string>
+	<string name="bmi_value_0">Sovány</string>
+	<string name="bmi_value_1">Normál</string>
+	<string name="bmi_value_2">Túlsúlyos</string>
+	<string name="bmi_value_3">Elhízott</string>
+	<string name="edit_goal_fragment_color">Szín</string>
+	<string name="edit_goal_fragment_end">Vég</string>
+	<string name="edit_goal_fragment_goal">Cél</string>
+	<string name="edit_goal_fragment_start">Kezdet</string>
+	<string name="edit_user_fragment_activity">Sporttevékenység heti időtartama</string>
+	<string name="edit_user_fragment_activity_option_0">Semennyi</string>
+	<string name="edit_user_fragment_activity_option_1">20 perc vagy kevesebb</string>
+	<string name="edit_user_fragment_activity_option_2">21 és 40 perc között</string>
+	<string name="edit_user_fragment_activity_option_3">41 és 60 perc között</string>
+	<string name="edit_user_fragment_activity_option_4">1 és 5 óra között</string>
+	<string name="edit_user_fragment_activity_option_5">5 és 9 óra között</string>
+	<string name="edit_user_fragment_activity_option_6">Több, mint 9 óra</string>
+	<string name="edit_user_fragment_advanced_settings_category">Haladó beállítások</string>
+	<string name="edit_user_fragment_athlete_mode">Sportoló üzemmód</string>
+	<string name="edit_user_fragment_automatic_upload">Automatikus feltöltés</string>
+	<string name="edit_user_fragment_birthdate">Szülinap</string>
+	<string name="edit_user_fragment_connect_to">Kapcsolódás: <b><xliff:g id="name">%1$s</xliff:g></b></string>
+	<string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Kapcsolódva <b><xliff:g id="name">%1$s</xliff:g></b></string>
+	<string name="edit_user_fragment_dates_in_graph">Napok száma a grafikonon</string>
+	<string name="edit_user_fragment_email_category">Email</string>
+	<string name="edit_user_fragment_fat_mass">Testzsír tömeg mutatása</string>
+	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
+	<string name="edit_user_fragment_gender">Nem</string>
+	<string name="edit_user_fragment_gender_option_female">Nő</string>
+	<string name="edit_user_fragment_gender_option_male">Férfi</string>
+	<string name="edit_user_fragment_height">Magasság</string>
+	<string name="edit_user_fragment_msg_age_invalid">Az életkor 1 és 127 év között legyen</string>
+	<string name="edit_user_fragment_msg_birthdate_missing">Hiányzik a szülinap</string>
+	<string name="edit_user_fragment_msg_height_invalid">A magasság legyen kisebb mint 255 cm vagy 8\' 4\"</string>
+	<string name="edit_user_fragment_msg_height_missing">Hiányzik a magasság</string>
+	<string name="edit_user_fragment_msg_name_dup">Ez a név már használatban van</string>
+	<string name="edit_user_fragment_msg_name_missing">Hiányzik a név</string>
+	<string name="edit_user_fragment_msg_user_missing">Legalább egy felhasználót fel kell venned</string>
+	<string name="edit_user_fragment_password">Jelszó</string>
+	<string name="edit_user_fragment_units">Egységek</string>
+	<string name="edit_user_fragment_units_option_kg_cm">kg / cm</string>
+	<string name="edit_user_fragment_units_option_kg_ft">kg / ft, in</string>
+	<string name="edit_user_fragment_units_option_lb_cm">lb / cm</string>
+	<string name="edit_user_fragment_units_option_lb_ft">lb / ft, in</string>
+	<string name="edit_user_fragment_units_option_st_cm">st, lb / cm</string>
+	<string name="edit_user_fragment_units_option_st_ft">st, lb / ft, in</string>
+	<string name="edit_user_fragment_units_tag_cm">cm</string>
+	<string name="edit_user_fragment_units_tag_ft">\'</string>
+	<string name="edit_user_fragment_units_tag_in">\"</string>
+	<string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.2f</xliff:g> kg</string>
+	<string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.2f</xliff:g> lb</string>
+	<string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
+	<string name="edit_user_fragment_user">Felhasználó</string>
+	<string name="fat_percent_value_0">Sovány</string>
+	<string name="fat_percent_value_1">Normál</string>
+	<string name="fat_percent_value_2">Túlsúlyos</string>
+	<string name="fat_percent_value_3">Kövér</string>
+	<string name="garmin_connect_invalid_password">A Garmin új szabályzata alapján a Garmin Connect jelszavad nem érvényes.\n\nKérlek, frissítsd!</string>
+	<string name="graphs_fragment_measure_tag">Mérés</string>
+	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Bal kar izomtömeg</string>
+	<string name="graphs_fragment_measurement_left_arm_percent_fat">Bal kar zsírszázalék</string>
+	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Bal láb izomtömeg</string>
+	<string name="graphs_fragment_measurement_left_leg_percent_fat">Bal láb zsírszázalék</string>
+	<string name="graphs_fragment_measurement_right_arm_muscle_mass">Jobb kar izomtömeg</string>
+	<string name="graphs_fragment_measurement_right_arm_percent_fat">Jobb kar zsírszázalék</string>
+	<string name="graphs_fragment_measurement_right_leg_muscle_mass">Jobb láb izomtömeg</string>
+	<string name="graphs_fragment_measurement_right_leg_percent_fat">Jobb láb zsírszázalék</string>
+	<string name="graphs_fragment_measurement_trunk_muscle_mass">Törzs izomtömeg</string>
+	<string name="graphs_fragment_measurement_trunk_percent_fat">Törzs zsírszázalék</string>
+	<string name="graphs_fragment_period_always">Mindig</string>
+	<string name="graphs_fragment_period_four_months">4 hónap</string>
+	<string name="graphs_fragment_period_half_year">6 hónap</string>
+	<string name="graphs_fragment_period_month">1 hónap</string>
+	<string name="graphs_fragment_period_six_weeks">6 hét</string>
+	<string name="graphs_fragment_period_tag">Időtartam</string>
+	<string name="graphs_fragment_period_two_months">2 hónap</string>
+	<string name="graphs_fragment_period_two_weeks">2 hét</string>
+	<string name="graphs_fragment_period_two_years">2 év</string>
+	<string name="graphs_fragment_period_week">1 hét</string>
+	<string name="graphs_fragment_period_year">1 év</string>
+	<string name="history_fragment_action_database">Adatbázis</string>
+	<string name="history_fragment_action_database_backup">Adatbázis biztonsági mentése</string>
+	<string name="history_fragment_action_database_backup_ok">Az adatbázis biztonsági mentése sikeres (File : <xliff:g id="name">%1$s</xliff:g>)</string>
+	<string name="history_fragment_action_database_restore">Adatbázis visszaállítása</string>
+	<string name="history_fragment_action_database_restore_ok">Adatbázis sikeresen visszaállítva</string>
+	<string name="history_fragment_action_download">Letöltés</string>
+	<string name="history_fragment_action_export">Export</string>
+	<string name="history_fragment_action_export_csv">CSV</string>
+	<string name="history_fragment_date">Dátum</string>
+	<string name="history_fragment_download"><xliff:g id="name">%1$s</xliff:g> letöltése</string>
+	<string name="history_fragment_download_complete">Letöltés kész</string>
+	<string name="history_fragment_download_in_progress">Letöltés folyamatban</string>
+	<string name="hydration_percent_value_0">Alacsony</string>
+	<string name="hydration_percent_value_1">Normál</string>
+	<string name="hydration_percent_value_2">Magas</string>
+	<string name="lateral_menu_close">Oldal menü bezárása</string>
+	<string name="lateral_menu_open">Oldal menü megnyitása</string>
+	<string name="lateral_menu_option_about">Súgó</string>
+	<string name="lateral_menu_option_goals">Célok</string>
+	<string name="lateral_menu_option_graphs">Grafikonok</string>
+	<string name="lateral_menu_option_history">Előző mérések</string>
+	<string name="lateral_menu_option_users">Felhasználók</string>
+	<string name="lateral_menu_option_weight">Testsúly</string>
+	<string name="msg_problem_ant_permission_disabled">Az ANT interfész használatának engedélyezése szükséges a mérleggel való kapcsolódáshoz.</string>
+	<string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> nem található.\nTelepítsd a Google Play-ről!</string>
+	<string name="msg_problem_setting_up_billing">Probléma az alkalmazáson belüli vásárlással</string>
+	<string name="msg_problem_usb_stick_not_detected">Úgy tűnik, a készüléked nem rendelkezik beépített ANT+ képességgel: csatlakoztass egy ANT+ USB adaptert, hogy kapcsolódhass a mérleghez.</string>
+	<string name="msg_problem_usb_stick_not_detected_never">Ne mutasd többet</string>
+	<string name="physique_rating_1">Rejtett elhízás</string>
+	<string name="physique_rating_2">Elhízott</string>
+	<string name="physique_rating_3">Erős felépítésű</string>
+	<string name="physique_rating_4">Edzetlen</string>
+	<string name="physique_rating_5">Normál</string>
+	<string name="physique_rating_6">Normál, izmos</string>
+	<string name="physique_rating_7">Vékony</string>
+	<string name="physique_rating_8">Vékony, izmos</string>
+	<string name="physique_rating_9">Nagyon izmos</string>
+	<string name="users_fragment_action_add_user">Felhasználó hozzáadása</string>
+	<string name="users_fragment_user_contextmenu_delete">Törlés</string>
+	<string name="users_fragment_user_contextmenu_edit">Szerkesztés</string>
+	<string name="users_fragment_user_contextmenu_title">Művelet kiválasztása</string>
+	<string name="users_fragment_user_contextmenu_upload_to">Feltöltés: <xliff:g id="name">%1$s</xliff:g></string>
+	<string name="visceral_fat_plus13">Felesleg</string>
+	<string name="visceral_fat_sub13">Normál</string>
+	<string name="weight_edit_empty_value_error">Az érték nem lehet üres</string>
+	<string name="weight_edit_fragment_edit_weight">Súly szerkesztése</string>
+	<string name="weight_edit_fragment_kcal_tag">kcal</string>
+	<string name="weight_edit_fragment_kg_tag">kg</string>
+	<string name="weight_edit_fragment_lb_tag">lb</string>
+	<string name="weight_edit_fragment_percent_tag">%</string>
+	<string name="weight_edit_fragment_st_tag">st</string>
+	<string name="weight_edit_fragment_years_tag">év</string>
+	<string name="weight_fragment_action_upload">Feltöltés</string>
+	<string name="weight_fragment_action_weight">Testsúly</string>
+	<string name="weight_fragment_amr_abbreviation">AMR</string>
+	<string name="weight_fragment_bmi_tag">BMI</string>
+	<string name="weight_fragment_bmr_abbreviation">BMR</string>
+	<string name="weight_fragment_icon_desc_activeMet">Aktív anyagcsere (AMR)</string>
+	<string name="weight_fragment_icon_desc_basalMet">Alap anyagcsere (BMR)</string>
+	<string name="weight_fragment_icon_desc_boneMass">Csonttömeg</string>
+	<string name="weight_fragment_icon_desc_leftArm">Bal kar</string>
+	<string name="weight_fragment_icon_desc_leftLeg">Bal láb</string>
+	<string name="weight_fragment_icon_desc_metabolicAge">Metabolikus életkor</string>
+	<string name="weight_fragment_icon_desc_muscleMass">Izomtömeg</string>
+	<string name="weight_fragment_icon_desc_percentFat">Testzsír</string>
+	<string name="weight_fragment_icon_desc_percentHydration">Testvíz</string>
+	<string name="weight_fragment_icon_desc_physiqueRating">Fizikai értékelés</string>
+	<string name="weight_fragment_icon_desc_rightArm">Jobb kar</string>
+	<string name="weight_fragment_icon_desc_rightLeg">Jobb láb</string>
+	<string name="weight_fragment_icon_desc_trunk">Törzs</string>
+	<string name="weight_fragment_icon_desc_visceralFat">Zsigeri zsír</string>
+	<string name="weight_fragment_icon_desc_weight">Testsúly</string>
+	<string name="weight_fragment_kcal_tag"><xliff:g id="number">%1$.0f</xliff:g> kcal</string>
+	<string name="weight_fragment_msg_found">Testsúly mérés kérése</string>
+	<string name="weight_fragment_msg_problem_no_internet_connection">Nincs internetkapcsolat. Próbáld újra!</string>
+	<string name="weight_fragment_msg_searching">ANT+ mérleg keresése</string>
+	<string name="weight_fragment_msg_thankyou_purchasing">Köszi, hogy megvásároltad a prémium verziót!</string>
+	<string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> sikeresen frissítve</string>
+	<string name="weight_fragment_msg_uploading">Feltöltés</string>
+	<string name="weight_fragment_msg_uploading_encoding_failure">Probléma a FIT fájl előállítása során</string>
+	<string name="weight_fragment_msg_uploading_failure">Probléma a FIT fájl Garmin Connect-re való feltöltésével.\nPróbáld újra később!</string>
+	<string name="weight_fragment_msg_waiting">Mérésre várakozás</string>
+	<string name="weight_fragment_msg_wrong_credentials">Hibás Garmin Connect felhasználónév vagy jelszó!</string>
+	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.2f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> év</string>
+	<string name="weight_process_msg_error">Hiba</string>
+	<string name="weight_process_msg_problem_bind">Az ANT szolgáltatás nem elérhető</string>
+	<string name="weight_process_msg_problem_event">Valami történt: <xliff:g id="event">%1$s</xliff:g></string>
+	<string name="weight_process_msg_problem_not_barefoot">A testelemzés nem elérhető</string>
+	<string name="weight_process_msg_problem_scale_not_ready">A mérleged nem válaszol.\nPróbáld újra.</string>
+	<string name="weight_process_msg_problem_timeout">Nem található ANT+ mérleg</string>
+	<string name="weight_process_msg_problem_timeout_measurements">Időtúllépés a testelemzés mérésénél</string>
+	<string name="weight_process_msg_problem_timeout_weight">Időtúllépés a testsúly mérésénél</string>
+	<string name="weight_process_msg_problem_while">Probléma adódott: <xliff:g id="name">%1$s</xliff:g></string>
+</resources>

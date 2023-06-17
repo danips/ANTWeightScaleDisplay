@@ -1,0 +1,297 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="12dp"
+    android:fillViewport="true">
+
+    <GridLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:columnCount="4">
+
+        <TextView
+            android:id="@+id/dateTV"
+            style="@style/CellTextViewLarge"
+            android:layout_columnSpan="4"
+            android:layout_marginBottom="16dp"
+            android:gravity="center" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_weight"
+            app:srcCompat="@drawable/ic_weight" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_weight" />
+        <EditText
+            android:id="@+id/weightTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/weightUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_percentFat"
+            app:srcCompat="@drawable/ic_percent_fat" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_percentFat" />
+        <EditText
+            android:id="@+id/percentFatTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/percentFatUnits"
+            style="@style/EditWeightUnits"/>
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_percentHydration"
+            app:srcCompat="@drawable/ic_percent_hydration" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_percentHydration" />
+        <EditText
+            android:id="@+id/percentHydrationTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/percentHydrationUnits"
+            style="@style/EditWeightUnits"
+            android:text="@string/weight_edit_fragment_percent_tag"/>
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_boneMass"
+            app:srcCompat="@drawable/ic_bone_mass" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_boneMass" />
+        <EditText
+            android:id="@+id/boneMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/boneMassUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_muscleMass"
+            app:srcCompat="@drawable/ic_muscle_mass" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_muscleMass" />
+        <EditText
+            android:id="@+id/muscleMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/muscleMassUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_physiqueRating"
+            app:srcCompat="@drawable/ic_physique_rating" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_physiqueRating" />
+        <EditText
+            android:id="@+id/physiqueRatingTV"
+            style="@style/EditWeightInt"
+            android:maxLength="1"/>
+        <TextView
+            android:id="@+id/physiqueRatingUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_visceralFat"
+            app:srcCompat="@drawable/ic_visceral_fat_rating" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_visceralFat" />
+        <EditText
+            android:id="@+id/visceralFatRatingTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/visceralFatRatingUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_metabolicAge"
+            app:srcCompat="@drawable/ic_metabolic_age" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_metabolicAge" />
+        <EditText
+            android:id="@+id/metabolicAgeTV"
+            style="@style/EditWeightInt" />
+        <TextView
+            android:id="@+id/metabolicAgeUnits"
+            style="@style/EditWeightUnits"
+            android:text="@string/weight_edit_fragment_years_tag" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_activeMet"
+            app:srcCompat="@drawable/ic_metabolic" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_activeMet" />
+        <EditText
+            android:id="@+id/activeMetTV"
+            style="@style/EditWeightInt" />
+        <TextView
+            android:id="@+id/activeMetUnits"
+            style="@style/EditWeightUnits"
+            android:text="@string/weight_edit_fragment_kcal_tag" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:contentDescription="@string/weight_fragment_icon_desc_basalMet"
+            app:srcCompat="@drawable/ic_metabolic" />
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/weight_fragment_icon_desc_basalMet" />
+        <EditText
+            android:id="@+id/basalMetTV"
+            style="@style/EditWeightInt" />
+        <TextView
+            android:id="@+id/basalMetUnits"
+            style="@style/EditWeightUnits"
+            android:text="@string/weight_edit_fragment_kcal_tag" />
+
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:layout_rowSpan="2"
+            android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+            app:srcCompat="@drawable/ic_trunk" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_trunk_percent_fat" />
+        <EditText
+            android:id="@+id/trunkPercentFatTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/trunkPercentFatUnits"
+            style="@style/EditWeightUnits" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_trunk_muscle_mass" />
+        <EditText
+            android:id="@+id/trunkMuscleMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/trunkMuscleMassUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:layout_rowSpan="2"
+            android:contentDescription="@string/weight_fragment_icon_desc_leftArm"
+            app:srcCompat="@drawable/ic_left_arm" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_left_arm_percent_fat" />
+        <EditText
+            android:id="@+id/leftArmPercentFatTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/leftArmPercentFatUnits"
+            style="@style/EditWeightUnits" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_left_arm_muscle_mass" />
+        <EditText
+            android:id="@+id/leftArmMuscleMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/leftArmMuscleMassUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:layout_rowSpan="2"
+            android:contentDescription="@string/weight_fragment_icon_desc_rightArm"
+            app:srcCompat="@drawable/ic_right_arm" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_right_arm_percent_fat" />
+        <EditText
+            android:id="@+id/rightArmPercentFatTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/rightArmPercentFatUnits"
+            style="@style/EditWeightUnits" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_right_arm_muscle_mass" />
+        <EditText
+            android:id="@+id/rightArmMuscleMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/rightArmMuscleMassUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:layout_rowSpan="2"
+            android:contentDescription="@string/weight_fragment_icon_desc_leftLeg"
+            app:srcCompat="@drawable/ic_left_leg" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_left_leg_percent_fat" />
+        <EditText
+            android:id="@+id/leftLegPercentFatTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/leftLegPercentFatUnits"
+            style="@style/EditWeightUnits" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_left_leg_muscle_mass" />
+        <EditText
+            android:id="@+id/leftLegMuscleMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/leftLegMuscleMassUnits"
+            style="@style/EditWeightUnits" />
+
+        <ImageView
+            style="@style/EditWeightIV"
+            android:layout_rowSpan="2"
+            android:contentDescription="@string/weight_fragment_icon_desc_rightLeg"
+            app:srcCompat="@drawable/ic_right_leg" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_right_leg_percent_fat" />
+        <EditText
+            android:id="@+id/rightLegPercentFatTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/rightLegPercentFatUnits"
+            style="@style/EditWeightUnits" />
+
+        <TextView
+            style="@style/EditWeightDesc"
+            android:text="@string/graphs_fragment_measurement_right_leg_muscle_mass" />
+        <EditText
+            android:id="@+id/rightLegMuscleMassTV"
+            style="@style/EditWeightValue" />
+        <TextView
+            android:id="@+id/rightLegMuscleMassUnits"
+            style="@style/EditWeightUnits" />
+
+    </GridLayout>
+</ScrollView>

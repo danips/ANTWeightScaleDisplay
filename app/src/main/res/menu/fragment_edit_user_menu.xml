@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_database_restore"
+        android:icon="@drawable/ic_action_unarchive"
+        android:title="@string/history_fragment_action_database_restore"
+        yourapp:showAsAction="ifRoom|withText">
+    </item>
+    <item
+        android:id="@+id/action_edituser_cancel"
+        android:icon="@drawable/ic_action_cancel"
+        android:title="@android:string/cancel"
+        yourapp:showAsAction="always|withText"/>
+    <item
+        android:id="@+id/action_edituser_done"
+        android:icon="@drawable/ic_action_accept"
+        android:title="@android:string/ok"
+        yourapp:showAsAction="always|withText"/>
+</menu>

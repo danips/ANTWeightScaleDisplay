@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/row_shape"
+    android:layout_marginTop="5dip"
+    android:id="@+id/ll_user">
+    <ImageView
+        style="@style/WrapWrap"
+        android:id="@+id/userIV"
+        app:srcCompat="@drawable/ic_action_person"
+        android:contentDescription="@string/edit_user_fragment_user" />
+
+    <TextView
+        style="@style/WrapWrap"
+        android:textAppearance="?android:textAppearanceMedium"
+        android:text="@string/edit_user_fragment_user"
+        android:id="@+id/nameTV"
+        android:layout_alignTop="@+id/userIV"
+        android:layout_toEndOf="@+id/userIV"
+        android:layout_toRightOf="@+id/userIV" />
+
+    <TextView
+        style="@style/WrapWrap"
+        android:textAppearance="?android:textAppearanceSmall"
+        android:text="@string/edit_user_fragment_user"
+        android:id="@+id/descTV"
+        android:layout_alignBaseline="@+id/nameTV"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_margin="5dp" />
+
+    <LinearLayout
+        style="@style/WrapWrap"
+        android:padding="5dp"
+        android:layout_below="@+id/nameTV"
+        android:layout_toEndOf="@+id/userIV"
+        android:layout_toRightOf="@+id/userIV"
+        android:id="@+id/linearLayout">
+        <ImageView
+            style="@style/WrapWrap"
+            app:srcCompat="@drawable/ic_gc"
+            android:id="@+id/gcIV"
+            android:padding="2dip"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@string/edit_user_fragment_garmin_connect_category" />
+        <ImageView
+            style="@style/WrapWrap"
+            app:srcCompat="@drawable/ic_gmail"
+            android:id="@+id/emailIV"
+            android:padding="2dip"
+            android:layout_gravity="center_vertical"
+            android:contentDescription="@string/edit_user_fragment_email_category" />
+    </LinearLayout>
+
+</RelativeLayout>

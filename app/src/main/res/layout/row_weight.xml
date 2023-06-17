@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/row_shape">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:padding="2dp"
+        android:gravity="center">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/row_weight_dateTV"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/row_weight_timeTV"/>
+    </LinearLayout>
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:stretchColumns="1,3">
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/row_weight_weightIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_weight"
+                app:srcCompat="@drawable/ic_weight_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_weightTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_bmiIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_bmi_tag"
+                app:srcCompat="@drawable/ic_bmi_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_bmiTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/tftmTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_trunkPercentFatIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                app:srcCompat="@drawable/ic_trunk_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_trunkPercentFatTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_trunkMuscleMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                app:srcCompat="@drawable/ic_trunk_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_trunkMuscleMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/laflamTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_leftArmPercentFatIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_leftArm"
+                app:srcCompat="@drawable/ic_left_arm_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_leftArmPercentFatTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_leftArmMuscleMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_leftArm"
+                app:srcCompat="@drawable/ic_left_arm_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_leftArmMuscleMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/raframTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_rightArmPercentFatIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_rightArm"
+                app:srcCompat="@drawable/ic_right_arm_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_rightArmPercentFatTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_rightArmMuscleMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_rightArm"
+                app:srcCompat="@drawable/ic_right_arm_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_rightArmMuscleMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/llfllmTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_leftLegPercentFatIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_leftLeg"
+                app:srcCompat="@drawable/ic_left_leg_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_leftLegPercentFatTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_leftLegMuscleMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_leftLeg"
+                app:srcCompat="@drawable/ic_left_leg_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_leftLegMuscleMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/rlfrlmTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_rightLegPercentFatIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_rightLeg"
+                app:srcCompat="@drawable/ic_right_leg_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_rightLegPercentFatTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_rightLegMuscleMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_rightLeg"
+                app:srcCompat="@drawable/ic_right_leg_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_rightLegMuscleMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/pfphTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_percentFatIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_percentFat"
+                app:srcCompat="@drawable/ic_percent_fat_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_percentFatTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_percentHydrationIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_percentHydration"
+                app:srcCompat="@drawable/ic_percent_hydration_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_percentHydrationTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/bmmmTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_boneMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_boneMass"
+                app:srcCompat="@drawable/ic_bone_mass_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_boneMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_muscleMassIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_muscleMass"
+                app:srcCompat="@drawable/ic_muscle_mass_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_muscleMassTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/prvfTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_physiqueRatingIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_physiqueRating"
+                app:srcCompat="@drawable/ic_physique_rating_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_physiqueRatingTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_visceralFatRatingIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_visceralFat"
+                app:srcCompat="@drawable/ic_visceral_fat_rating_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_visceralFatRatingTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:id="@+id/maamTR"
+            android:paddingTop="1dip">
+
+            <ImageView
+                android:id="@+id/row_weight_metabolicAgeIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_metabolicAge"
+                app:srcCompat="@drawable/ic_metabolic_age_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_metabolicAgeTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <ImageView
+                android:id="@+id/row_weight_basalMetIV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/rounded_blue_mini"
+                android:contentDescription="@string/weight_fragment_icon_desc_basalMet"
+                app:srcCompat="@drawable/ic_metabolic_mini" />
+
+            <TextView
+                android:id="@+id/row_weight_basalMetTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+    </TableLayout>
+</LinearLayout>

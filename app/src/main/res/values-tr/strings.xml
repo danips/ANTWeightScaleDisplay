@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+	<string name="ant_radio_service">ANT Radio Service</string>
+	<string name="ant_usb_service">ANT USB Service</string>
+	<string name="app_name">ANT+ tartı göstergesi</string>
+	<string name="bmi_value_0">Düşük kilolu</string>
+	<string name="bmi_value_1">Normal</string>
+	<string name="bmi_value_2">Aşırı kilolu</string>
+	<string name="bmi_value_3">Obez</string>
+	<string name="edit_goal_fragment_color">Renk</string>
+	<string name="edit_goal_fragment_end">Son</string>
+	<string name="edit_goal_fragment_goal">Hedef</string>
+	<string name="edit_goal_fragment_start">Başlangıç</string>
+	<string name="edit_user_fragment_activity">haftalık egzersiz süresi</string>
+	<string name="edit_user_fragment_activity_option_0">Sıfır egzersiz</string>
+	<string name="edit_user_fragment_activity_option_1">20 dk\'ya kadar</string>
+	<string name="edit_user_fragment_activity_option_2">21-40 dakika arası</string>
+	<string name="edit_user_fragment_activity_option_3">41-60 dakika arası</string>
+	<string name="edit_user_fragment_activity_option_4">1-5 saat arası</string>
+	<string name="edit_user_fragment_activity_option_5">5-9 saat arası</string>
+	<string name="edit_user_fragment_activity_option_6">9 saatten fazla</string>
+	<string name="edit_user_fragment_advanced_settings_category">Gelişmiş ayarlar</string>
+	<string name="edit_user_fragment_athlete_mode">Atlet modu</string>
+	<string name="edit_user_fragment_automatic_upload">Otomatik yükleme</string>
+	<string name="edit_user_fragment_birthdate">Doğum tarihi</string>
+	<string name="edit_user_fragment_connect_to"><b><xliff:g id="name">%1$s</xliff:g></b>   \'a bağlan</string>
+	<string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> <b><xliff:g id="name">%1$s</xliff:g></b> \'ya bağlandı</string>
+	<string name="edit_user_fragment_dates_in_graph">Grafikteki gün sayısı</string>
+	<string name="edit_user_fragment_email_category">e-posta</string>
+	<string name="edit_user_fragment_fat_mass">Yağ kütlesini göster</string>
+	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
+	<string name="edit_user_fragment_gender">Cinsiyet</string>
+	<string name="edit_user_fragment_gender_option_female">Kadın</string>
+	<string name="edit_user_fragment_gender_option_male">Erkek</string>
+	<string name="edit_user_fragment_height">Boy</string>
+	<string name="edit_user_fragment_msg_age_invalid">Uygun olmayan yaş. 1 ve 127 yaşları arasında olmalıdır.</string>
+	<string name="edit_user_fragment_msg_birthdate_missing">Doğum tarihi eksik</string>
+	<string name="edit_user_fragment_msg_height_invalid">Uygun olmayan boy. 255 cm /8\'4\" \'ten az olmalıdır.</string>
+	<string name="edit_user_fragment_msg_height_missing">Boy eksik</string>
+	<string name="edit_user_fragment_msg_name_dup">Kullanıcı adı zaten kullanılıyor</string>
+	<string name="edit_user_fragment_msg_name_missing">Kullanıcı adı eksik</string>
+	<string name="edit_user_fragment_msg_user_missing">Geçerli en az bir kullanıcı seçmelisiniz</string>
+	<string name="edit_user_fragment_password">Şifre</string>
+	<string name="edit_user_fragment_units">Birimler</string>
+	<string name="edit_user_fragment_units_option_kg_cm">kg / cm</string>
+	<string name="edit_user_fragment_units_option_kg_ft">kg / ft, in</string>
+	<string name="edit_user_fragment_units_option_lb_cm">lb / cm</string>
+	<string name="edit_user_fragment_units_option_lb_ft">lb / ft, in</string>
+	<string name="edit_user_fragment_units_option_st_cm">st, lb / cm</string>
+	<string name="edit_user_fragment_units_option_st_ft">st, lb / ft, in</string>
+	<string name="edit_user_fragment_units_tag_cm">cm</string>
+	<string name="edit_user_fragment_units_tag_ft">\'</string>
+	<string name="edit_user_fragment_units_tag_in">\"</string>
+	<string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.2f</xliff:g> kg</string>
+	<string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.2f</xliff:g> lb</string>
+	<string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
+	<string name="edit_user_fragment_user">Kullanıcı</string>
+	<string name="fat_percent_value_0">Az yağlı</string>
+	<string name="fat_percent_value_1">Sağlıklı</string>
+	<string name="fat_percent_value_2">Yağlı</string>
+	<string name="fat_percent_value_3">Obez</string>
+	<string name="garmin_connect_invalid_password">Garmin\'in yeni kurallarına göre Garmin Connect şifreniz geçersizdir. Lütfen yenileyiniz.</string>
+	<string name="graphs_fragment_measure_tag">Ölçüm</string>
+	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Sol kol kas kütlesi</string>
+	<string name="graphs_fragment_measurement_left_arm_percent_fat">Sol kol yağ yüzdesi</string>
+	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Sol bacak kas kütlesi</string>
+	<string name="graphs_fragment_measurement_left_leg_percent_fat">Sol bacak yağ yüzdesi</string>
+	<string name="graphs_fragment_measurement_right_arm_muscle_mass">Sağ kol kas kütlesi</string>
+	<string name="graphs_fragment_measurement_right_arm_percent_fat">Sağ kol yağ yüzdesi</string>
+	<string name="graphs_fragment_measurement_right_leg_muscle_mass">Sağ bacak kas kütlesi</string>
+	<string name="graphs_fragment_measurement_right_leg_percent_fat">Sağ bacak yağ yüzdesi</string>
+	<string name="graphs_fragment_measurement_trunk_muscle_mass">Gövde kas kütlesi</string>
+	<string name="graphs_fragment_measurement_trunk_percent_fat">Gövde yağ yüzdesi</string>
+	<string name="graphs_fragment_period_always">Her zaman</string>
+	<string name="graphs_fragment_period_four_months">4 ay</string>
+	<string name="graphs_fragment_period_half_year">6 ay</string>
+	<string name="graphs_fragment_period_month">1 ay</string>
+	<string name="graphs_fragment_period_six_weeks">6 hafta</string>
+	<string name="graphs_fragment_period_tag">Aralık</string>
+	<string name="graphs_fragment_period_two_months">2 ay</string>
+	<string name="graphs_fragment_period_two_weeks">2 hafta</string>
+	<string name="graphs_fragment_period_two_years">2 yıl</string>
+	<string name="graphs_fragment_period_week">1 hafta</string>
+	<string name="graphs_fragment_period_year">1 yıl</string>
+	<string name="history_fragment_action_database">Veri tabanı</string>
+	<string name="history_fragment_action_database_backup">Veri tabanını yedekle</string>
+	<string name="history_fragment_action_database_backup_ok">Veri tabanı başarıyla yedeklendi (Dosya: <xliff:g id="name">%1$s</xliff:g>)</string>
+	<string name="history_fragment_action_database_restore">Veri tabanını geri yükle</string>
+	<string name="history_fragment_action_database_restore_ok">Veri tabanı başarıyla geri yüklendi</string>
+	<string name="history_fragment_action_download">İndir</string>
+	<string name="history_fragment_action_export">Dışa aktar</string>
+	<string name="history_fragment_action_export_csv">CSV</string>
+	<string name="history_fragment_date">Tarih</string>
+	<string name="history_fragment_download"><xliff:g id="name">%1$s</xliff:g> indir</string>
+	<string name="history_fragment_download_complete">İndirme tamamlandı</string>
+	<string name="history_fragment_download_in_progress">İndirme devam ediyor</string>
+	<string name="hydration_percent_value_0">Düşük</string>
+	<string name="hydration_percent_value_1">İyi</string>
+	<string name="hydration_percent_value_2">Yüksek</string>
+	<string name="lateral_menu_close">Yan menüyü kapat</string>
+	<string name="lateral_menu_open">Yan menüyü aç</string>
+	<string name="lateral_menu_option_about">Hakkında</string>
+	<string name="lateral_menu_option_goals">Hedefler</string>
+	<string name="lateral_menu_option_graphs">Grafikler</string>
+	<string name="lateral_menu_option_history">Geçmiş</string>
+	<string name="lateral_menu_option_users">Kullanıcılar</string>
+	<string name="lateral_menu_option_weight">Ağırlık</string>
+	<string name="msg_problem_ant_permission_disabled">ANT Radio Service\'in ANT cihazını kullanma yetkisi yok. Tartı ile iletişim için lütfen yetki verin.</string>
+	<string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> bulunamadı. Lütfen Google Play\'den yükleyiniz.</string>
+	<string name="msg_problem_setting_up_billing">Uygulama içi ödeme ayarı problemi</string>
+	<string name="msg_problem_usb_stick_not_detected">Cihazınıza entegre bir ANT+ vericisi bulunmuyor. Tartı ile iletişim için bir adet ANT+ USB vericisi bağlamalısınız.</string>
+	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
+	<string name="physique_rating_1">Gizli obez</string>
+	<string name="physique_rating_2">Obez</string>
+	<string name="physique_rating_3">Sağlam yapılı</string>
+	<string name="physique_rating_4">Az egzersiz yapan</string>
+	<string name="physique_rating_5">standart</string>
+	<string name="physique_rating_6">Standart kaslı</string>
+	<string name="physique_rating_7">İnce</string>
+	<string name="physique_rating_8">İnce ve Kaslı</string>
+	<string name="physique_rating_9">Çok kaslı</string>
+	<string name="users_fragment_action_add_user">Kullanıcı ekle</string>
+	<string name="users_fragment_user_contextmenu_delete">Sil</string>
+	<string name="users_fragment_user_contextmenu_edit">Düzenle</string>
+	<string name="users_fragment_user_contextmenu_title">İşlem seç</string>
+	<string name="users_fragment_user_contextmenu_upload_to"><xliff:g id="name">%1$s</xliff:g> \'e yükle</string>
+	<string name="visceral_fat_plus13">Fazla</string>
+	<string name="visceral_fat_sub13">Sağlıklı</string>
+	<string name="weight_edit_empty_value_error">Değer boş olamaz</string>
+	<string name="weight_edit_fragment_edit_weight">Ağırlığı düzenle</string>
+	<string name="weight_edit_fragment_kcal_tag">kcal</string>
+	<string name="weight_edit_fragment_kg_tag">kg</string>
+	<string name="weight_edit_fragment_lb_tag">lb</string>
+	<string name="weight_edit_fragment_percent_tag">%</string>
+	<string name="weight_edit_fragment_st_tag">st</string>
+	<string name="weight_edit_fragment_years_tag">yıl</string>
+	<string name="weight_fragment_action_upload">Yükle</string>
+	<string name="weight_fragment_action_weight">Ağırlık</string>
+	<string name="weight_fragment_amr_abbreviation">AMH</string>
+	<string name="weight_fragment_bmi_tag">VKİ</string>
+	<string name="weight_fragment_bmr_abbreviation">BMH</string>
+	<string name="weight_fragment_icon_desc_activeMet">Aktif metabolik hız</string>
+	<string name="weight_fragment_icon_desc_basalMet">Bazal metabolik hız</string>
+	<string name="weight_fragment_icon_desc_boneMass">Kemik yoğunluğu</string>
+	<string name="weight_fragment_icon_desc_leftArm">Sol kol</string>
+	<string name="weight_fragment_icon_desc_leftLeg">Sol bacak</string>
+	<string name="weight_fragment_icon_desc_metabolicAge">Metabolik yaş</string>
+	<string name="weight_fragment_icon_desc_muscleMass">Kas kütlesi</string>
+	<string name="weight_fragment_icon_desc_percentFat">Vücut yağı</string>
+	<string name="weight_fragment_icon_desc_percentHydration">Vücut suyu</string>
+	<string name="weight_fragment_icon_desc_physiqueRating">Fiziksel derece</string>
+	<string name="weight_fragment_icon_desc_rightArm">Sağ kol</string>
+	<string name="weight_fragment_icon_desc_rightLeg">Sağ bacak</string>
+	<string name="weight_fragment_icon_desc_trunk">Gövde</string>
+	<string name="weight_fragment_icon_desc_visceralFat">Organ yağlanması</string>
+	<string name="weight_fragment_icon_desc_weight">Ağırlık</string>
+	<string name="weight_fragment_kcal_tag"><xliff:g id="number">%1$.0f</xliff:g> kcal</string>
+	<string name="weight_fragment_msg_found">Ağırlık ölçümü bekleniyor</string>
+	<string name="weight_fragment_msg_problem_no_internet_connection">Şu anda internet bağlantısı yok. Daha sonra tekrar deneyiniz.</string>
+	<string name="weight_fragment_msg_searching">ANT+ tartı aranıyor</string>
+	<string name="weight_fragment_msg_thankyou_purchasing">Premium\'a yükselttiğiniz için teşekkürler.</string>
+	<string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> başarıyla güncellendi</string>
+	<string name="weight_fragment_msg_uploading">Yükleniyor</string>
+	<string name="weight_fragment_msg_uploading_encoding_failure">FIT dosyası oluşturulurken bir hata oluştu</string>
+	<string name="weight_fragment_msg_uploading_failure">FIT dosyası Garmin Connect\'e yüklenirken bir hata oluştu.\nDaha sonra tekrar deneyiniz.</string>
+	<string name="weight_fragment_msg_waiting">Ağırlık ölçümü bekleniyor</string>
+	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
+	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.2f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> yıl</string>
+	<string name="weight_process_msg_error">Hata</string>
+	<string name="weight_process_msg_problem_bind">ANT servisi ile bağlantı kurulamadı</string>
+	<string name="weight_process_msg_problem_event">Olay oluştu: <xliff:g id="event">%1$s</xliff:g></string>
+	<string name="weight_process_msg_problem_not_barefoot">Kompozisyon analizi mevcut değil</string>
+	<string name="weight_process_msg_problem_scale_not_ready">ANT+ tartısı hazır değil.\nDaha sonra tekrar deneyiniz.</string>
+	<string name="weight_process_msg_problem_timeout">ANT+ tartısı bulunamadı</string>
+	<string name="weight_process_msg_problem_timeout_measurements">Vücut kompozisyonu ölçümü zaman aşımı</string>
+	<string name="weight_process_msg_problem_timeout_weight">Ağırlık ölçümü zaman aşımı</string>
+	<string name="weight_process_msg_problem_while"><xliff:g id="name">%1$s</xliff:g> sırasında problem</string>
+</resources>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_select_user"
+        android:title="@string/edit_user_fragment_user"
+        yourapp:actionViewClass="android.widget.Spinner"
+        yourapp:showAsAction="always"/>
+    <item
+        android:id="@+id/action_export_history"
+        android:icon="@drawable/ic_action_save"
+        android:title="@string/history_fragment_action_export"
+        yourapp:showAsAction="ifRoom|withText">
+        <menu>
+            <item
+                android:id="@+id/action_export_history_csv"
+                android:title="@string/history_fragment_action_export_csv" />
+        </menu>
+    </item>
+    <item
+        android:id="@+id/action_download_history"
+        android:icon="@drawable/ic_action_download"
+        android:title="@string/history_fragment_action_download"
+        yourapp:showAsAction="ifRoom|withText">
+        <menu>
+            <item
+                android:id="@+id/action_download_history_gc"
+                android:title="@string/edit_user_fragment_garmin_connect_category" />
+        </menu>
+    </item>
+</menu>

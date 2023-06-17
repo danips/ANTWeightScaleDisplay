@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/row_shape">
+
+    <ImageView
+        android:id="@+id/row_goal_metricIV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/rounded_blue_mini"
+        android:contentDescription="@string/graphs_fragment_measure_tag"
+        app:srcCompat="@drawable/ic_weight" />
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TableRow
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:id="@+id/row_goal_startDateTV"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/row_goal_startValueTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/row_goal_totalProgressTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+        <TableRow
+            android:paddingTop="1dip">
+
+            <TextView
+                android:id="@+id/row_goal_endDateTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingLeft="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/row_goal_endValueTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+
+            <TextView
+                android:id="@+id/row_goal_onTrackProgressTV"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="10dip"
+                android:paddingLeft="10dip"
+                android:paddingEnd="10dip"
+                android:paddingRight="10dip"
+                android:textAppearance="?android:textAppearanceMedium" />
+        </TableRow>
+
+    </TableLayout>
+</LinearLayout>

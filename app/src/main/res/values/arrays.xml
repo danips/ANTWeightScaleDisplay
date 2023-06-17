@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string-array name="activity">
+        <item>@string/edit_user_fragment_activity_option_0</item>
+        <item>@string/edit_user_fragment_activity_option_1</item>
+        <item>@string/edit_user_fragment_activity_option_2</item>
+        <item>@string/edit_user_fragment_activity_option_3</item>
+        <item>@string/edit_user_fragment_activity_option_4</item>
+        <item>@string/edit_user_fragment_activity_option_5</item>
+        <item>@string/edit_user_fragment_activity_option_6</item>
+    </string-array>
+
+    <string-array name="type">
+        <item>@string/weight_fragment_icon_desc_weight</item>
+        <item>@string/weight_fragment_bmi_tag</item>
+        <item>@string/weight_fragment_icon_desc_percentFat</item>
+        <item>@string/weight_fragment_icon_desc_percentHydration</item>
+        <item>@string/weight_fragment_icon_desc_boneMass</item>
+        <item>@string/weight_fragment_icon_desc_muscleMass</item>
+        <item>@string/weight_fragment_icon_desc_physiqueRating</item>
+        <item>@string/weight_fragment_icon_desc_visceralFat</item>
+        <item>@string/weight_fragment_icon_desc_metabolicAge</item>
+        <item>@string/weight_fragment_icon_desc_activeMet</item>
+        <item>@string/weight_fragment_icon_desc_basalMet</item>
+        <item>@string/graphs_fragment_measurement_trunk_percent_fat</item>
+        <item>@string/graphs_fragment_measurement_trunk_muscle_mass</item>
+        <item>@string/graphs_fragment_measurement_left_arm_percent_fat</item>
+        <item>@string/graphs_fragment_measurement_left_arm_muscle_mass</item>
+        <item>@string/graphs_fragment_measurement_right_arm_percent_fat</item>
+        <item>@string/graphs_fragment_measurement_right_arm_muscle_mass</item>
+        <item>@string/graphs_fragment_measurement_left_leg_percent_fat</item>
+        <item>@string/graphs_fragment_measurement_left_leg_muscle_mass</item>
+        <item>@string/graphs_fragment_measurement_right_leg_percent_fat</item>
+        <item>@string/graphs_fragment_measurement_right_leg_muscle_mass</item>
+    </string-array>
+
+    <string-array name="units">
+        <item>@string/edit_user_fragment_units_option_kg_cm</item>
+        <item>@string/edit_user_fragment_units_option_lb_cm</item>
+        <item>@string/edit_user_fragment_units_option_st_cm</item>
+        <item>@string/edit_user_fragment_units_option_kg_ft</item>
+        <item>@string/edit_user_fragment_units_option_lb_ft</item>
+        <item>@string/edit_user_fragment_units_option_st_ft</item>
+    </string-array>
+
+    <string-array name="drawer_list">
+        <item>@string/lateral_menu_option_weight</item>
+        <item>@string/lateral_menu_option_graphs</item>
+        <item>@string/lateral_menu_option_history</item>
+        <item>@string/lateral_menu_option_users</item>
+    </string-array>
+
+    <string-array name="date_axis" translatable="false">
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+    </string-array>
+
+</resources>

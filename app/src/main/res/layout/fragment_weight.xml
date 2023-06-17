@@ -1,0 +1,463 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TableLayout
+            android:id="@+id/measurement_table"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:stretchColumns="1,3"
+            android:padding="@dimen/activity_margin"
+            android:layout_weight="1.0">
+
+            <TableRow style="@style/TableRowFirst">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageView"
+                        app:srcCompat="@drawable/ic_weight"
+                        android:id="@+id/weightIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_weight"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/weightIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:layout_alignEnd="@+id/weightIV"
+                        android:layout_alignRight="@+id/weightIV"
+                        android:contentDescription="@string/weight_fragment_icon_desc_weight"/>
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/weightTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewSmall"
+                        android:id="@+id/weightTV2"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:id="@+id/trunkRL">
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_trunk"
+                        android:id="@+id/trunkIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"/>
+
+                    <ImageView
+                        android:id="@+id/trunkIVminiTop"
+                        style="@style/ImageViewMini"
+                        android:layout_alignEnd="@+id/trunkIV"
+                        android:layout_alignRight="@+id/trunkIV"
+                        android:paddingTop="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                    <ImageView
+                        android:id="@+id/trunkIVminiBottom"
+                        style="@style/ImageViewMini"
+                        android:layout_alignBottom="@+id/trunkIV"
+                        android:layout_alignEnd="@+id/trunkIV"
+                        android:layout_alignRight="@+id/trunkIV"
+                        android:paddingBottom="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout"
+                    android:id="@+id/trunkLL">
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/trunkPercentFatTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/trunkMuscleMassTV"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+            </TableRow>
+
+
+            <TableRow style="@style/TableRow"
+                android:id="@+id/armsTR">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_left_arm"
+                        android:id="@+id/leftArmIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_leftArm"/>
+                    <ImageView
+                        android:id="@+id/leftArmIVminiTop"
+                        style="@style/ImageViewMini"
+                        android:layout_alignEnd="@+id/leftArmIV"
+                        android:layout_alignRight="@+id/leftArmIV"
+                        android:paddingTop="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                    <ImageView
+                        android:id="@+id/leftArmIVminiBottom"
+                        style="@style/ImageViewMini"
+                        android:layout_alignBottom="@+id/leftArmIV"
+                        android:layout_alignEnd="@+id/leftArmIV"
+                        android:layout_alignRight="@+id/leftArmIV"
+                        android:paddingBottom="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/leftArmPercentFatTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/leftArmMuscleMassTV"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_right_arm"
+                        android:id="@+id/rightArmIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_rightArm"/>
+                    <ImageView
+                        android:id="@+id/rightArmIVminiTop"
+                        style="@style/ImageViewMini"
+                        android:layout_alignEnd="@+id/rightArmIV"
+                        android:layout_alignRight="@+id/rightArmIV"
+                        android:paddingTop="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                    <ImageView
+                        android:id="@+id/rightArmIVminiBottom"
+                        style="@style/ImageViewMini"
+                        android:layout_alignBottom="@+id/rightArmIV"
+                        android:layout_alignEnd="@+id/rightArmIV"
+                        android:layout_alignRight="@+id/rightArmIV"
+                        android:paddingBottom="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/rightArmPercentFatTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/rightArmMuscleMassTV"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+            </TableRow>
+
+            <TableRow style="@style/TableRow"
+                android:id="@+id/legsTR">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_left_leg"
+                        android:id="@+id/leftLegIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_leftLeg"/>
+                    <ImageView
+                        android:id="@+id/leftLegIVminiTop"
+                        style="@style/ImageViewMini"
+                        android:layout_alignEnd="@+id/leftLegIV"
+                        android:layout_alignRight="@+id/leftLegIV"
+                        android:paddingTop="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                    <ImageView
+                        android:id="@+id/leftLegIVminiBottom"
+                        style="@style/ImageViewMini"
+                        android:layout_alignBottom="@+id/leftLegIV"
+                        android:layout_alignEnd="@+id/leftLegIV"
+                        android:layout_alignRight="@+id/leftLegIV"
+                        android:paddingBottom="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/leftLegPercentFatTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/leftLegMuscleMassTV"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_right_leg"
+                        android:id="@+id/rightLegIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_rightLeg"/>
+                    <ImageView
+                        android:id="@+id/rightLegIVminiTop"
+                        style="@style/ImageViewMini"
+                        android:layout_alignEnd="@+id/rightLegIV"
+                        android:layout_alignRight="@+id/rightLegIV"
+                        android:paddingTop="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                    <ImageView
+                        android:id="@+id/rightLegIVminiBottom"
+                        style="@style/ImageViewMini"
+                        android:layout_alignBottom="@+id/rightLegIV"
+                        android:layout_alignEnd="@+id/rightLegIV"
+                        android:layout_alignRight="@+id/rightLegIV"
+                        android:paddingBottom="5dp"
+                        android:contentDescription="@string/weight_fragment_icon_desc_trunk"
+                        app:srcCompat="@drawable/ic_equal" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/rightLegPercentFatTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewMedium"
+                        android:id="@+id/rightLegMuscleMassTV"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+            </TableRow>
+
+            <TableRow style="@style/TableRow">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageView"
+                        app:srcCompat="@drawable/ic_percent_fat"
+                        android:id="@+id/percentFatIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_percentFat"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/percentFatIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_percentFat"
+                        android:layout_alignEnd="@+id/percentFatIV"
+                        android:layout_alignRight="@+id/percentFatIV"/>
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/percentFatTV"
+                        android:layout_weight="1"/>
+
+                    <TextView style="@style/CellTextViewSmall"
+                        android:id="@+id/percentFatTV2"
+                        android:layout_weight="1"/>
+                </LinearLayout>
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_percent_hydration"
+                        android:id="@+id/percentHydrationIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_percentHydration"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/percentHydrationIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_percentHydration"
+                        android:layout_alignEnd="@+id/percentHydrationIV"
+                        android:layout_alignRight="@+id/percentHydrationIV"/>
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/percentHydrationTV" />
+
+                    <TextView style="@style/CellTextViewSmall"
+                        android:id="@+id/percentHydrationTV2" />
+                </LinearLayout>
+            </TableRow>
+
+            <TableRow style="@style/TableRow">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_bone_mass"
+                        android:id="@+id/boneMassIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_boneMass"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/boneMassIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_boneMass"
+                        android:layout_alignEnd="@+id/boneMassIV"
+                        android:layout_alignRight="@+id/boneMassIV"/>
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/boneMassTV" />
+                </LinearLayout>
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_muscle_mass"
+                        android:id="@+id/muscleMassIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_muscleMass"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/muscleMassIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_muscleMass"
+                        android:layout_alignEnd="@+id/muscleMassIV"
+                        android:layout_alignRight="@+id/muscleMassIV" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/muscleMassTV" />
+                </LinearLayout>
+            </TableRow>
+
+            <TableRow
+                style="@style/TableRow"
+                android:id="@+id/physiqueRatingvisceralFatRatingTR">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_physique_rating"
+                        android:id="@+id/physiqueRatingIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_physiqueRating"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/physiqueRatingIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_physiqueRating"
+                        android:layout_alignEnd="@+id/physiqueRatingIV"
+                        android:layout_alignRight="@+id/physiqueRatingIV" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/physiqueRatingTV" />
+
+                    <TextView style="@style/CellTextViewSmall"
+                        android:id="@+id/physiqueRatingTV2"/>
+                </LinearLayout>
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_visceral_fat_rating"
+                        android:id="@+id/visceralFatRatingIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_visceralFat"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/visceralFatRatingIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_visceralFat"
+                        android:layout_alignEnd="@+id/visceralFatRatingIV"
+                        android:layout_alignRight="@+id/visceralFatRatingIV"/>
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/visceralFatRatingTV"/>
+
+                    <TextView style="@style/CellTextViewSmall"
+                        android:id="@+id/visceralFatRatingTV2" />
+                </LinearLayout>
+            </TableRow>
+
+            <TableRow style="@style/TableRow">
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_metabolic_age"
+                        android:id="@+id/metabolicAgeIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_metabolicAge"/>
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/metabolicAgeIVmini"
+                        app:srcCompat="@drawable/ic_equal"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_metabolicAge"
+                        android:layout_alignEnd="@+id/metabolicAgeIV"
+                        android:layout_alignRight="@+id/metabolicAgeIV"/>
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/metabolicAgeTV"/>
+                </LinearLayout>
+
+                <RelativeLayout>
+                    <ImageView style="@style/ImageViewDisabled"
+                        app:srcCompat="@drawable/ic_metabolic"
+                        android:id="@+id/basalMetIV"
+                        android:layout_centerVertical="true"
+                        android:layout_alignParentStart="true"
+                        android:layout_alignParentLeft="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_basalMet" />
+                    <ImageView style="@style/ImageViewMini"
+                        android:id="@+id/basalMetIVmini"
+                        app:srcCompat="@drawable/ic_more"
+                        android:layout_centerVertical="true"
+                        android:contentDescription="@string/weight_fragment_icon_desc_basalMet"
+                        android:layout_alignEnd="@+id/basalMetIV"
+                        android:layout_alignRight="@+id/basalMetIV" />
+                </RelativeLayout>
+
+                <LinearLayout style="@style/LinearLayout">
+                    <TextView style="@style/CellTextViewLarge"
+                        android:id="@+id/basalMetTV" />
+                </LinearLayout>
+            </TableRow>
+        </TableLayout>
+
+        <com.google.android.material.floatingactionbutton.FloatingActionButton
+            android:id="@+id/fab"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:tint="#ffffff"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentBottom="true"
+            android:layout_margin="@dimen/fab_margin"
+            app:srcCompat="@android:drawable/ic_input_add" />
+
+    </RelativeLayout>
+
+</ScrollView>
