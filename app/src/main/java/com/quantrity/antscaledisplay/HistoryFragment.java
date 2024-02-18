@@ -358,7 +358,7 @@ public class HistoryFragment extends Fragment {
                     try {
                         final User user = (User)usersSpinner.getSelectedItem();
                         GarminConnect gc = new GarminConnect();
-                        if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
+                        if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""), getActivity())) {
                             result.append(getString(R.string.weight_fragment_msg_wrong_credentials));
                         }
                         else {

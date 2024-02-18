@@ -179,7 +179,7 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
                 }
             } else {
                 GarminConnect gc = new GarminConnect();
-                if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
+                if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""), activityRef.get())) {
                     MainActivity activity = activityRef.get();
                     if (activity != null) {
                         gc_error = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
