@@ -11,8 +11,8 @@ android {
         minSdk 16
         targetSdk 34
         multiDexEnabled true
-        versionCode 317
-        versionName "3.17"
+        versionCode 318
+        versionName "3.18"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -33,7 +33,9 @@ android {
         aidl true
     }
     packagingOptions {
-        exclude("META-INF/DEPENDENCIES")
+        resources {
+            excludes += ['META-INF/DEPENDENCIES']
+        }
     }
 }
 
@@ -49,10 +51,8 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'com.larswerkman:HoloColorPicker:1.5'
     implementation 'cz.msebera.android:httpclient:4.5.8'
-    implementation 'org.apache.httpcomponents:httpcore:4.4.15'
-    implementation 'org.apache.httpcomponents:httpmime:4.5.6'
     implementation 'com.google.android.gms:play-services-auth:21.0.0'
 
-    implementation group: 'oauth.signpost', name: 'signpost-core', version: '2.0.0'
-    implementation group: 'oauth.signpost', name: 'signpost-commonshttp4', version: '2.0.0'
+    implementation group: 'oauth.signpost', name: 'signpost-core', version: '2.1.1'
+    implementation group: 'oauth.signpost', name: 'signpost-commonshttp4', version: '2.1.1'
 }

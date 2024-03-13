@@ -268,7 +268,7 @@ public class GarminConnect {
     // Exchange for oauth v2 token
     // We have to manually create a request object here because sign(String url) only signs GET
     // requests.
-    org.apache.http.client.methods.HttpPost exchangeRequest = new org.apache.http.client.methods.HttpPost(GET_OAUTH2_URL);
+    HttpPost exchangeRequest = new HttpPost(GET_OAUTH2_URL);
     HttpRequest signedExchangeRequest = consumer.sign(exchangeRequest);
 
     HttpPost postOauth2 = new HttpPost(GET_OAUTH2_URL);
