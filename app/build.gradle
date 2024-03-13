@@ -4,12 +4,12 @@ plugins {
 
 android {
     namespace 'com.quantrity.antscaledisplay'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.quantrity.antscaledisplay"
         minSdk 16
-        targetSdk 33
+        targetSdk 34
         multiDexEnabled true
         versionCode 317
         versionName "3.17"
@@ -38,10 +38,10 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation fileTree(dir: 'libs', include: ['*.aar'])
 
     implementation 'androidx.appcompat:appcompat:1.6.1'
-    implementation 'com.google.android.material:material:1.9.0'
+    implementation 'com.google.android.material:material:1.11.0'
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
 
@@ -49,9 +49,9 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
     implementation 'com.larswerkman:HoloColorPicker:1.5'
     implementation 'cz.msebera.android:httpclient:4.5.8'
-    implementation 'org.apache.httpcomponents:httpcore:4.4.10'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.15'
     implementation 'org.apache.httpcomponents:httpmime:4.5.6'
-    implementation 'com.google.android.gms:play-services-auth:20.5.0'
+    implementation 'com.google.android.gms:play-services-auth:21.0.0'
 
     implementation group: 'oauth.signpost', name: 'signpost-core', version: '2.0.0'
     implementation group: 'oauth.signpost', name: 'signpost-commonshttp4', version: '2.0.0'

@@ -992,11 +992,19 @@ class RequestWeight {
             statusIntentFilter.addAction("com.dsi.ant.intent.action.ANT_DISABLED");
             statusIntentFilter.addAction("com.dsi.ant.intent.action.ANT_INTERFACE_CLAIMED_ACTION");
             statusIntentFilter.addAction("com.dsi.ant.intent.action.ANT_RESET");
-            sContext.registerReceiver(statusReceiver, statusIntentFilter);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                sContext.registerReceiver(statusReceiver, statusIntentFilter, Context.RECEIVER_EXPORTED);
+            } else {
+                sContext.registerReceiver(statusReceiver, statusIntentFilter);
+            }
 
             IntentFilter dataIntentFilter = new IntentFilter();
             dataIntentFilter.addAction("com.dsi.ant.intent.action.ANT_RX_MESSAGE_ACTION");
-            sContext.registerReceiver(dataReceiver, dataIntentFilter);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                sContext.registerReceiver(dataReceiver, dataIntentFilter, Context.RECEIVER_EXPORTED);
+            } else {
+                sContext.registerReceiver(dataReceiver, dataIntentFilter);
+            }
         }
     }
 
