@@ -54,5 +54,5 @@ dependencies {
     implementation 'com.google.android.gms:play-services-auth:21.0.0'
 
     implementation group: 'oauth.signpost', name: 'signpost-core', version: '2.1.1'
-    implementation group: 'oauth.signpost', name: 'signpost-commonshttp4', version: '2.1.1'
+    implementation group: 'oauth.signpost', name: 'signpost-jetty6', version: '2.1.1'
 }

@@ -60,7 +60,7 @@ import cz.msebera.android.httpclient.impl.conn.PoolingHttpClientConnectionManage
 import cz.msebera.android.httpclient.message.BasicNameValuePair;
 import cz.msebera.android.httpclient.util.EntityUtils;
 import oauth.signpost.OAuthConsumer;
-import oauth.signpost.commonshttp.CommonsHttpOAuthConsumer;
+import oauth.signpost.basic.DefaultOAuthConsumer;
 import oauth.signpost.exception.OAuthCommunicationException;
 import oauth.signpost.exception.OAuthExpectationFailedException;
 import oauth.signpost.exception.OAuthMessageSignerException;
@@ -224,7 +224,7 @@ public class GarminConnect {
 
       // https://github.com/mttkay/signpost/blob/master/docs/GettingStarted.md
       // Using signpost's CommonsHttpOAuth instead of DefaultOAuth as per https://github.com/mttkay/signpost
-      OAuthConsumer consumer = new CommonsHttpOAuthConsumer(OAUTH1_CONSUMER_KEY, OAUTH1_CONSUMER_SECRET);
+      OAuthConsumer consumer = new DefaultOAuthConsumer(OAUTH1_CONSUMER_KEY, OAUTH1_CONSUMER_SECRET);
       consumer.setMessageSigner(new HmacSha1MessageSigner());
 
       boolean success = getOAuth1Token(ticket, consumer);
