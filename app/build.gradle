@@ -5,6 +5,7 @@ plugins {
 android {
     namespace 'com.quantrity.antscaledisplay'
     compileSdk 34
+    useLibrary 'org.apache.http.legacy'
 
     defaultConfig {
         applicationId "com.quantrity.antscaledisplay"

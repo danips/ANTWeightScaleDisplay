@@ -20,6 +20,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.net.Uri;
 import android.text.InputType;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.util.Log;
 
@@ -31,6 +33,8 @@ import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Calendar;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -268,7 +272,10 @@ public class GarminConnect {
     // Exchange for oauth v2 token
     // We have to manually create a request object here because sign(String url) only signs GET
     // requests.
-    HttpPost exchangeRequest = new HttpPost(GET_OAUTH2_URL);
+    //HttpPost exchangeRequest = new HttpPost(GET_OAUTH2_URL);
+    URL obj = new URL(GET_OAUTH2_URL);
+    HttpURLConnection exchangeRequest = (HttpURLConnection) obj.openConnection();
+    exchangeRequest.setRequestMethod("POST");
     HttpRequest signedExchangeRequest = consumer.sign(exchangeRequest);
 
     HttpPost postOauth2 = new HttpPost(GET_OAUTH2_URL);
@@ -323,6 +330,8 @@ public class GarminConnect {
   }
 
   private String getFirstMatch(String regex, String within) {
+    Log.v(TAG, "regex="+regex);
+    Log.v(TAG, "within="+within);
     Pattern pattern = Pattern.compile(regex);
     Matcher matcher = pattern.matcher(within);
     matcher.find();
@@ -416,7 +425,7 @@ public class GarminConnect {
         AlertDialog.Builder mfaModalBuilder = new AlertDialog.Builder(currentActivity);
         mfaModalBuilder.setTitle("MFA");
         final EditText mfaInput = new EditText(currentActivity);
-        mfaInput.setInputType(InputType.TYPE_CLASS_TEXT);
+        mfaInput.setInputType(InputType.TYPE_CLASS_NUMBER);
         mfaModalBuilder.setView(mfaInput);
         mfaModalBuilder.setMessage("Enter the 6 digit MFA code you received by SMS or email:");
         mfaModalBuilder.setPositiveButton("Submit", new DialogInterface.OnClickListener() {
@@ -434,7 +443,20 @@ public class GarminConnect {
           }
         });
 
-        mfaModalBuilder.show();
+        AlertDialog mfaDialog = mfaModalBuilder.create();
+        mfaDialog.setOnShowListener(dialogInterface -> {
+          // Request focus for the EditText
+          mfaInput.requestFocus();
+          // Show the keyboard
+          if (mfaInput.requestFocus()) {
+            Window window = mfaDialog.getWindow();
+            if (window != null) {
+              window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            }
+          }
+        });
+
+        mfaDialog.show();
       }
     });
     return inputQueue.take();
