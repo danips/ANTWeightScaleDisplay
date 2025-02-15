@@ -40,8 +40,12 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Calendar;
 import java.net.URISyntaxException;
+import java.text.SimpleDateFormat;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
+import java.util.TimeZone;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
@@ -87,9 +91,9 @@ public class GarminConnect {
     // These member are currently unused. Maybe they can be used to issue a new OAuth1 token without
     // requiring the user to re-enter an MFA code.
     private String mfaToken;
-    private String mfaExpirationTimestamp;
+    private long mfaExpirationTimestamp;
 
-    public OAuth1Token(String oauth1Token, String oauth1TokenSecret, String mfaToken, String mfaExpirationTimestamp) {
+    public OAuth1Token(String oauth1Token, String oauth1TokenSecret, String mfaToken, long mfaExpirationTimestamp) {
       this.oauth1Token = oauth1Token;
       this.oauth1TokenSecret = oauth1TokenSecret;
       this.mfaToken = mfaToken;
@@ -108,7 +112,7 @@ public class GarminConnect {
       return mfaToken;
     }
 
-    public String getMfaTokenExpirationTimestamp() {
+    public long getMfaTokenExpirationTimestamp() {
       return mfaExpirationTimestamp;
     }
 
@@ -117,8 +121,7 @@ public class GarminConnect {
       sharedPreferenceEditor.putString("garminOauth1Token", this.oauth1Token);
       sharedPreferenceEditor.putString("garminOauth1TokenSecret", this.oauth1TokenSecret);
       sharedPreferenceEditor.putString("garminOauth1MfaToken", this.mfaToken);
-      // Todo: should the timestamp be stored as a numeric type?
-      sharedPreferenceEditor.putString("garminOauth1MfaExpirationTimestamp", this.mfaExpirationTimestamp);
+      sharedPreferenceEditor.putLong("garminOauth1MfaExpirationTimestamp", this.mfaExpirationTimestamp);
       return sharedPreferenceEditor.commit();
     }
   }
@@ -128,10 +131,10 @@ public class GarminConnect {
     String token = sharedPreferences.getString("garminOauth1Token","");
     String tokenSecret = sharedPreferences.getString("garminOauth1TokenSecret","");
     String mfaToken = sharedPreferences.getString("garminOauth1MfaToken","");
-    String mfaExpirationTimestamp = sharedPreferences.getString("garminOauth1MfaExpirationTimestamp","");
+    long mfaExpirationTimestamp = sharedPreferences.getLong("garminOauth1MfaExpirationTimestamp",0);
 
-    // Todo: check for timestamp expiry.
-    if (token.isEmpty() || tokenSecret.isEmpty() || mfaToken.isEmpty() || mfaExpirationTimestamp.isEmpty()) {
+    long currentTime = System.currentTimeMillis() / 1000;
+    if (token.isEmpty() || tokenSecret.isEmpty() || mfaExpirationTimestamp < currentTime) {
       return false;
     }
 
@@ -174,7 +177,7 @@ public class GarminConnect {
     long timeOfExpiry = sharedPreferences.getLong("garminOauth2ExpiryTimestamp",-1);
     long timeOfRefreshExpiry = sharedPreferences.getLong("garminOauth2RefreshExpiryTimestamp",-1);;
 
-    if (oauth2Token == "" || timeOfExpiry < currentTime) {
+    if (oauth2Token.isEmpty() || timeOfExpiry < currentTime) {
       // Get a new oauth2 token using the saved oauth1 token.
       // According to https://github.com/matin/garth/blob/316787d1e3ff69c09725b2eb8ded748a4422abb3/garth/http.py#L167
       // Garmin Connect also just uses the OAuth1 token to get a new OAuth2 token.
@@ -254,6 +257,9 @@ public class GarminConnect {
       SharedPreferences authPreferences = currentActivity.getSharedPreferences(currentActivity.getApplicationContext().getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
 
       // If we have an unexpired OAuth2 token then we don't need to go through the login flow.
+      // TODO: Allow user to invalidate stored tokens (or do it automatically). Currently, if the
+      //  tokens are not expired based on the timestamp but are invalid in some way, they will not
+      //  be cleared and the user will be unable to log in.
       if (loadOauth2FromSharedPreferences(authPreferences)) {
         return true;
       }
@@ -341,7 +347,12 @@ public class GarminConnect {
     getOauth1.setHeader(HttpHeaders.REFERER, getLastUri());
     HttpResponse response = httpclient.execute(getOauth1,httpContext);
     String oauth1ResponseAsString = EntityUtils.toString(response.getEntity());
-    this.oauth1Token = getOauth1FromResponse(oauth1ResponseAsString);
+    try {
+      this.oauth1Token = getOauth1FromResponse(oauth1ResponseAsString);
+    }
+    catch (java.text.ParseException e) {
+      return false;
+    }
     return true;
   }
 
@@ -379,7 +390,7 @@ public class GarminConnect {
     return new HttpGet(redirect);
   }
 
-  private OAuth1Token getOauth1FromResponse(String responseAsString) {
+  private OAuth1Token getOauth1FromResponse(String responseAsString) throws java.text.ParseException {
     // Garmin returns a bare query string. Turn it into a dummy URI for parsing.
     Uri uri = Uri.parse("http://invalid?"+responseAsString);
     String oauth1Token = uri.getQueryParameter("oauth_token");
@@ -388,8 +399,11 @@ public class GarminConnect {
     // The following args aren't always present but getQueryParameter will return just null if they
     // aren't.
     String mfaToken = uri.getQueryParameter("mfa_token");
-    String mfaExpirationTimestamp = uri.getQueryParameter("mfa_expiration_timestamp");
-    return new OAuth1Token(oauth1Token,oauth1TokenSecret, mfaToken, mfaExpirationTimestamp);
+    String mfaExpirationTimestampString = uri.getQueryParameter("mfa_expiration_timestamp");
+    SimpleDateFormat mfaExpirationFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US);
+    mfaExpirationFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+    Date mfaExpirationTimestamp = mfaExpirationFormat.parse(mfaExpirationTimestampString);
+    return new OAuth1Token(oauth1Token,oauth1TokenSecret, mfaToken, mfaExpirationTimestamp.getTime());
   }
 
   private OAuth2Token getOauth2FromResponse(String responseAsString) throws JSONException {
