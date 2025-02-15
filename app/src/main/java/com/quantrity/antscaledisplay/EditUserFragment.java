@@ -3,7 +3,9 @@ package com.quantrity.antscaledisplay;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +19,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -59,6 +62,7 @@ public class EditUserFragment extends Fragment {
     private EditText et_email_to;
     private CheckBox cb_autoupload;
     private CheckBox cb_show_fat_mass;
+    private Button b_gc_token_clear;
 
     public EditUserFragment() {}
 
@@ -309,6 +313,10 @@ public class EditUserFragment extends Fragment {
 
         cb_autoupload =  rootView.findViewById(R.id.cb_automatic_upload);
         cb_show_fat_mass =  rootView.findViewById(R.id.cb_fat_mass);
+        b_gc_token_clear = rootView.findViewById(R.id.garmin_token_clear);
+        b_gc_token_clear.setOnClickListener(v -> {
+            clearGarminTokens();
+        });
 
         //Declare it has items for the actionbar
         setHasOptionsMenu(true);
@@ -425,5 +433,26 @@ public class EditUserFragment extends Fragment {
             }
         }
     }
+
+    /* Clear Garmin OAuth Tokens */
+    private void clearGarminTokens() {
+        SharedPreferences authPreferences = getActivity().getSharedPreferences(getActivity().getApplicationContext().getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
+        SharedPreferences.Editor authPreferencesEditor = authPreferences.edit();
+        authPreferencesEditor.remove("garminOauth1Token");
+        authPreferencesEditor.remove("garminOauth1TokenSecret");
+        authPreferencesEditor.remove("garminOauth1MfaToken");
+        authPreferencesEditor.remove("garminOauth1MfaExpirationTimestamp");
+        authPreferencesEditor.remove("garminOauth2Token");
+        authPreferencesEditor.remove("garminOauth2RefreshToken");
+        authPreferencesEditor.remove("garminOauth2ExpiryTimestamp");
+        authPreferencesEditor.remove("garminOauth2RefreshExpiryTimestamp");
+        if (authPreferencesEditor.commit()) {
+            Toast.makeText(getActivity(), R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
+        }
+        else {
+            Toast.makeText(getActivity(), R.string.gc_token_clear_failed, Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
 }

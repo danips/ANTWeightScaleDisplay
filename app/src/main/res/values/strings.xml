@@ -60,6 +60,8 @@
 	<string name="fat_percent_value_2">Overfat</string>
 	<string name="fat_percent_value_3">Obese</string>
 	<string name="garmin_connect_invalid_password">Your Garmin Connect password is no longer valid according to Garmin\'s new policy.\n\nPlease update it.</string>
+    <string name="gc_token_cleared">Cleared Garmin OAuth tokens!</string>
+    <string name="gc_token_clear_failed">Failed to clear Garmin OAuth tokens!</string>
 	<string name="graphs_fragment_measure_tag">Measurement</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
@@ -119,6 +121,8 @@
 	<string name="physique_rating_7">Thin</string>
 	<string name="physique_rating_8">Thin and Muscular</string>
 	<string name="physique_rating_9">Very Muscular</string>
+    <string name="pref_clear_garmin_token">Clear Garmin Tokens</string>
+    <string name="pref_clear_garmin_token_summary">Clear Garmin OAuth1 and OAuth2 Tokens. They will be regenerated on a successful login.</string>
 	<string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
 	<string name="string_no_decimal_value" translatable="false">-%c-</string>
 	<string name="string_no_percent_value" translatable="false">- %%</string>

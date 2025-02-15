@@ -236,6 +236,21 @@
             android:hint="@string/edit_user_fragment_password"
             android:maxLines="1"/>
     </TableRow>
+    <TableRow>
+        <TextView
+            android:id="@+id/garmin_token_clear_desc"
+            android:textAppearance="?android:textAppearanceMedium"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/pref_clear_garmin_token_summary"
+            android:layout_gravity="center_vertical"/>
+        <Button
+            android:id="@+id/garmin_token_clear"
+            android:text="@string/pref_clear_garmin_token"
+            android:layout_width="150dip"
+            android:layout_height="wrap_content"
+            />
+    </TableRow>
 
     <TableRow>
         <EditText
