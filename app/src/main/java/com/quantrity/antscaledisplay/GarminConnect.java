@@ -84,7 +84,7 @@ import oauth.signpost.signature.HmacSha1MessageSigner;
 public class GarminConnect {
   private static final String TAG = "GarminConnect";
 
-  private class OAuth1Token {
+  private static class OAuth1Token {
     private String oauth1Token;
     private String oauth1TokenSecret;
 
@@ -150,7 +150,7 @@ public class GarminConnect {
     return true;
   }
 
-  public class OAuth2Token {
+  public static class OAuth2Token {
     private String oauth2Token;
     private String oauth2RefreshToken;
     private long timeOfExpiry;
@@ -515,7 +515,7 @@ public class GarminConnect {
       } else if (responseStatusCode == HttpStatus.SC_UNAUTHORIZED) {
         // If the status unauthorised, our token is probably invalid, so we need to clear it.
         OAuth2Token.clearFromSharedPreferences(this.authPreferences.edit());
-        return false;
+        return "Unauthorised request, invalid token.";
       }
 
       HttpEntity entity = httpResponse.getEntity();
