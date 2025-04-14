@@ -171,35 +171,26 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
         @Override
         public void run() {
             String encoding_path = export2byte(weight);
+            MainActivity activity = activityRef.get();
 
             if ((encoding_path == null) || (encoding_path.isEmpty())) {
-                MainActivity activity = activityRef.get();
                 if (activity != null) {
                     gc_error = activity.getString(R.string.weight_fragment_msg_uploading_encoding_failure);
                 }
             } else {
-                GarminConnect gc = new GarminConnect();
-                if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""), activityRef.get())) {
-                    MainActivity activity = activityRef.get();
-                    if (activity != null) {
+                if (activity != null) {
+                    GarminConnect gc = new GarminConnect(user, ((MainActivity)activity).getUsersArray(), activity);
+                    if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""), activityRef.get())) {
                         gc_error = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
-                    }
-                }
-                else {
-                    MainActivity activity = activityRef.get();
-                    if (activity != null)
-                    {
+                    } else {
                         String result = gc.uploadFitFile(new File(encoding_path), activity);
-                        if (result == null)
-                        {
+                        if (result == null) {
                             updateSuccess(R.string.edit_user_fragment_garmin_connect_category);
-                        }
-                        else
-                        {
+                        } else {
                             gc_error = result;
                         }
+                        gc.close();
                     }
-                    gc.close();
                 }
             }
 

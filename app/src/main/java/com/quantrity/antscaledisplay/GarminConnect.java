@@ -38,6 +38,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
@@ -84,7 +85,16 @@ import oauth.signpost.signature.HmacSha1MessageSigner;
 public class GarminConnect {
   private static final String TAG = "GarminConnect";
 
-  private static class OAuth1Token {
+  private User user;
+  private ArrayList<User> users;
+  private Activity currentActivity;
+  GarminConnect (User user, ArrayList<User> users, Activity currentActivity) {
+    this.user = user;
+    this.users = users;
+    this.currentActivity = currentActivity;
+  }
+
+  private class OAuth1Token {
     private String oauth1Token;
     private String oauth1TokenSecret;
 
@@ -125,7 +135,7 @@ public class GarminConnect {
       return sharedPreferenceEditor.commit();
     }
 
-    public static Boolean clearFromSharedPreferences(SharedPreferences.Editor sharedPreferenceEditor) {
+    public Boolean clearFromSharedPreferences(SharedPreferences.Editor sharedPreferenceEditor) {
       sharedPreferenceEditor.remove("garminOauth1Token");
       sharedPreferenceEditor.remove("garminOauth1TokenSecret");
       sharedPreferenceEditor.remove("garminOauth1MfaToken");
@@ -136,13 +146,18 @@ public class GarminConnect {
 
   // In outer scope as static methods in nested classes aren't supported in this version of the JDK.
   private Boolean loadOauth1FromSharedPreferences(SharedPreferences sharedPreferences) {
-    String token = sharedPreferences.getString("garminOauth1Token","");
+    String token = user.garminOauth1Token;
+    String tokenSecret = user.garminOauth1TokenSecret;
+    String mfaToken = user.garminOauth1MfaToken;
+    long mfaExpirationTimestamp = user.garminOauth1MfaExpirationTimestamp;
+
+    /*String token = sharedPreferences.getString("garminOauth1Token","");
     String tokenSecret = sharedPreferences.getString("garminOauth1TokenSecret","");
     String mfaToken = sharedPreferences.getString("garminOauth1MfaToken","");
-    long mfaExpirationTimestamp = sharedPreferences.getLong("garminOauth1MfaExpirationTimestamp",Long.MAX_VALUE); // Default to unexpired
+    long mfaExpirationTimestamp = sharedPreferences.getLong("garminOauth1MfaExpirationTimestamp",Long.MAX_VALUE); // Default to unexpired*/
 
     long currentTime = System.currentTimeMillis() / 1000;
-    if (token.isEmpty() || tokenSecret.isEmpty() || mfaExpirationTimestamp < currentTime) {
+    if (token == null || token.isEmpty() || tokenSecret == null || tokenSecret.isEmpty() || mfaExpirationTimestamp < currentTime) {
       return false;
     }
 
@@ -150,7 +165,7 @@ public class GarminConnect {
     return true;
   }
 
-  public static class OAuth2Token {
+  public class OAuth2Token {
     private String oauth2Token;
     private String oauth2RefreshToken;
     private long timeOfExpiry;
@@ -169,31 +184,51 @@ public class GarminConnect {
     }
 
     public Boolean saveToSharedPreferences(SharedPreferences.Editor sharedPreferenceEditor) {
-      // Todo: support EncryptedSharedPreferences.
+      user.garminOauth2Token = this.oauth2Token;
+      user.garminOauth2RefreshToken = this.oauth2RefreshToken;
+      user.garminOauth2ExpiryTimestamp = this.timeOfExpiry;
+      user.garminOauth2RefreshExpiryTimestamp = this.timeOfRefreshExpiry;
+      User.serializeUsers(currentActivity.getApplicationContext(), users);
+
+      /*// Todo: support EncryptedSharedPreferences.
       sharedPreferenceEditor.putString("garminOauth2Token", this.oauth2Token);
       sharedPreferenceEditor.putString("garminOauth2RefreshToken", this.oauth2RefreshToken);
       sharedPreferenceEditor.putLong("garminOauth2ExpiryTimestamp", this.timeOfExpiry);
       sharedPreferenceEditor.putLong("garminOauth2RefreshExpiryTimestamp", this.timeOfRefreshExpiry);
-      return sharedPreferenceEditor.commit();
+      return sharedPreferenceEditor.commit();*/
+      return true;
     }
 
-    public static Boolean clearFromSharedPreferences(SharedPreferences.Editor sharedPreferenceEditor) {
-      sharedPreferenceEditor.remove("garminOauth2Token");
+    public Boolean clearFromSharedPreferences(SharedPreferences.Editor sharedPreferenceEditor) {
+      user.garminOauth2Token = null;
+      user.garminOauth2RefreshToken = null;
+      user.garminOauth2ExpiryTimestamp = -1;
+      user.garminOauth2RefreshExpiryTimestamp = -1;
+      User.serializeUsers(currentActivity.getApplicationContext(), users);
+
+      /*sharedPreferenceEditor.remove("garminOauth2Token");
       sharedPreferenceEditor.remove("garminOauth2RefreshToken");
       sharedPreferenceEditor.remove("garminOauth2ExpiryTimestamp");
       sharedPreferenceEditor.remove("garminOauth2RefreshExpiryTimestamp");
-      return sharedPreferenceEditor.commit();
+      return sharedPreferenceEditor.commit();*/
+      return true;
     }
   }
 
   private Boolean loadOauth2FromSharedPreferences(SharedPreferences sharedPreferences) {
     long currentTime = System.currentTimeMillis() / 1000;
-    String oauth2Token = sharedPreferences.getString("garminOauth2Token", "");
+
+
+    String oauth2Token = user.garminOauth2Token;
+    String oauth2RefreshToken = user.garminOauth2RefreshToken;
+    long timeOfExpiry = user.garminOauth2ExpiryTimestamp;
+    long timeOfRefreshExpiry = user.garminOauth2RefreshExpiryTimestamp;
+    /*String oauth2Token = sharedPreferences.getString("garminOauth2Token", "");
     String oauth2RefreshToken = sharedPreferences.getString("garminOauth2RefreshToken", "");
     long timeOfExpiry = sharedPreferences.getLong("garminOauth2ExpiryTimestamp",-1);
-    long timeOfRefreshExpiry = sharedPreferences.getLong("garminOauth2RefreshExpiryTimestamp",-1);;
+    long timeOfRefreshExpiry = sharedPreferences.getLong("garminOauth2RefreshExpiryTimestamp",-1);*/
 
-    if (oauth2Token.isEmpty() || timeOfExpiry < currentTime) {
+    if (oauth2Token == null || oauth2Token.isEmpty() || timeOfExpiry < currentTime) {
       // Get a new oauth2 token using the saved oauth1 token.
       // According to https://github.com/matin/garth/blob/316787d1e3ff69c09725b2eb8ded748a4422abb3/garth/http.py#L167
       // Garmin Connect also just uses the OAuth1 token to get a new OAuth2 token.
@@ -377,6 +412,21 @@ public class GarminConnect {
     return true;
   }
 
+  public void clearFromSharedPreferences1() {
+    user.garminOauth1Token = null;
+    user.garminOauth1TokenSecret = null;
+    user.garminOauth1MfaToken = null;
+    user.garminOauth1MfaExpirationTimestamp = Long.MAX_VALUE;
+    User.serializeUsers(currentActivity.getApplicationContext(), users);
+  }
+  public void clearFromSharedPreferences2() {
+    user.garminOauth2Token = null;
+    user.garminOauth2RefreshToken = null;
+    user.garminOauth2ExpiryTimestamp = -1;
+    user.garminOauth2RefreshExpiryTimestamp = -1;
+    User.serializeUsers(currentActivity.getApplicationContext(), users);
+  }
+
   private boolean performOauth2exchange(OAuthConsumer consumer) throws OAuthMessageSignerException, OAuthExpectationFailedException, OAuthCommunicationException, IOException {
     // Exchange for oauth v2 token
     // We have to manually create a request object here because sign(String url) only signs GET
@@ -395,7 +445,8 @@ public class GarminConnect {
     int responseStatusCode = oauth2Response.getStatusLine().getStatusCode();
     if (responseStatusCode == HttpStatus.SC_UNAUTHORIZED) {
       // If we are unauthorised, clear the oauth1 token and report failure.
-      OAuth1Token.clearFromSharedPreferences(authPreferences.edit());
+      //OAuth1Token.clearFromSharedPreferences(authPreferences.edit());
+      clearFromSharedPreferences1();
       return false;
     }
     HttpEntity oauth2Entity = oauth2Response.getEntity();
@@ -514,7 +565,8 @@ public class GarminConnect {
         JSONObject js_upload = new JSONObject(responseString);
       } else if (responseStatusCode == HttpStatus.SC_UNAUTHORIZED) {
         // If the status unauthorised, our token is probably invalid, so we need to clear it.
-        OAuth2Token.clearFromSharedPreferences(this.authPreferences.edit());
+        //OAuth2Token.clearFromSharedPreferences(this.authPreferences.edit());
+        clearFromSharedPreferences2();
         return "Unauthorised request, invalid token.";
       }
 

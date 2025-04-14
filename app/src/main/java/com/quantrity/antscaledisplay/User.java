@@ -53,6 +53,14 @@ public class User {
 
     String gc_user;
     String gc_pass;
+    String garminOauth1Token;
+    String garminOauth1TokenSecret;
+    String garminOauth1MfaToken;
+    long garminOauth1MfaExpirationTimestamp;
+    String garminOauth2Token;
+    String garminOauth2RefreshToken;
+    long garminOauth2ExpiryTimestamp;
+    long garminOauth2RefreshExpiryTimestamp;
     String email_to;
 
     public User() {}
@@ -120,6 +128,14 @@ public class User {
         this.isLifetimeAthlete = obj.getBoolean("isLifetimeAthlete");
         if (obj.has("gc_user")) this.gc_user = obj.getString("gc_user");
         if (obj.has("gc_pass")) this.gc_pass = obj.getString("gc_pass");
+        if (obj.has("garminOauth1Token")) this.garminOauth1Token = obj.getString("garminOauth1Token");
+        if (obj.has("garminOauth1TokenSecret")) this.garminOauth1TokenSecret = obj.getString("garminOauth1TokenSecret");
+        if (obj.has("garminOauth1MfaToken")) this.garminOauth1MfaToken = obj.getString("garminOauth1MfaToken");
+        if (obj.has("garminOauth1MfaExpirationTimestamp")) this.garminOauth1MfaExpirationTimestamp = obj.getLong("garminOauth1MfaExpirationTimestamp");
+        if (obj.has("garminOauth2Token")) this.garminOauth2Token = obj.getString("garminOauth2Token");
+        if (obj.has("garminOauth2RefreshToken")) this.garminOauth2RefreshToken = obj.getString("garminOauth2RefreshToken");
+        if (obj.has("garminOauth2ExpiryTimestamp")) this.garminOauth2ExpiryTimestamp = obj.getLong("garminOauth2ExpiryTimestamp");
+        if (obj.has("garminOauth2RefreshExpiryTimestamp")) this.garminOauth2RefreshExpiryTimestamp = obj.getLong("garminOauth2RefreshExpiryTimestamp");
         if (obj.has("email_to")) this.email_to = obj.getString("email_to");
 
         this.autoupload = !obj.has("autoupload") || obj.getBoolean("autoupload");
@@ -144,6 +160,14 @@ public class User {
         serializedObj.put("usesCm", this.usesCm);
         serializedObj.put("mass_unit", this.mass_unit.getStatus());
         serializedObj.put("gc_user", this.gc_user);
+        serializedObj.put("garminOauth1Token",this.garminOauth1Token);
+        serializedObj.put("garminOauth1TokenSecret",this.garminOauth1TokenSecret);
+        serializedObj.put("garminOauth1MfaToken",this.garminOauth1MfaToken);
+        serializedObj.put("garminOauth1MfaExpirationTimestamp",this.garminOauth1MfaExpirationTimestamp);
+        serializedObj.put("garminOauth2Token",this.garminOauth2Token);
+        serializedObj.put("garminOauth2RefreshToken",this.garminOauth2RefreshToken);
+        serializedObj.put("garminOauth2ExpiryTimestamp",this.garminOauth2ExpiryTimestamp);
+        serializedObj.put("garminOauth2RefreshExpiryTimestamp",this.garminOauth2RefreshExpiryTimestamp);
         serializedObj.put("gc_pass", this.gc_pass);
         serializedObj.put("email_to", this.email_to);
 

@@ -60,9 +60,8 @@ public class EditUserFragment extends Fragment {
     private EditText et_gc_user;
     private EditText et_gc_pass;
     private EditText et_email_to;
-    private CheckBox cb_autoupload;
+    private CheckBox cb_auto_upload;
     private CheckBox cb_show_fat_mass;
-    private Button b_gc_token_clear;
 
     public EditUserFragment() {}
 
@@ -186,7 +185,7 @@ public class EditUserFragment extends Fragment {
         tmp.gc_pass = (et_gc_pass.getText().length() == 0) ? null : et_gc_pass.getText().toString().trim().replaceAll("[\n\r]", "");
         tmp.email_to = (et_email_to.getText().length() == 0) ? null : et_email_to.getText().toString().trim().replaceAll("[\n\r]", "");
 
-        tmp.autoupload = cb_autoupload.isChecked();
+        tmp.autoupload = cb_auto_upload.isChecked();
         tmp.show_fat_mass = cb_show_fat_mass.isChecked();
 
         if (the_user == null) {
@@ -250,7 +249,7 @@ public class EditUserFragment extends Fragment {
 
         et_email_to.setText(user.email_to);
 
-        cb_autoupload.setChecked(user.autoupload);
+        cb_auto_upload.setChecked(user.autoupload);
         cb_show_fat_mass.setChecked(user.show_fat_mass);
     }
 
@@ -268,7 +267,7 @@ public class EditUserFragment extends Fragment {
         et_gc_user.setText("");
         et_gc_pass.setText("");
         et_email_to.setText("");
-        cb_autoupload.setChecked(true);
+        cb_auto_upload.setChecked(true);
         cb_show_fat_mass.setChecked(false);
     }
 
@@ -311,9 +310,9 @@ public class EditUserFragment extends Fragment {
 
         et_email_to =  rootView.findViewById(R.id.et_email_to);
 
-        cb_autoupload =  rootView.findViewById(R.id.cb_automatic_upload);
+        cb_auto_upload =  rootView.findViewById(R.id.cb_automatic_upload);
         cb_show_fat_mass =  rootView.findViewById(R.id.cb_fat_mass);
-        b_gc_token_clear = rootView.findViewById(R.id.garmin_token_clear);
+        Button b_gc_token_clear = rootView.findViewById(R.id.garmin_token_clear);
         b_gc_token_clear.setOnClickListener(v -> {
             clearGarminTokens();
         });
@@ -426,7 +425,6 @@ public class EditUserFragment extends Fragment {
             if (ok) {
                 Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
 
-                //Recargar base de datos
                 ((MainActivity) getActivity()).reloadDB();
                 getActivity().invalidateOptionsMenu();
                 ((MainActivity) getActivity()).closeEditUserFragment(null);
@@ -436,7 +434,23 @@ public class EditUserFragment extends Fragment {
 
     /* Clear Garmin OAuth Tokens */
     private void clearGarminTokens() {
-        SharedPreferences authPreferences = getActivity().getSharedPreferences(getActivity().getApplicationContext().getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
+        if (getActivity() != null) {
+            User the_user = ((MainActivity) getActivity()).getSelectedUser();
+            ArrayList<User> users = ((MainActivity) getActivity()).getUsersArray();
+
+            if ((the_user != null) && users.contains(the_user)) {
+                the_user.garminOauth1Token = "";
+                the_user.garminOauth1TokenSecret = "";
+                the_user.garminOauth1MfaToken = "";
+                the_user.garminOauth1MfaExpirationTimestamp = Long.MAX_VALUE;
+                the_user.garminOauth2Token = "";
+                the_user.garminOauth2RefreshToken = "";
+                the_user.garminOauth2ExpiryTimestamp = -1;
+                the_user.garminOauth2RefreshExpiryTimestamp = -1;
+                User.serializeUsers(getActivity().getApplicationContext(), users);
+            }
+        }
+        /*SharedPreferences authPreferences = getActivity().getSharedPreferences(getActivity().getApplicationContext().getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
         SharedPreferences.Editor authPreferencesEditor = authPreferences.edit();
         authPreferencesEditor.remove("garminOauth1Token");
         authPreferencesEditor.remove("garminOauth1TokenSecret");
@@ -451,7 +465,7 @@ public class EditUserFragment extends Fragment {
         }
         else {
             Toast.makeText(getActivity(), R.string.gc_token_clear_failed, Toast.LENGTH_SHORT).show();
-        }
+        }*/
     }
 
 
