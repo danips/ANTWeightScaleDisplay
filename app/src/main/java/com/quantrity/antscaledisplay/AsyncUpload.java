@@ -183,7 +183,7 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
                     if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""), activityRef.get())) {
                         gc_error = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
                     } else {
-                        String result = gc.uploadFitFile(new File(encoding_path), activity);
+                        String result = gc.uploadFitFile(new File(encoding_path));
                         if (result == null) {
                             updateSuccess(R.string.edit_user_fragment_garmin_connect_category);
                         } else {
