@@ -1,18 +1,3 @@
-/*
-  Copyright 2012 Sébastien Vrillaud
-  
-  Licensed under the Apache License, Version 2.0 (the "License");
-  you may not use this file except in compliance with the License.
-  You may obtain a copy of the License at
-  
-      http://www.apache.org/licenses/LICENSE-2.0
-  
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
 package com.quantrity.antscaledisplay;
 
 import android.app.Activity;
@@ -24,619 +9,602 @@ import android.text.InputType;
 import android.util.Log;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.CookieHandler;
+import java.net.CookieManager;
+import java.net.CookiePolicy;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-//import java.util.Date;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.TimeZone;
+import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import cz.msebera.android.httpclient.HttpEntity;
-import cz.msebera.android.httpclient.HttpHeaders;
-import cz.msebera.android.httpclient.HttpResponse;
-import cz.msebera.android.httpclient.HttpStatus;
-import cz.msebera.android.httpclient.NameValuePair;
-import cz.msebera.android.httpclient.client.entity.UrlEncodedFormEntity;
-import cz.msebera.android.httpclient.client.methods.HttpGet;
-import cz.msebera.android.httpclient.client.methods.HttpPost;
-import cz.msebera.android.httpclient.client.protocol.HttpClientContext;
-import cz.msebera.android.httpclient.client.utils.URIBuilder;
-import cz.msebera.android.httpclient.entity.StringEntity;
-import cz.msebera.android.httpclient.entity.mime.HttpMultipartMode;
-import cz.msebera.android.httpclient.entity.mime.MultipartEntityBuilder;
-import cz.msebera.android.httpclient.impl.client.CloseableHttpClient;
-import cz.msebera.android.httpclient.impl.client.HttpClientBuilder;
-import cz.msebera.android.httpclient.impl.client.LaxRedirectStrategy;
-import cz.msebera.android.httpclient.impl.conn.PoolingHttpClientConnectionManager;
-import cz.msebera.android.httpclient.message.BasicNameValuePair;
-import cz.msebera.android.httpclient.util.EntityUtils;
 import oauth.signpost.OAuthConsumer;
 import oauth.signpost.basic.DefaultOAuthConsumer;
+import oauth.signpost.http.HttpRequest;
 import oauth.signpost.signature.HmacSha1MessageSigner;
 
 public class GarminConnect {
     private static final String TAG = "GarminConnect";
 
+    // --- Constants ---
+    private static final String OAUTH1_CONSUMER_KEY = "fc3e99d2-118c-44b8-8ae3-03370dde24c0";
+    private static final String OAUTH1_CONSUMER_SECRET = "E08WAR897WEy2knn7aFBrvegVAf0AFdWBBF";
+    private static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+
+    // URLs
+    private static final String SSO_ROOT = "https://sso.garmin.com/sso";
+    private static final String SSO_EMBED_URL = SSO_ROOT + "/embed";
+    private static final String SSO_SIGNIN_URL = SSO_ROOT + "/signin";
+    private static final String SSO_MFA_URL = SSO_ROOT + "/verifyMFA/loginEnterMfaCode";
+    private static final String OAUTH1_URL = "https://connectapi.garmin.com/oauth-service/oauth/preauthorized";
+    private static final String OAUTH2_URL = "https://connectapi.garmin.com/oauth-service/oauth/exchange/user/2.0";
+    private static final String UPLOAD_URL = "https://connectapi.garmin.com/upload-service/upload";
+
+    private static final Pattern TICKET_PATTERN = Pattern.compile("ticket=([^\"'&\\\\]+)");
+
     private final User user;
     private final ArrayList<User> users;
     private final Context context;
+    private final Activity currentActivity;
+    private OAuth2Token oauth2Token;
+    private final CookieManager cookieManager;
 
-    // Use Context (getApplicationContext()) to prevent Activity memory leaks
-    GarminConnect(User user, ArrayList<User> users, Context context) {
+    public GarminConnect(User user, ArrayList<User> users, Activity activity) {
         this.user = user;
         this.users = users;
-        this.context = context;
-        // Initialize client immediately if needed, or lazily later
-        getOrCreateClient();
+        this.currentActivity = activity;
+        this.context = activity.getApplicationContext();
+
+        this.cookieManager = new CookieManager();
+        this.cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
+        CookieHandler.setDefault(this.cookieManager);
+        Log.d(TAG, "[DEBUG] GarminConnect initialized.");
     }
 
-    private static class OAuth1Token {
-        private final String oauth1Token;
-        private final String oauth1TokenSecret;
-        private final String mfaToken;
-        private final long mfaExpirationTimestamp;
-
-        public OAuth1Token(String oauth1Token, String oauth1TokenSecret, String mfaToken, long mfaExpirationTimestamp) {
-            this.oauth1Token = oauth1Token;
-            this.oauth1TokenSecret = oauth1TokenSecret;
-            this.mfaToken = mfaToken;
-            this.mfaExpirationTimestamp = mfaExpirationTimestamp;
-        }
-
-        public String getOauth1Token() { return oauth1Token; }
-        public String getOauth1TokenSecret() { return oauth1TokenSecret; }
-
-        public void saveToSharedPreferences(SharedPreferences.Editor sharedPreferenceEditor) {
-            sharedPreferenceEditor.putString("garminOauth1Token", this.oauth1Token);
-            sharedPreferenceEditor.putString("garminOauth1TokenSecret", this.oauth1TokenSecret);
-            sharedPreferenceEditor.putString("garminOauth1MfaToken", this.mfaToken);
-            sharedPreferenceEditor.putLong("garminOauth1MfaExpirationTimestamp", this.mfaExpirationTimestamp);
-            sharedPreferenceEditor.commit();
-        }
-    }
-
-    private Boolean loadOauth1FromSharedPreferences() {
-        String token = user.garminOauth1Token;
-        String tokenSecret = user.garminOauth1TokenSecret;
-        String mfaToken = user.garminOauth1MfaToken;
-        long mfaExpirationTimestamp = user.garminOauth1MfaExpirationTimestamp;
-
-        long currentTime = System.currentTimeMillis() / 1000;
-        if (token == null || token.isEmpty() || tokenSecret == null || tokenSecret.isEmpty() || mfaExpirationTimestamp < currentTime) {
-            return false;
-        }
-
-        this.oauth1Token = new OAuth1Token(token, tokenSecret, mfaToken, mfaExpirationTimestamp);
-        return true;
-    }
-
-    public class OAuth2Token {
-        private final String oauth2Token;
-        private final String oauth2RefreshToken;
-        private final long timeOfExpiry;
-        private final long timeOfRefreshExpiry;
-
-        public OAuth2Token(String oauth2Token, String oauth2RefreshToken, long timeOfExpiry, long timeOfRefreshExpiry) {
-            this.oauth2Token = oauth2Token;
-            this.oauth2RefreshToken = oauth2RefreshToken;
-            this.timeOfExpiry = timeOfExpiry;
-            this.timeOfRefreshExpiry = timeOfRefreshExpiry;
-        }
-
-        public String getOauth2Token() { return oauth2Token; }
-
-        public Boolean saveToSharedPreferences() {
-            user.garminOauth2Token = this.oauth2Token;
-            user.garminOauth2RefreshToken = this.oauth2RefreshToken;
-            user.garminOauth2ExpiryTimestamp = this.timeOfExpiry;
-            user.garminOauth2RefreshExpiryTimestamp = this.timeOfRefreshExpiry;
-            User.serializeUsers(context, users);
-            return true;
-        }
-    }
-
-    private Boolean loadOauth2FromSharedPreferences() {
-        long currentTime = System.currentTimeMillis() / 1000;
-        String oauth2Token = user.garminOauth2Token;
-        String oauth2RefreshToken = user.garminOauth2RefreshToken;
-        long timeOfExpiry = user.garminOauth2ExpiryTimestamp;
-        long timeOfRefreshExpiry = user.garminOauth2RefreshExpiryTimestamp;
-
-        if ((oauth2Token == null || timeOfExpiry < currentTime) &&
-                (oauth2RefreshToken != null && timeOfRefreshExpiry > currentTime)) {
-            return false;
-        }
-
-        if (oauth2Token == null || oauth2Token.isEmpty() || timeOfExpiry < currentTime) {
-            return false;
-        }
-
-        this.oauth2Token = new OAuth2Token(oauth2Token, oauth2RefreshToken, timeOfExpiry, timeOfRefreshExpiry);
-        return true;
-    }
-
-    private static final String OAUTH1_CONSUMER_KEY = "fc3e99d2-118c-44b8-8ae3-03370dde24c0";
-    private static final String OAUTH1_CONSUMER_SECRET = "E08WAR897WEy2knn7aFBrvegVAf0AFdWBBF";
-    private static final String GET_OAUTH1_URL = "https://connectapi.garmin.com/oauth-service/oauth/preauthorized?";
-    private static final String GET_OAUTH2_URL = "https://connectapi.garmin.com/oauth-service/oauth/exchange/user/2.0";
-    private static final String FIT_FILE_UPLOAD_URL = "https://connectapi.garmin.com/upload-service/upload";
-    private static final String SSO_URL = "https://sso.garmin.com/sso";
-    private static final String SSO_EMBED_URL = SSO_URL + "/embed";
-    private static final String SSO_SIGNIN_URL = SSO_URL + "/signin";
-    private static final String SSO_MFA_URL = SSO_URL + "/verifyMFA/loginEnterMfaCode";
-    private static final String CSRF_TOKEN_PATTERN = "name=\"_csrf\" +value=\"([A-Z0-9]+)\"";
-    private static final String TICKET_FINDER_PATTERN = "ticket=([^']+?)\";";
-    private static final String USER_AGENT = "com.garmin.android.apps.connectmobile";
-
-    /*public String getHistoryDownloadUrl() {
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        String today = sdf.format(new Date());
-        return "https://connect.garmin.com/modern/proxy/weight-service/weight/range/1970-01-01/" + today + "?includeAll=true";
-    }*/
-
-    private final List<NameValuePair> EMBED_PARAMS = Arrays.asList(
-            new BasicNameValuePair("id", "gauth-widget"),
-            new BasicNameValuePair("embedWidget", "true"),
-            new BasicNameValuePair("gauthHost", SSO_URL)
-    );
-
-    private final List<NameValuePair> SIGNIN_PARAMS = Arrays.asList(
-            new BasicNameValuePair("id", "gauth-widget"),
-            new BasicNameValuePair("embedWidget", "true"),
-            new BasicNameValuePair("gauthHost", SSO_EMBED_URL),
-            new BasicNameValuePair("service", SSO_EMBED_URL),
-            new BasicNameValuePair("source", SSO_EMBED_URL),
-            new BasicNameValuePair("redirectAfterAccountLoginUrl", SSO_EMBED_URL),
-            new BasicNameValuePair("redirectAfterAccountCreationUrl", SSO_EMBED_URL)
-    );
-
-    private CloseableHttpClient httpclient;
-    private HttpClientContext httpContext;
-    private OAuth1Token oauth1Token;
-    private OAuth2Token oauth2Token;
-
-    // Helper to ensure client exists even if signin() wasn't called (e.g. app restart)
-    private void getOrCreateClient() {
-        if (httpclient == null) {
-            PoolingHttpClientConnectionManager conman = new PoolingHttpClientConnectionManager();
-            conman.setMaxTotal(20);
-            conman.setDefaultMaxPerRoute(20);
-
-            HttpClientBuilder clientBuilder = HttpClientBuilder.create();
-            clientBuilder.setConnectionManager(conman);
-            clientBuilder.useSystemProperties();
-
-            clientBuilder.addInterceptorFirst((cz.msebera.android.httpclient.HttpRequest request, cz.msebera.android.httpclient.protocol.HttpContext context) -> {
-                if (!request.containsHeader(HttpHeaders.USER_AGENT)) {
-                    request.addHeader(HttpHeaders.USER_AGENT, USER_AGENT);
-                }
-                if (!request.containsHeader("NK")) {
-                    request.addHeader("NK", "NT");
-                }
-            });
-
-            clientBuilder.setRedirectStrategy(new LaxRedirectStrategy());
-            httpclient = clientBuilder.build();
-            httpContext = new HttpClientContext();
-        }
-    }
-
-    public boolean signin(final String username, final String password, Activity currentActivity) {
-        getOrCreateClient(); // Ensure client is ready
-
+    public boolean signin(final String username, final String password) {
+        Log.d(TAG, "[DEBUG] Starting signin flow...");
         try {
-            SharedPreferences authPreferences = context.getSharedPreferences(context.getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
+            SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
 
-            // 1. Check existing tokens
-            if (loadOauth2FromSharedPreferences()) {
+            if (loadOauth2(prefs) || tryRefresh(prefs)) {
+                Log.d(TAG, "[DEBUG] Valid token found/refreshed.");
                 return true;
             }
 
-            // 2. Try refresh
+            Log.d(TAG, "[DEBUG] Starting fresh login...");
+            cookieManager.getCookieStore().removeAll();
+
+            // A. Initial GET
+            Map<String, String> serviceParams = getServiceParams();
+            Map<String, String> pageHeaders = getStandardHeaders();
+
+            HttpResponse response = execute("GET", SSO_SIGNIN_URL, serviceParams, null, pageHeaders, true);
+
+            if (response.code != 200) {
+                Log.e(TAG, "[ERROR] Step A Failed: " + response.code);
+                return false;
+            }
+
+            String csrf = extractCsrf(response.body);
+            if (csrf.isEmpty()) {
+                Log.e(TAG, "[ERROR] CSRF missing.");
+                return false;
+            }
+            Log.d(TAG, "[DEBUG] CSRF Found: " + csrf.substring(0, 5) + "...");
+
+            // B. POST Credentials
+            Map<String, String> loginBody = new HashMap<>();
+            loginBody.put("username", username);
+            loginBody.put("password", password);
+            loginBody.put("embed", "true");
+            loginBody.put("_csrf", csrf);
+
+            Map<String, String> formHeaders = getStandardHeaders();
+            formHeaders.put("Referer", SSO_SIGNIN_URL);
+            formHeaders.put("Origin", "https://sso.garmin.com");
+            formHeaders.put("Content-Type", "application/x-www-form-urlencoded");
+
+            response = execute("POST", SSO_SIGNIN_URL, serviceParams, loginBody, formHeaders, true);
+            Log.d(TAG, "[DEBUG] Login POST Code: " + response.code);
+
+            // C. Check Ticket or MFA
+            String ticket = extractRegex(TICKET_PATTERN, response.body);
+            if (ticket.isEmpty()) ticket = extractRegex(TICKET_PATTERN, response.url);
+
+            if (ticket.isEmpty()) {
+                if (response.body.contains("MFA") || response.body.contains("mfa-code")) {
+                    Log.d(TAG, "[DEBUG] MFA Challenge received. Prompting user...");
+
+                    String mfaCsrf = extractCsrf(response.body);
+                    if(mfaCsrf.isEmpty()) mfaCsrf = csrf;
+
+                    // Prompt User
+                    String mfaCode = promptMFAModalDialog();
+                    if (mfaCode == null || mfaCode.isEmpty()) return false;
+
+                    Log.d(TAG, "[DEBUG] Sending MFA Code...");
+                    Map<String, String> mfaBody = new HashMap<>();
+                    mfaBody.put("mfa-code", mfaCode);
+                    mfaBody.put("embed", "true");
+                    mfaBody.put("_csrf", mfaCsrf);
+                    mfaBody.put("fromPage", "setupEnterMfaCode");
+
+                    // Disable Redirects to catch the intermediate hop
+                    response = execute("POST", SSO_MFA_URL, serviceParams, mfaBody, formHeaders, false);
+                    Log.d(TAG, "[DEBUG] MFA Response Code: " + response.code);
+
+                    // Check Location Header for Ticket
+                    List<String> locHeaders = response.headers.get("Location");
+                    if (locHeaders != null && !locHeaders.isEmpty()) {
+                        String loc = locHeaders.get(0);
+                        Log.d(TAG, "[DEBUG] MFA Redirect Location: " + loc);
+
+                        // 1. Check for Ticket directly
+                        ticket = extractRegex(TICKET_PATTERN, loc);
+
+                        // 2. Check for Login Token (Double Hop Fix)
+                        if (ticket.isEmpty() && loc.contains("logintoken=")) {
+                            Log.d(TAG, "[DEBUG] Login Token found. Following redirect...");
+                            response = execute("GET", loc, null, null, pageHeaders, true);
+                            ticket = extractRegex(TICKET_PATTERN, response.url);
+                            if (ticket.isEmpty()) ticket = extractRegex(TICKET_PATTERN, response.body);
+                        }
+                    }
+                }
+            }
+
+            if (ticket.isEmpty()) {
+                Log.e(TAG, "[ERROR] Login failed. No ticket found.");
+                return false;
+            }
+            Log.d(TAG, "[DEBUG] Ticket Acquired: " + ticket);
+
+            // D. Exchange Ticket for OAuth1
+            Log.d(TAG, "[DEBUG] Starting OAuth1 Exchange...");
             OAuthConsumer consumer = new DefaultOAuthConsumer(OAUTH1_CONSUMER_KEY, OAUTH1_CONSUMER_SECRET);
             consumer.setMessageSigner(new HmacSha1MessageSigner());
 
-            if (refreshOauth2Token(consumer)) {
-                return true;
-            }
-
-            // 3. Full login flow
-            if (!loadOauth1FromSharedPreferences()) {
-                HttpGet cookieGet = new HttpGet(buildURI(SSO_EMBED_URL, EMBED_PARAMS));
-                httpclient.execute(cookieGet, httpContext).close();
-
-                HttpGet sessionGetRequest = new HttpGet(buildURI(SSO_SIGNIN_URL, EMBED_PARAMS));
-                sessionGetRequest.setHeader(HttpHeaders.REFERER, getLastUri());
-                HttpResponse sessionResponse = httpclient.execute(sessionGetRequest, httpContext);
-                String csrf = getCSRFToken(EntityUtils.toString(sessionResponse.getEntity()));
-                EntityUtils.consumeQuietly(sessionResponse.getEntity());
-
-                HttpPost loginPostRequest = new HttpPost(buildURI(SSO_SIGNIN_URL, SIGNIN_PARAMS));
-                loginPostRequest.setHeader(HttpHeaders.REFERER, getLastUri());
-                List<NameValuePair> loginPostEntity = Arrays.asList(
-                        new BasicNameValuePair("username", username),
-                        new BasicNameValuePair("password", password),
-                        new BasicNameValuePair("embed", "true"),
-                        new BasicNameValuePair("_csrf", csrf)
-                );
-                loginPostRequest.setEntity(new UrlEncodedFormEntity(loginPostEntity, "UTF-8"));
-
-                HttpResponse loginResponse = httpclient.execute(loginPostRequest, httpContext);
-                String loginContent = EntityUtils.toString(loginResponse.getEntity());
-                EntityUtils.consumeQuietly(loginResponse.getEntity());
-
-                String ticket;
-                if (loginRequiresMFA(loginContent)) {
-                    csrf = getCSRFToken(loginContent);
-                    String mfaResponse = handleMfa(csrf, currentActivity);
-                    ticket = getTicketIdFromResponse(mfaResponse);
-                } else {
-                    ticket = getTicketIdFromResponse(loginContent);
-                }
-
-                if (!isSignedIn()) {
-                    return false;
-                }
-
-                if (!getOAuth1Token(ticket, consumer)) {
-                    return false;
-                }
-                this.oauth1Token.saveToSharedPreferences(authPreferences.edit());
-            }
-
-            consumer.setTokenWithSecret(oauth1Token.getOauth1Token(), oauth1Token.getOauth1TokenSecret());
-            if (!performOauth2exchange(consumer)) {
+            String oauth1TokenStr = getOAuth1Token(ticket, consumer);
+            if (oauth1TokenStr == null) {
+                Log.e(TAG, "[ERROR] OAuth1 exchange returned null.");
                 return false;
             }
-            return oauth2Token.saveToSharedPreferences();
+            Log.d(TAG, "[DEBUG] OAuth1 Success. Token data acquired.");
 
-        } catch (Exception e) {
-            Log.e(TAG, "Signin failed", e);
-            close();
-            return false;
-        }
-    }
+            // E. Exchange OAuth1 for OAuth2
+            Uri uri = Uri.parse("https://dummy?" + oauth1TokenStr);
+            String o1Token = uri.getQueryParameter("oauth_token");
+            String o1Secret = uri.getQueryParameter("oauth_token_secret");
 
-    private boolean refreshOauth2Token(OAuthConsumer consumer) {
-        if (user.garminOauth2RefreshToken == null) return false;
+            consumer.setTokenWithSecret(o1Token, o1Secret);
 
-        try {
-            String signedUrl = consumer.sign(GET_OAUTH2_URL);
-            HttpPost post = new HttpPost(signedUrl);
-
-            List<NameValuePair> params = new ArrayList<>();
-            params.add(new BasicNameValuePair("grant_type", "refresh_token"));
-            params.add(new BasicNameValuePair("refresh_token", user.garminOauth2RefreshToken));
-            post.setEntity(new UrlEncodedFormEntity(params));
-
-            HttpResponse response = httpclient.execute(post, httpContext);
-            try {
-                if (response.getStatusLine().getStatusCode() == 200) {
-                    String json = EntityUtils.toString(response.getEntity());
-                    this.oauth2Token = getOauth2FromResponse(json);
-                    return this.oauth2Token.saveToSharedPreferences();
-                }
-            } finally {
-                EntityUtils.consumeQuietly(response.getEntity());
+            Log.d(TAG, "[DEBUG] Starting OAuth2 Exchange...");
+            if (performOAuth2Exchange(consumer)) {
+                Log.d(TAG, "[DEBUG] Signin Success! Saving tokens.");
+                return oauth2Token.save(prefs);
+            } else {
+                Log.e(TAG, "[ERROR] OAuth2 Exchange Failed.");
             }
+
         } catch (Exception e) {
-            Log.e(TAG, "Refresh failed", e);
+            Log.e(TAG, "[CRITICAL] Signin crashed", e);
         }
         return false;
     }
 
-    private String buildURI(String root, List<NameValuePair> params) throws URISyntaxException {
-        URIBuilder uriBuilder = new URIBuilder(root);
-        uriBuilder.addParameters(params);
-        return uriBuilder.build().toString();
-    }
+    // --- UI Methods ---
+    private String promptMFAModalDialog() throws InterruptedException {
+        if (currentActivity == null || currentActivity.isFinishing()) return null;
 
-    private boolean getOAuth1Token(String ticket, OAuthConsumer consumer) throws Exception {
-        List<NameValuePair> oauth1TokenParams = Arrays.asList(
-                new BasicNameValuePair("ticket", ticket),
-                new BasicNameValuePair("login-url", "https://sso.garmin.com/sso/embed"),
-                new BasicNameValuePair("accepts-mfa-tokens", "true")
-        );
-        String oauth1RequestURI = buildURI(GET_OAUTH1_URL, oauth1TokenParams);
-        String signedOauth1RequestURI = consumer.sign(oauth1RequestURI);
-
-        HttpGet getOauth1 = new HttpGet(signedOauth1RequestURI);
-        getOauth1.setHeader(HttpHeaders.REFERER, getLastUri());
-
-        HttpResponse response = httpclient.execute(getOauth1, httpContext);
-        try {
-            HttpEntity entity = response.getEntity();
-            if (entity != null) {
-                String oauth1ResponseAsString = EntityUtils.toString(entity);
-                this.oauth1Token = getOauth1FromResponse(oauth1ResponseAsString);
-                return true;
-            }
-            return false;
-        } finally {
-            EntityUtils.consumeQuietly(response.getEntity());
-        }
-    }
-
-    public void clearFromSharedPreferences1() {
-        user.garminOauth1Token = null;
-        user.garminOauth1TokenSecret = null;
-        user.garminOauth1MfaToken = null;
-        user.garminOauth1MfaExpirationTimestamp = Long.MAX_VALUE;
-        User.serializeUsers(context, users);
-    }
-
-    public void clearFromSharedPreferences2() {
-        user.garminOauth2Token = null;
-        user.garminOauth2RefreshToken = null;
-        user.garminOauth2ExpiryTimestamp = -1;
-        user.garminOauth2RefreshExpiryTimestamp = -1;
-        User.serializeUsers(context, users);
-    }
-
-    private boolean performOauth2exchange(OAuthConsumer consumer) {
-        try {
-            String signedUrl = consumer.sign(GET_OAUTH2_URL);
-            HttpPost postOauth2 = new HttpPost(signedUrl);
-
-            StringEntity emptyEntity = new StringEntity("", "UTF-8");
-            emptyEntity.setContentType("application/x-www-form-urlencoded");
-            postOauth2.setEntity(emptyEntity);
-
-            HttpResponse oauth2Response = httpclient.execute(postOauth2, httpContext);
-            try {
-                int responseStatusCode = oauth2Response.getStatusLine().getStatusCode();
-                if (responseStatusCode == HttpStatus.SC_OK) {
-                    String oauth2ResponseAsString = EntityUtils.toString(oauth2Response.getEntity());
-                    this.oauth2Token = getOauth2FromResponse(oauth2ResponseAsString);
-                    return true;
-                } else if (responseStatusCode == HttpStatus.SC_UNAUTHORIZED) {
-                    clearFromSharedPreferences1();
-                } else {
-                    Log.e(TAG, "OAuth2 Error Code: " + responseStatusCode);
-                }
-            } finally {
-                EntityUtils.consumeQuietly(oauth2Response.getEntity());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Error in OAuth2 exchange", e);
-        }
-        return false;
-    }
-
-    /*public boolean downloadHistory(StringBuilder result) {
-        getOrCreateClient(); // Ensure client exists
-        if (oauth2Token == null) return false;
-        try {
-            HttpGet get = new HttpGet(getHistoryDownloadUrl());
-            get.setHeader("NK", "NT");
-            get.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + this.oauth2Token.getOauth2Token());
-            get.setHeader("Accept", "application/json");
-
-            HttpResponse response = httpclient.execute(get, httpContext);
-            try {
-                int statusCode = response.getStatusLine().getStatusCode();
-                String content = EntityUtils.toString(response.getEntity());
-
-                if (statusCode == 200) {
-                    result.append(content);
-                    return true;
-                } else {
-                    Log.e(TAG, "Download History Failed: " + statusCode);
-                    return false;
-                }
-            } finally {
-                EntityUtils.consumeQuietly(response.getEntity());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Download History Exception", e);
-            return false;
-        }
-    }*/
-
-    private OAuth1Token getOauth1FromResponse(String responseAsString) throws java.text.ParseException {
-        Uri uri = Uri.parse("https://invalid?" + responseAsString);
-        String oauth1Token = uri.getQueryParameter("oauth_token");
-        String oauth1TokenSecret = uri.getQueryParameter("oauth_token_secret");
-        String mfaToken = uri.getQueryParameter("mfa_token");
-        String mfaExpirationTimestampString = uri.getQueryParameter("mfa_expiration_timestamp");
-
-        long mfaExpirationTimestamp = Long.MAX_VALUE;
-        if (mfaExpirationTimestampString != null) {
-            SimpleDateFormat mfaExpirationFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS", Locale.US);
-            mfaExpirationFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            mfaExpirationTimestamp = mfaExpirationFormat.parse(mfaExpirationTimestampString).getTime();
-        }
-        return new OAuth1Token(oauth1Token, oauth1TokenSecret, mfaToken, mfaExpirationTimestamp);
-    }
-
-    private OAuth2Token getOauth2FromResponse(String responseAsString) throws JSONException {
-        long currentTime = System.currentTimeMillis() / 1000;
-        JSONObject response = new JSONObject(responseAsString);
-        return new OAuth2Token(response.getString("access_token"),
-                response.getString("refresh_token"),
-                Integer.parseInt(response.getString("expires_in")) + currentTime,
-                Integer.parseInt(response.getString("refresh_token_expires_in")) + currentTime);
-    }
-
-    private String getTicketIdFromResponse(String responseAsString) {
-        return getFirstMatch(TICKET_FINDER_PATTERN, responseAsString);
-    }
-
-    private String getCSRFToken(String responseAsString) {
-        return getFirstMatch(CSRF_TOKEN_PATTERN, responseAsString);
-    }
-
-    private String getFirstMatch(String regex, String within) {
-        Pattern pattern = Pattern.compile(regex);
-        Matcher matcher = pattern.matcher(within);
-        if (matcher.find()) {
-            return matcher.group(1);
-        }
-        return "";
-    }
-
-    public boolean isSignedIn() {
-        getOrCreateClient(); // Ensure client exists
-        if (httpclient == null) return false;
-        try {
-            HttpGet get = new HttpGet("https://connect.garmin.com/modern/currentuser-service/user/info");
-
-            if (this.oauth2Token != null) {
-                get.setHeader("Authorization", "Bearer " + this.oauth2Token.getOauth2Token());
-            }
-
-            HttpResponse execute = httpclient.execute(get, httpContext);
-            HttpEntity entity = execute.getEntity();
-
-            try {
-                if (entity != null) {
-                    String json = EntityUtils.toString(entity);
-                    if (json.trim().startsWith("{")) {
-                        JSONObject js_user = new JSONObject(json);
-                        return js_user.has("username") && !js_user.getString("username").isEmpty();
-                    }
-                }
-            } finally {
-                EntityUtils.consumeQuietly(entity);
-            }
-            return false;
-        } catch (Exception e) {
-            Log.e(TAG, "Check sign-in failed: " + e.getMessage());
-            return false;
-        }
-    }
-
-    // Keep 'MainActivity' in signature to be compatible with existing code,
-    // even though we use 'context' internally now.
-    public String uploadFitFile(File fitFile) {
-        getOrCreateClient(); // Ensure client exists
-        if (httpclient == null) return "Client not initialized";
-
-        HttpPost post = new HttpPost(FIT_FILE_UPLOAD_URL);
-        post.setHeader(HttpHeaders.AUTHORIZATION, "Bearer " + this.oauth2Token.getOauth2Token());
-
-        try {
-            MultipartEntityBuilder multipartEntity = MultipartEntityBuilder.create();
-            multipartEntity.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
-            multipartEntity.addBinaryBody("file", fitFile);
-            post.setEntity(multipartEntity.build());
-
-            HttpResponse httpResponse = httpclient.execute(post, httpContext);
-            try {
-                int responseStatusCode = httpResponse.getStatusLine().getStatusCode();
-                if (responseStatusCode == HttpStatus.SC_UNAUTHORIZED) {
-                    clearFromSharedPreferences2();
-                    return "Unauthorised request, invalid token.";
-                }
-
-                String responseString = EntityUtils.toString(httpResponse.getEntity());
-                JSONObject js_upload = new JSONObject(responseString);
-
-                if (js_upload.has("detailedImportResult") &&
-                        js_upload.getJSONObject("detailedImportResult").getJSONArray("failures").length() > 0) {
-                    return "Upload error: detailedImportResult failures";
-                }
-                return null; // Success
-            } finally {
-                EntityUtils.consumeQuietly(httpResponse.getEntity());
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Upload failed", e);
-            return e.getMessage();
-        }
-    }
-
-    private String promptMFAModalDialog(Activity currentActivity) throws InterruptedException {
         BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
         currentActivity.runOnUiThread(() -> {
-            AlertDialog.Builder mfaModalBuilder = new AlertDialog.Builder(currentActivity);
-            mfaModalBuilder.setTitle("MFA");
-            final EditText mfaInput = new EditText(currentActivity);
-            mfaInput.setInputType(InputType.TYPE_CLASS_NUMBER);
-            mfaModalBuilder.setView(mfaInput);
-            mfaModalBuilder.setMessage("Enter the 6 digit MFA code you received by SMS or email:");
-            mfaModalBuilder.setPositiveButton("Submit", (dialogInterface, id) -> inputQueue.add(mfaInput.getText().toString()));
-            mfaModalBuilder.setNegativeButton("Cancel", (dialogInterface, i) -> inputQueue.add(""));
+            AlertDialog.Builder builder = new AlertDialog.Builder(currentActivity);
+            builder.setTitle("Garmin Verification");
+            final EditText input = new EditText(currentActivity);
+            input.setInputType(InputType.TYPE_CLASS_NUMBER);
+            input.setHint("Enter 6-digit code");
+            builder.setView(input);
+            builder.setMessage("Enter the code sent to your email/SMS:");
 
-            AlertDialog mfaDialog = mfaModalBuilder.create();
-            mfaDialog.setOnShowListener(dialogInterface -> {
-                mfaInput.requestFocus();
-                Window window = mfaDialog.getWindow();
-                if (window != null) {
-                    window.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
+            builder.setPositiveButton("Submit", (d, id) -> inputQueue.add(input.getText().toString()));
+            builder.setNegativeButton("Cancel", (d, i) -> inputQueue.add(""));
+
+            AlertDialog dialog = builder.create();
+            // Show keyboard automatically
+            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            dialog.setOnShowListener(d -> {
+                input.requestFocus();
+                InputMethodManager imm = (InputMethodManager) currentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+                if (imm != null) {
+                    imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
                 }
             });
-            mfaDialog.show();
+            dialog.show();
         });
+
         return inputQueue.take();
     }
 
-    private boolean loginRequiresMFA(String responseAsString) {
-        String pageTitlePattern = "<title>(.*?)</title>";
-        String pageTitle = getFirstMatch(pageTitlePattern, responseAsString);
-        return pageTitle.toUpperCase().contains("MFA");
-    }
+    public String uploadFitFile(File fitFile) {
+        if (oauth2Token == null) return "Not authenticated";
 
-    private String handleMfa(String csrf, Activity currentActivity) throws InterruptedException, URISyntaxException, IOException {
-        final String mfaCode = promptMFAModalDialog(currentActivity);
-        if (mfaCode == null || mfaCode.isEmpty()) {
-            throw new IOException("MFA Verification cancelled by user");
-        }
+        String boundary = "---------------------------" + System.currentTimeMillis();
+        String lineEnd = "\r\n";
+        String twoHyphens = "--";
 
-        URIBuilder mfaURIBuilder = new URIBuilder(SSO_MFA_URL);
-        mfaURIBuilder.addParameters(SIGNIN_PARAMS);
-        HttpPost loginPostRequest = new HttpPost(mfaURIBuilder.build());
-        loginPostRequest.setHeader(HttpHeaders.REFERER, getLastUri());
-        List<NameValuePair> loginPostEntity = Arrays.asList(
-                new BasicNameValuePair("mfa-code", mfaCode),
-                new BasicNameValuePair("embed", "true"),
-                new BasicNameValuePair("_csrf", csrf),
-                new BasicNameValuePair("fromPage", "setupEnterMfaCode")
-        );
-        loginPostRequest.setEntity(new UrlEncodedFormEntity(loginPostEntity, "UTF-8"));
-
-        HttpResponse loginResponse = httpclient.execute(loginPostRequest, httpContext);
         try {
-            return EntityUtils.toString(loginResponse.getEntity());
-        } finally {
-            EntityUtils.consumeQuietly(loginResponse.getEntity());
-        }
-    }
+            HttpURLConnection conn = (HttpURLConnection) new URL(UPLOAD_URL).openConnection();
+            conn.setDoInput(true);
+            conn.setDoOutput(true);
+            conn.setUseCaches(false);
+            conn.setRequestMethod("POST");
 
-    private String getLastUri() {
-        if (this.httpContext.getRequest() == null || this.httpContext.getTargetHost() == null) {
-            return SSO_EMBED_URL;
-        }
-        try {
-            String target = this.httpContext.getTargetHost().toURI();
-            String partialUri = this.httpContext.getRequest().getRequestLine().getUri();
-            return target + partialUri;
-        } catch (Exception e) {
-            return SSO_EMBED_URL;
-        }
-    }
+            conn.setRequestProperty("Authorization", "Bearer " + oauth2Token.accessToken);
+            conn.setRequestProperty("User-Agent", USER_AGENT);
+            conn.setRequestProperty("NK", "NT");
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
 
-    public void close() {
-        if (httpclient != null) {
-            try {
-                httpclient.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Error closing client", e);
+            try (DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
+                dos.writeBytes(twoHyphens + boundary + lineEnd);
+                // Use UTF-8 for filename safety
+                String disposition = "Content-Disposition: form-data; name=\"file\"; filename=\"" + fitFile.getName() + "\"" + lineEnd;
+                dos.write(disposition.getBytes(StandardCharsets.UTF_8));
+
+                dos.writeBytes("Content-Type: application/octet-stream" + lineEnd);
+                dos.writeBytes(lineEnd);
+
+                try (FileInputStream fis = new FileInputStream(fitFile)) {
+                    byte[] buffer = new byte[4096];
+                    int bytesRead;
+                    while ((bytesRead = fis.read(buffer)) != -1) {
+                        dos.write(buffer, 0, bytesRead);
+                    }
+                }
+                dos.writeBytes(lineEnd);
+                dos.writeBytes(twoHyphens + boundary + twoHyphens + lineEnd);
             }
-            httpclient = null;
+
+            int status = conn.getResponseCode();
+            if (status == 200 || status == 201) {
+                return null; // Success
+            } else {
+                // Read the error message from the server to debug the 400 error
+                String errorMsg = "";
+                InputStream errorStream = conn.getErrorStream();
+                if (errorStream != null) {
+                    errorMsg = readStream(errorStream);
+                } else {
+                    // Fallback: Check headers if body is empty (common for 400 Bad Request)
+                    errorMsg = "Headers: " + conn.getHeaderFields().toString();
+                }
+                Log.e(TAG, "[ERROR] Upload failed (Code " + status + "): " + errorMsg);
+                return "Upload Failed: " + status + " - " + errorMsg;
+            }
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
+    }
+
+    public boolean downloadHistory(StringBuilder result) {
+        // Auto-load token if missing (e.g. after app restart)
+        if (oauth2Token == null) {
+            SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
+            if (!loadOauth2(prefs)) {
+                Log.e(TAG, "[ERROR] downloadHistory: No saved token found. User must sign in.");
+                return false;
+            }
+            Log.d(TAG, "[DEBUG] Token auto-loaded from storage.");
+        }
+
+        try {
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+            String today = sdf.format(new Date());
+            // Use connectapi.garmin.com (Mobile API) which accepts Bearer tokens
+            String url = "https://connectapi.garmin.com/weight-service/weight/range/1970-01-01/" + today + "?includeAll=true";
+
+            Map<String, String> headers = getStandardHeaders();
+            headers.put("Authorization", "Bearer " + oauth2Token.accessToken);
+            headers.put("NK", "NT");
+
+            HttpResponse resp = execute("GET", url, null, null, headers, true);
+            if (resp.code == 200) {
+                result.append(resp.body);
+                return true;
+            } else {
+                Log.e(TAG, "[ERROR] Download History Failed: " + resp.code);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "[ERROR] Download History Exception", e);
+        }
+        return false;
+    }
+
+    // --- Internals ---
+
+    private String getOAuth1Token(String ticket, OAuthConsumer consumer) {
+        try {
+            String baseUrl = OAUTH1_URL;
+            String fullUrl = baseUrl + "?ticket=" + ticket + "&login-url=https://sso.garmin.com/sso/embed&accepts-mfa-tokens=true";
+
+            String signedUrl = consumer.sign(fullUrl);
+            HttpResponse resp = execute("GET", signedUrl, null, null, null, true);
+            if (resp.code == 200) {
+                return resp.body;
+            } else {
+                Log.e(TAG, "[ERROR] OAuth1 Failed. Code: " + resp.code + ", Body: " + resp.body);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "[ERROR] OAuth1 Exception", e);
+        }
+        return null;
+    }
+
+    private boolean performOAuth2Exchange(OAuthConsumer consumer) {
+        try {
+            VirtualRequest virtualRequest = new VirtualRequest(OAUTH2_URL, "POST");
+            consumer.sign(virtualRequest);
+
+            HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("User-Agent", USER_AGENT);
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+            conn.setRequestProperty("Content-Length", "0");
+
+            String authHeader = virtualRequest.getHeaders().get("Authorization");
+            if (authHeader != null) {
+                conn.setRequestProperty("Authorization", authHeader);
+            }
+
+            conn.setDoOutput(true);
+
+            int code = conn.getResponseCode();
+            if (code == 200) {
+                String body = readStream(conn.getInputStream());
+                JSONObject json = new JSONObject(body);
+                this.oauth2Token = new OAuth2Token(
+                        json.getString("access_token"),
+                        json.getString("refresh_token"),
+                        json.optLong("expires_in", 3600),
+                        json.optLong("refresh_token_expires_in", 86400)
+                );
+                return true;
+            } else {
+                Log.e(TAG, "[ERROR] OAuth2 Failed. Code: " + code);
+                String err = readStream(conn.getErrorStream());
+                Log.e(TAG, "OAuth2 Error Body: " + err);
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "[ERROR] OAuth2 Exception", e);
+        }
+        return false;
+    }
+
+    // --- Virtual Request Helper ---
+    private static class VirtualRequest implements HttpRequest {
+        private String url;
+        private String method;
+        private Map<String, String> headers;
+
+        public VirtualRequest(String url, String method) {
+            this.url = url;
+            this.method = method;
+            this.headers = new HashMap<>();
+        }
+
+        @Override public String getMethod() { return method; }
+        @Override public String getRequestUrl() { return url; }
+        @Override public void setRequestUrl(String url) { this.url = url; }
+        @Override public void setHeader(String name, String value) { headers.put(name, value); }
+        @Override public String getHeader(String name) { return headers.get(name); }
+        @Override public Map<String, String> getAllHeaders() { return headers; }
+        @Override public InputStream getMessagePayload() { return new ByteArrayInputStream(new byte[0]); }
+        @Override public String getContentType() { return null; }
+        @Override public Object unwrap() { return null; }
+
+        public Map<String, String> getHeaders() { return headers; }
+    }
+
+    private Map<String, String> getServiceParams() {
+        Map<String, String> p = new HashMap<>();
+        p.put("id", "gauth-widget");
+        p.put("embedWidget", "true");
+        p.put("gauthHost", SSO_ROOT);
+        p.put("clientId", "GarminConnect");
+        p.put("locale", "en");
+        p.put("redirectAfterAccountLoginUrl", SSO_EMBED_URL);
+        p.put("redirectAfterAccountCreationUrl", SSO_EMBED_URL);
+        p.put("createAccountShown", "true");
+        p.put("openCreateAccount", "false");
+        p.put("displayNameShown", "false");
+        p.put("consumeServiceTicket", "false");
+        p.put("initialFocus", "true");
+        p.put("generateExtraServiceTicket", "true");
+        p.put("generateTwoFactorAuthTicket", "false");
+        p.put("generateNoServiceTicket", "false");
+        p.put("globalExitUrl", SSO_EMBED_URL);
+        return p;
+    }
+
+    private Map<String, String> getStandardHeaders() {
+        Map<String, String> h = new HashMap<>();
+        h.put("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8");
+        h.put("Accept-Language", "en-US,en;q=0.9");
+        h.put("Sec-Fetch-Dest", "document");
+        h.put("Sec-Fetch-Mode", "navigate");
+        h.put("Sec-Fetch-Site", "none");
+        h.put("Sec-Fetch-User", "?1");
+        return h;
+    }
+
+    private String extractCsrf(String html) {
+        Pattern p1 = Pattern.compile("name=[\"']_csrf[\"'][^>]*value=[\"']([^\"']+)[\"']");
+        Matcher m1 = p1.matcher(html);
+        if (m1.find()) return m1.group(1);
+
+        Pattern p2 = Pattern.compile("value=[\"']([^\"']+)[\"'][^>]*name=[\"']_csrf[\"']");
+        Matcher m2 = p2.matcher(html);
+        if (m2.find()) return m1.group(1);
+
+        return "";
+    }
+
+    private String extractRegex(Pattern pattern, String content) {
+        if (content == null) return "";
+        Matcher m = pattern.matcher(content);
+        if (m.find()) return m.group(1);
+        return "";
+    }
+
+    private HttpResponse execute(String method, String urlStr, Map<String, String> urlParams, Map<String, String> bodyParams, Map<String, String> headers, boolean followRedirects) throws Exception {
+        StringBuilder sb = new StringBuilder(urlStr);
+        if (urlParams != null && !urlParams.isEmpty()) {
+            sb.append("?");
+            boolean first = true;
+            for (Map.Entry<String, String> entry : urlParams.entrySet()) {
+                if (!first) sb.append("&");
+                sb.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+                first = false;
+            }
+        }
+
+        URL url = new URL(sb.toString());
+        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+        conn.setRequestMethod(method);
+        conn.setInstanceFollowRedirects(followRedirects);
+        conn.setRequestProperty("User-Agent", USER_AGENT);
+
+        if (headers != null) {
+            for (Map.Entry<String, String> h : headers.entrySet()) {
+                conn.setRequestProperty(h.getKey(), h.getValue());
+            }
+        }
+
+        if (bodyParams != null && !bodyParams.isEmpty()) {
+            conn.setDoOutput(true);
+            StringBuilder bodySb = new StringBuilder();
+            boolean first = true;
+            for (Map.Entry<String, String> entry : bodyParams.entrySet()) {
+                if (!first) bodySb.append("&");
+                bodySb.append(URLEncoder.encode(entry.getKey(), "UTF-8")).append("=").append(URLEncoder.encode(entry.getValue(), "UTF-8"));
+                first = false;
+            }
+            try (DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
+                dos.writeBytes(bodySb.toString());
+            }
+        }
+
+        int code = conn.getResponseCode();
+        InputStream is = (code >= 400) ? conn.getErrorStream() : conn.getInputStream();
+        return new HttpResponse(code, (is != null) ? readStream(is) : "", conn.getURL().toString(), conn.getHeaderFields());
+    }
+
+    private String readStream(InputStream is) throws Exception {
+        if (is == null) return "";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+        StringBuilder sb = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) sb.append(line);
+        return sb.toString();
+    }
+
+    private class OAuth2Token {
+        String accessToken, refreshToken;
+        long expiry, refreshExpiry;
+
+        OAuth2Token(String access, String refresh, long exp, long refreshExp) {
+            long now = System.currentTimeMillis() / 1000;
+            this.accessToken = access;
+            this.refreshToken = refresh;
+            this.expiry = now + exp;
+            this.refreshExpiry = now + refreshExp;
+        }
+
+        boolean save(SharedPreferences prefs) {
+            SharedPreferences.Editor ed = prefs.edit();
+            ed.putString("oauth2_access", accessToken);
+            ed.putString("oauth2_refresh", refreshToken);
+            ed.putLong("oauth2_expiry", expiry);
+            ed.putLong("oauth2_refresh_expiry", refreshExpiry);
+
+            if (user != null) {
+                user.garminOauth2Token = accessToken;
+                user.garminOauth2RefreshToken = refreshToken;
+            }
+            User.serializeUsers(context, users);
+            return ed.commit();
+        }
+    }
+
+    private boolean loadOauth2(SharedPreferences prefs) {
+        String acc = prefs.getString("oauth2_access", null);
+        long exp = prefs.getLong("oauth2_expiry", 0);
+        if (acc != null && exp > (System.currentTimeMillis()/1000)) {
+            this.oauth2Token = new OAuth2Token(acc, prefs.getString("oauth2_refresh", null), 0, 0);
+            this.oauth2Token.expiry = exp;
+            return true;
+        }
+        return false;
+    }
+
+    private boolean tryRefresh(SharedPreferences prefs) {
+        String ref = prefs.getString("oauth2_refresh", null);
+        long refExp = prefs.getLong("oauth2_refresh_expiry", 0);
+        if (ref == null || refExp < (System.currentTimeMillis()/1000)) return false;
+
+        try {
+            HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
+            conn.setRequestMethod("POST");
+            conn.setDoOutput(true);
+            conn.setRequestProperty("User-Agent", USER_AGENT);
+            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+            String data = "grant_type=refresh_token&refresh_token=" + ref;
+            try(DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
+                dos.writeBytes(data);
+            }
+
+            if (conn.getResponseCode() == 200) {
+                String body = readStream(conn.getInputStream());
+                JSONObject json = new JSONObject(body);
+                this.oauth2Token = new OAuth2Token(
+                        json.getString("access_token"),
+                        json.getString("refresh_token"),
+                        json.optLong("expires_in", 3600),
+                        json.optLong("refresh_token_expires_in", 86400)
+                );
+                return this.oauth2Token.save(prefs);
+            }
+        } catch (Exception e) {}
+        return false;
+    }
+
+    private static class HttpResponse {
+        int code; String body; String url; Map<String, List<String>> headers;
+        HttpResponse(int c, String b, String u, Map<String, List<String>> h) {
+            code = c; body = b; url = u; headers = h;
         }
     }
 }

@@ -61,8 +61,8 @@ public class HistoryFragment extends Fragment {
     HistoryAdapter mAdapter;
 
     //MenuItems for controlling the Download button
-    //private MenuItem downloadMI = null;
-    //private MenuItem gcMI = null;
+    private MenuItem downloadMI = null;
+    private MenuItem gcMI = null;
     private Spinner usersSpinner = null;
 
     public HistoryFragment() {
@@ -103,10 +103,10 @@ public class HistoryFragment extends Fragment {
                 //Mostrar todos los pesos del usuario
                 mAdapter.replaceAll(((MainActivity)getActivity()).getHistoryArraySelectedUser(), user);
 
-//                if ((user.gc_user != null && user.gc_pass != null)) {
-//                    downloadMI.setVisible(true);
-//                    gcMI.setVisible(true);
-//                } else downloadMI.setVisible(false);
+                if ((user.gc_user != null && user.gc_pass != null)) {
+                    downloadMI.setVisible(true);
+                    gcMI.setVisible(true);
+                } else downloadMI.setVisible(false);
             }
         }
         @Override
@@ -121,19 +121,19 @@ public class HistoryFragment extends Fragment {
         if (getActivity() != null) {
             usersSpinner = ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
         }
-//        downloadMI = menu.findItem(R.id.action_download_history);
-//        downloadMI.setVisible(false);
-        //gcMI = menu.findItem(R.id.action_download_history_gc);
-        //gcMI.setVisible(false);
+        downloadMI = menu.findItem(R.id.action_download_history);
+        downloadMI.setVisible(false);
+        gcMI = menu.findItem(R.id.action_download_history_gc);
+        gcMI.setVisible(false);
         MenuItem csvMI = menu.findItem(R.id.action_export_history);
         csvMI.setVisible(false);
         User user = ((MainActivity) getActivity()).getSelectedUser();
-//        if ((user != null) && ((user.gc_user != null && user.gc_pass != null))) {
-//                //|| (user.tp_access_token != null && user.tp_refresh_token != null))) {
-//            downloadMI.setVisible(true);
-//            //Hide GC
-//            //gcMI.setVisible(!(user.gc_user == null && user.gc_pass == null));
-//        }
+        if ((user != null) && ((user.gc_user != null && user.gc_pass != null))) {
+                //|| (user.tp_access_token != null && user.tp_refresh_token != null))) {
+            downloadMI.setVisible(true);
+            //Hide GC
+            gcMI.setVisible(!(user.gc_user == null && user.gc_pass == null));
+        }
         csvMI.setVisible(mAdapter.getItemCount() != 0);
 
         super.onCreateOptionsMenu(menu, inflater);
@@ -143,10 +143,10 @@ public class HistoryFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
         int itemId = item.getItemId();
-        /*if (itemId == R.id.action_download_history_gc) {
+        if (itemId == R.id.action_download_history_gc) {
             download_history_gc();
             return true;
-        } else*/ if (itemId == R.id.action_export_history_csv) {
+        } else if (itemId == R.id.action_export_history_csv) {
             export_history_csv();
             return true;
         }
@@ -321,7 +321,7 @@ public class HistoryFragment extends Fragment {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    /*private void download_history_gc() {
+    private void download_history_gc() {
         if ((getActivity() == null) || (getContext() == null)) return;
 
         try {
@@ -358,11 +358,11 @@ public class HistoryFragment extends Fragment {
                     try {
                         final User user = (User)usersSpinner.getSelectedItem();
                         GarminConnect gc = new GarminConnect(user, ((MainActivity)getActivity()).getUsersArray(), getActivity());
-                        if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""), getActivity())) {
+                        if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
                             result.append(getString(R.string.weight_fragment_msg_wrong_credentials));
                         }
                         else {
-                            success = false;//gc.downloadHistory(getActivity(), result);
+                            success = gc.downloadHistory(result);
                             if (success) {
                                 String history = result.toString();
                                 List<Weight> wl = ((MainActivity)getActivity()).getHistoryArray();
@@ -521,7 +521,7 @@ public class HistoryFragment extends Fragment {
                                 success = true;
                             }
                         }
-                        gc.close();
+                        //gc.close();
                     } catch (Exception e) {
                         e.printStackTrace();
                         result.append("Exception: ").append(e);
@@ -534,6 +534,6 @@ public class HistoryFragment extends Fragment {
                         notificationManager.notify(GARMIN_CONNECT_NOTIFICATION_ID, mBuilder.build());
                     }
                 }).start();
-    }*/
+    }
 
 }
