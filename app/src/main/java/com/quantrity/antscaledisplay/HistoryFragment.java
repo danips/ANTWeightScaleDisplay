@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
@@ -324,16 +325,18 @@ public class HistoryFragment extends Fragment {
     private void download_history_gc() {
         if ((getActivity() == null) || (getContext() == null)) return;
 
-        try {
-            ProviderInstaller.installIfNeeded(getContext());
-        } catch (final GooglePlayServicesRepairableException e) {
-            com.quantrity.antscaledisplay.Log.e("SecurityException", "GooglePlayServicesRepairableException.");
-            // Thrown when Google Play Services is not installed, up-to-date, or enabled
-            // Show dialog to allow users to install, update, or otherwise enable Google Play services.
-            final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-            getActivity().runOnUiThread(() -> Objects.requireNonNull(apiAvailability.getErrorDialog(getActivity(), e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST)).show());
-        } catch (GooglePlayServicesNotAvailableException e) {
-            com.quantrity.antscaledisplay.Log.e("SecurityException", "Google Play Services not available. GooglePlayServicesNotAvailableException");
+        if (Build.VERSION.SDK_INT < 29) {
+            try {
+                ProviderInstaller.installIfNeeded(getContext());
+            } catch (final GooglePlayServicesRepairableException e) {
+                com.quantrity.antscaledisplay.Log.e("SecurityException", "GooglePlayServicesRepairableException.");
+                // Thrown when Google Play Services is not installed, up-to-date, or enabled
+                // Show dialog to allow users to install, update, or otherwise enable Google Play services.
+                final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+                getActivity().runOnUiThread(() -> Objects.requireNonNull(apiAvailability.getErrorDialog(getActivity(), e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST)).show());
+            } catch (GooglePlayServicesNotAvailableException e) {
+                com.quantrity.antscaledisplay.Log.e("SecurityException", "Google Play Services not available. GooglePlayServicesNotAvailableException");
+            }
         }
 
         final NotificationManager notificationManager = (NotificationManager)getContext().getSystemService(Context.NOTIFICATION_SERVICE);

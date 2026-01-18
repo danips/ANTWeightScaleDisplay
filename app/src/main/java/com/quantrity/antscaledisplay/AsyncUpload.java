@@ -3,6 +3,7 @@ package com.quantrity.antscaledisplay;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.widget.Toast;
 
 import com.garmin.fit.DateTime;
@@ -73,16 +74,18 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
             for (String path : paths) {
                 gcThread gct = null;
                 if (start_gc) {
-                    try {
-                        ProviderInstaller.installIfNeeded(activity);
-                    } catch (final GooglePlayServicesRepairableException e) {
-                        com.quantrity.antscaledisplay.Log.e("SecurityException", "GooglePlayServicesRepairableException.");
-                        // Thrown when Google Play Services is not installed, up-to-date, or enabled
-                        // Show dialog to allow users to install, update, or otherwise enable Google Play services.
-                        final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-                        activity.runOnUiThread(() -> apiAvailability.getErrorDialog(activity, e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST).show());
-                    } catch (GooglePlayServicesNotAvailableException e) {
-                        com.quantrity.antscaledisplay.Log.e("SecurityException", "Google Play Services not available. GooglePlayServicesNotAvailableException");
+                    if (Build.VERSION.SDK_INT < 29) {
+                        try {
+                            ProviderInstaller.installIfNeeded(activity);
+                        } catch (final GooglePlayServicesRepairableException e) {
+                            com.quantrity.antscaledisplay.Log.e("SecurityException", "GooglePlayServicesRepairableException.");
+                            // Thrown when Google Play Services is not installed, up-to-date, or enabled
+                            // Show dialog to allow users to install, update, or otherwise enable Google Play services.
+                            final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+                            activity.runOnUiThread(() -> apiAvailability.getErrorDialog(activity, e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST).show());
+                        } catch (GooglePlayServicesNotAvailableException e) {
+                            com.quantrity.antscaledisplay.Log.e("SecurityException", "Google Play Services not available. GooglePlayServicesNotAvailableException");
+                        }
                     }
                     gct = new gcThread();
                     gct.path = path;
