@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat">
+    <style name="AppTheme" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Customize your theme here. -->>
         <item name="colorPrimary">#0099cc</item>
         <item name="colorAccent">#0099cc</item>
@@ -48,11 +48,9 @@
     </style>
     <style name="ImageView" parent="WrapWrap">
         <item name="android:background">@drawable/rounded_blue</item>
-        <item name="android:onClick">getDescription</item>
     </style>
     <style name="ImageViewDisabled" parent="WrapWrap">
         <item name="android:background">@drawable/rounded_grey</item>
-        <item name="android:onClick">getDescription</item>
     </style>
     <style name="LinearLayout" parent="FillFill">
         <item name="android:orientation">vertical</item>
@@ -72,7 +70,6 @@
     </style>
     <style name="EditWeightIV" parent="WrapWrap">
         <item name="android:background">@drawable/rounded_blue</item>
-        <item name="android:onClick">getDescription</item>
         <item name="android:layout_marginBottom">16dp</item>
     </style>
     <style name="EditWeightDesc">

@@ -25,7 +25,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
@@ -80,7 +79,7 @@ public class MainActivity extends AppCompatActivity
         User.deserializeUsers(getApplicationContext(), mUsersArray);
 
         //First time open users tab and request data
-        if (mUsersArray.size() == 0) {
+        if (mUsersArray.isEmpty()) {
             selectedUser = null;
             runOnUiThread(() -> openEditUserFragment(null));
         } else {
@@ -92,7 +91,7 @@ public class MainActivity extends AppCompatActivity
                 String selected_user = settings.getString("selected_user", null);
                 final Collator collator = Collator.getInstance();
                 Collections.sort(mUsersArray, (o1, o2) -> collator.compare(o1.name, o2.name));
-                if ((selected_user == null) || selected_user.equals("")) {
+                if ((selected_user == null) || selected_user.isEmpty()) {
                     selectedUser = mUsersArray.get(0);
                 }
                 else {
@@ -115,9 +114,17 @@ public class MainActivity extends AppCompatActivity
             }
         }
         Weight.deserializeHistory(getApplicationContext(), mHistoryArray);
-        /* TODO: get latest measurement for selected user */
 
         Goal.deserializeGoals(getApplicationContext(), mGoalsArray);
+
+        /* Get latest measurement for selected user */
+        // Notify the WeightFragment to refresh its data now that DB is loaded
+        runOnUiThread(() -> {
+            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+            if (currentFragment instanceof WeightFragment) {
+                ((WeightFragment) currentFragment).updateUi();
+            }
+        });
     }
 
     @Override
@@ -149,7 +156,7 @@ public class MainActivity extends AppCompatActivity
                 UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
                 if (manager != null) {
                     HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-                    if (!((deviceList == null) || (deviceList.size() == 0))) show_message = false;
+                    if (!((deviceList == null) || (deviceList.isEmpty()))) show_message = false;
                 }
                 if (show_message) showNoAntMessage();
             }
@@ -199,7 +206,7 @@ public class MainActivity extends AppCompatActivity
         Iterator<Weight> itr = wal.iterator();
         while (itr.hasNext())
         {
-            Weight w = (Weight) itr.next();
+            Weight w = itr.next();
             if (!w.uuid.equals(selectedUser.uuid))
             {
                 itr.remove();
@@ -216,7 +223,7 @@ public class MainActivity extends AppCompatActivity
             for (Weight weight : mHistoryArray)
             {
                 if ((weight.uuid.equals(selectedUser.uuid))) {
-                    w = mHistoryArray.get(0);
+                    w = weight;
                     break;
                 }
             }
@@ -448,7 +455,7 @@ public class MainActivity extends AppCompatActivity
         MenuItem mSpinnerItem = menu.findItem(R.id.action_select_user);
 
         ArrayList<User> mUsersArray = getUsersArray();
-        if (mUsersArray.size() > 0) {
+        if (!mUsersArray.isEmpty()) {
             Spinner spinner = (Spinner)mSpinnerItem.getActionView();
             final ArrayAdapter<User> adapter = new ArrayAdapter<>(this, R.layout.fragment_weight_user_spinner_item, mUsersArray);
             adapter.setDropDownViewResource(R.layout.fragment_weight_user_spinner_dropdown_item);
@@ -476,7 +483,7 @@ public class MainActivity extends AppCompatActivity
     public void deleteHistoryAndUser(User user) {
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         String selected_user = settings.getString("selected_user", null);
-        if ((selected_user == null) || selected_user.equals(user.name) || (selected_user.equals(""))) {
+        if ((selected_user == null) || selected_user.equals(user.name) || (selected_user.isEmpty())) {
             SharedPreferences.Editor editor = settings.edit();
             editor.remove("selected_user");
             editor.apply();
@@ -535,12 +542,12 @@ public class MainActivity extends AppCompatActivity
         // update the main content by replacing fragments
         Fragment fragment = null;
         Fragment current_fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
-        int pos = 0;
+        int pos = NAV_POS_WEIGHT;
 
         if (item.equals(getString(R.string.lateral_menu_option_weight))) {
             if (!(current_fragment instanceof WeightFragment))
             {
-                pos = NAV_POS_WEIGHT;
+                //pos = NAV_POS_WEIGHT;
                 fragment = new WeightFragment();
             }
         } else if (item.equals(getString(R.string.lateral_menu_option_users))) {
@@ -590,39 +597,6 @@ public class MainActivity extends AppCompatActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (Debug.ON) Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    public void getDescription(View view) {
-        int id = view.getId();
-        if (id == R.id.weightIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_weight, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.trunkIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_trunk, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.leftArmIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_leftArm, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.rightArmIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_rightArm, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.leftLegIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_leftLeg, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.rightLegIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_rightLeg, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.percentFatIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_percentFat, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.percentHydrationIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_percentHydration, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.boneMassIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_boneMass, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.muscleMassIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_muscleMass, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.physiqueRatingIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_physiqueRating, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.visceralFatRatingIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_visceralFat, Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.metabolicAgeIV) {
-            Toast.makeText(getApplicationContext(), String.format("%s / %s", getString(R.string.weight_fragment_icon_desc_metabolicAge), getString(R.string.weight_fragment_icon_desc_activeMet)), Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.basalMetIV) {
-            Toast.makeText(getApplicationContext(), R.string.weight_fragment_icon_desc_basalMet, Toast.LENGTH_SHORT).show();
-        }
     }
 
     public boolean isPackageInstalled(String packageName) {
