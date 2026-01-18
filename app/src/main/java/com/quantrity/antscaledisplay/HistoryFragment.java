@@ -36,10 +36,8 @@ import com.google.android.gms.security.ProviderInstaller;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
-import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -49,9 +47,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-
-import ru.bartwell.exfilepicker.ExFilePicker;
-import ru.bartwell.exfilepicker.data.ExFilePickerResult;
 
 public class HistoryFragment extends Fragment {
     private final static String TAG = "HistoryFragment";
@@ -128,12 +123,14 @@ public class HistoryFragment extends Fragment {
         gcMI.setVisible(false);
         MenuItem csvMI = menu.findItem(R.id.action_export_history);
         csvMI.setVisible(false);
-        User user = ((MainActivity) getActivity()).getSelectedUser();
-        if ((user != null) && ((user.gc_user != null && user.gc_pass != null))) {
+        if (getActivity() != null) {
+            User user = ((MainActivity) getActivity()).getSelectedUser();
+            if ((user != null) && ((user.gc_user != null && user.gc_pass != null))) {
                 //|| (user.tp_access_token != null && user.tp_refresh_token != null))) {
-            downloadMI.setVisible(true);
-            //Hide GC
-            gcMI.setVisible(!(user.gc_user == null && user.gc_pass == null));
+                downloadMI.setVisible(true);
+                //Hide GC
+                gcMI.setVisible(!(user.gc_user == null && user.gc_pass == null));
+            }
         }
         csvMI.setVisible(mAdapter.getItemCount() != 0);
 
@@ -157,20 +154,20 @@ public class HistoryFragment extends Fragment {
     private void export_history_csv() {
         if (Debug.ON) Log.v(TAG, "export_history_csv");
 
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            startActivityForResult(intent, MainActivity.CSV_DIRECTORY_PICKER_RESULT);
-        }
+        //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+        startActivityForResult(intent, MainActivity.CSV_DIRECTORY_PICKER_RESULT);
+        /*}
         else {
             ExFilePicker exFilePicker = new ExFilePicker();
             exFilePicker.setCanChooseOnlyOneItem(true);
             exFilePicker.setSortButtonDisabled(true);
             exFilePicker.setChoiceType(ExFilePicker.ChoiceType.DIRECTORIES);
             exFilePicker.start(this, MainActivity.CSV_DIRECTORY_PICKER_RESULT);
-        }
+        }*/
     }
 
-    private void writeCSV(String dst, User user, SimpleDateFormat format, String filename, List<Weight> wl)
+    /*private void writeCSV(String dst, User user, SimpleDateFormat format, String filename, List<Weight> wl)
     {
         try {
             FileWriter fCsv = new FileWriter(dst);
@@ -178,7 +175,7 @@ public class HistoryFragment extends Fragment {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
+    }*/
 
     private void writeCSV(ParcelFileDescriptor destFileDesc, User user, SimpleDateFormat format, String filename, List<Weight> wl)
     {
@@ -297,27 +294,29 @@ public class HistoryFragment extends Fragment {
             User user = (User) usersSpinner.getSelectedItem();
             SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
             String displayName = user.name + "_" + format1.format(cal.getTime()) + ".csv";
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                Uri uri = data.getData();
-                ContentResolver contentResolver;
-                if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
-                    Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                    try {
-                        Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "text/csv", displayName);
-                        ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
-                        writeCSV(destFileDesc, user, format1, displayName, wl);
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
+            //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            Uri uri = data.getData();
+            ContentResolver contentResolver;
+            if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
+                Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+                try {
+                    Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "text/csv", displayName);
+                    assert fileUri != null;
+                    ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
+                    assert destFileDesc != null;
+                    writeCSV(destFileDesc, user, format1, displayName, wl);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
                 }
             }
+            /*}
             else {
                 ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
                 if ((result != null) && (result.getCount() > 0) && (!result.getNames().isEmpty()) && (getActivity() != null)) {
                     String dst = result.getPath() + result.getNames().get(0) + File.separator + displayName;
                     writeCSV(dst, user, format1, displayName, wl);
                 }
-            }
+            }*/
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -329,13 +328,13 @@ public class HistoryFragment extends Fragment {
             try {
                 ProviderInstaller.installIfNeeded(getContext());
             } catch (final GooglePlayServicesRepairableException e) {
-                com.quantrity.antscaledisplay.Log.e("SecurityException", "GooglePlayServicesRepairableException.");
+                Log.e(TAG, "GooglePlayServicesRepairableException.");
                 // Thrown when Google Play Services is not installed, up-to-date, or enabled
                 // Show dialog to allow users to install, update, or otherwise enable Google Play services.
                 final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
                 getActivity().runOnUiThread(() -> Objects.requireNonNull(apiAvailability.getErrorDialog(getActivity(), e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST)).show());
             } catch (GooglePlayServicesNotAvailableException e) {
-                com.quantrity.antscaledisplay.Log.e("SecurityException", "Google Play Services not available. GooglePlayServicesNotAvailableException");
+                Log.e(TAG, "Google Play Services not available. GooglePlayServicesNotAvailableException");
             }
         }
 
@@ -361,10 +360,7 @@ public class HistoryFragment extends Fragment {
                     try {
                         final User user = (User)usersSpinner.getSelectedItem();
                         GarminConnect gc = new GarminConnect(user, ((MainActivity)getActivity()).getUsersArray(), getActivity());
-                        if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
-                            result.append(getString(R.string.weight_fragment_msg_wrong_credentials));
-                        }
-                        else {
+                        if (gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
                             success = gc.downloadHistory(result);
                             if (success) {
                                 String history = result.toString();
@@ -426,42 +422,41 @@ public class HistoryFragment extends Fragment {
                                         {
                                             delta = Math.abs(delta);
                                             if ((w.uuid.equals(user.uuid)) && (delta <= 7200000L)) {
-                                                repeated = true;
-                                                repeated &= (Math.abs(oW.weight - w.weight) < 0.05);
+                                                repeated = (Math.abs(oW.weight - w.weight) < 0.05);
                                                 int out = 1;
                                                 if (repeated && (oW.percentFat != -1))
                                                 {
-                                                    repeated &= (Math.abs(oW.percentFat - w.percentFat) < 0.01);
+                                                    repeated = (Math.abs(oW.percentFat - w.percentFat) < 0.01);
                                                     out = 2;
                                                 }
                                                 if (repeated && (oW.percentHydration != -1))
                                                 {
-                                                    repeated &= (Math.abs(oW.percentHydration - w.percentHydration) < 0.01);
+                                                    repeated = (Math.abs(oW.percentHydration - w.percentHydration) < 0.01);
                                                     out = 3;
                                                 }
                                                 if (repeated && (oW.boneMass != -1))
                                                 {
-                                                    repeated &= (Math.abs(oW.boneMass - w.boneMass) < 0.01);
+                                                    repeated = (Math.abs(oW.boneMass - w.boneMass) < 0.01);
                                                     out = 4;
                                                 }
                                                 if (repeated && (oW.muscleMass != -1))
                                                 {
-                                                    repeated &= (Math.abs(oW.muscleMass - w.muscleMass) < 0.01);
+                                                    repeated = (Math.abs(oW.muscleMass - w.muscleMass) < 0.01);
                                                     out = 5;
                                                 }
                                                 if (repeated && (oW.physiqueRating != -1))
                                                 {
-                                                    repeated &= (oW.physiqueRating == w.physiqueRating);
+                                                    repeated = (oW.physiqueRating == w.physiqueRating);
                                                     out = 6;
                                                 }
                                                 if (repeated && (oW.percentFat != -1))
                                                 {
-                                                    repeated &= (Math.round(oW.visceralFatRating) == Math.round(w.visceralFatRating));
+                                                    repeated = (Math.round(oW.visceralFatRating) == Math.round(w.visceralFatRating));
                                                     out = 7;
                                                 }
                                                 if (repeated && (oW.metabolicAge != -1))
                                                 {
-                                                    repeated &= (oW.metabolicAge - w.metabolicAge <= 1);
+                                                    repeated = (oW.metabolicAge - w.metabolicAge <= 1);
                                                     out = 8;
                                                 }
 
@@ -521,8 +516,10 @@ public class HistoryFragment extends Fragment {
                                 Weight.serializeWeight(getActivity(), wl);
 
                                 notificationManager.cancel(GARMIN_CONNECT_NOTIFICATION_ID);
-                                success = true;
+                                //success = true;
                             }
+                        } else {
+                            result.append(getString(R.string.weight_fragment_msg_wrong_credentials));
                         }
                         //gc.close();
                     } catch (Exception e) {

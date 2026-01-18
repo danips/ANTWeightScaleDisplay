@@ -1,6 +1,7 @@
 package com.quantrity.antscaledisplay;
 
 import android.content.Context;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -14,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 public class Weight implements Cloneable {
     private final static String TAG = "Weight";
@@ -118,8 +120,8 @@ public class Weight implements Cloneable {
         if (this.physiqueRating != -1) serializedObj.put("physiqueRating", this.physiqueRating);
         if (this.visceralFatRating != -1) serializedObj.put("visceralFatRating", this.visceralFatRating);
         if (this.metabolicAge != -1) serializedObj.put("metabolicAge", this.metabolicAge);
-        if (this.activeMet != -1) serializedObj.put("activeMet", String.format("%.0f", this.activeMet));
-        if (this.basalMet != -1) serializedObj.put("basalMet", String.format("%.0f", this.basalMet));
+        if (this.activeMet != -1) serializedObj.put("activeMet", String.format(Locale.getDefault(),"%.0f", this.activeMet));
+        if (this.basalMet != -1) serializedObj.put("basalMet", String.format(Locale.getDefault(),"%.0f", this.basalMet));
         if (this.activityLevel != -1) serializedObj.put("activityLevel", this.activityLevel);
 
         return serializedObj;
@@ -146,7 +148,7 @@ public class Weight implements Cloneable {
 
     static void serializeWeight(final Context context, final List<Weight> output) {
         new Thread(() -> {
-            if (Debug.ON) Log.v("TAG", "writing " + output.size() + " weights to " + historyFilePath(context) + " output=" + output);
+            if (Debug.ON) Log.v(TAG, "writing " + output.size() + " weights to " + historyFilePath(context) + " output=" + output);
             JSONArray jsonArray = new JSONArray();
             Iterator<Weight> tmp = output.iterator();
             try {

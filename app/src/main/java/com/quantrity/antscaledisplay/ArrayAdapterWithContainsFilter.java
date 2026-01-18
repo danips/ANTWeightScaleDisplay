@@ -23,7 +23,7 @@ public class ArrayAdapterWithContainsFilter extends ArrayAdapter {
     void getContainsFilter(String charText) {
         charText = charText.toLowerCase(Locale.getDefault());
         items.clear();
-        if (charText.length() == 0) {
+        if (charText.isEmpty()) {
             items.addAll(arraylist);
         }
         else

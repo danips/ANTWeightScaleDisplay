@@ -1,15 +1,14 @@
 package com.quantrity.antscaledisplay;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,8 +18,6 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -39,9 +36,6 @@ import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
-
-import ru.bartwell.exfilepicker.ExFilePicker;
-import ru.bartwell.exfilepicker.data.ExFilePickerResult;
 
 public class UsersFragment extends Fragment {
     private final static String TAG = "UsersFragment";
@@ -92,33 +86,33 @@ public class UsersFragment extends Fragment {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle presses on the action bar items
-        ExFilePicker exFilePicker;
+        //ExFilePicker exFilePicker;
         int itemId = item.getItemId();
         if (itemId == R.id.action_database_backup) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-                startActivityForResult(intent, MainActivity.DIRECTORY_PICKER_RESULT);
-            } else {
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+            startActivityForResult(intent, MainActivity.DIRECTORY_PICKER_RESULT);
+            /*} else {
                 exFilePicker = new ExFilePicker();
                 exFilePicker.setCanChooseOnlyOneItem(true);
                 exFilePicker.setSortButtonDisabled(true);
                 exFilePicker.setChoiceType(ExFilePicker.ChoiceType.DIRECTORIES);
                 exFilePicker.start(this, MainActivity.DIRECTORY_PICKER_RESULT);
-            }
+            }*/
             return true;
         } else if (itemId == R.id.action_database_restore) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
-            } else {
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
+            /*} else {
                 exFilePicker = new ExFilePicker();
                 exFilePicker.setCanChooseOnlyOneItem(true);
                 exFilePicker.setSortButtonDisabled(true);
                 exFilePicker.setChoiceType(ExFilePicker.ChoiceType.FILES);
                 exFilePicker.start(this, MainActivity.FILE_PICKER_RESULT);
-            }
+            }*/
             return true;
         } else if (itemId == R.id.action_adduser) {//Open the edit user fragment with values resetted
             if (getActivity() != null)
@@ -197,23 +191,24 @@ public class UsersFragment extends Fragment {
                 Calendar cal = Calendar.getInstance();
                 SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
                 String displayName = "db_" + format1.format(cal.getTime()) + ".bin";
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    Uri uri = data.getData();
-                    ContentResolver contentResolver;
-                    if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
-                        Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                        try {
-                            Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "application/octet-stream", displayName);
-                            ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
-                            if (destFileDesc != null) {
-                                dst = displayName;
-                                saveBackup(destFileDesc);
-                            }
-                        } catch (FileNotFoundException e) {
-                            e.printStackTrace();
+                //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                Uri uri = data.getData();
+                ContentResolver contentResolver;
+                if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
+                    Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+                    try {
+                        Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "application/octet-stream", displayName);
+                        assert fileUri != null;
+                        ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
+                        if (destFileDesc != null) {
+                            dst = displayName;
+                            saveBackup(destFileDesc);
                         }
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
                     }
-                } else {
+                }
+                /*} else {
                     ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
                     if ((result != null) && (result.getCount() > 0) && (getActivity() != null)) {
                         dst = result.getPath() + result.getNames().get(0) + File.separator + displayName;
@@ -225,30 +220,30 @@ public class UsersFragment extends Fragment {
                             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MainActivity.REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
                         }
                     }
-                }
+                }*/
             }
         } else if (requestCode == MainActivity.FILE_PICKER_RESULT) {
             boolean ok = false;
-            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                if (resultCode == Activity.RESULT_OK)
-                {
-                    Uri uri;
-                    if (data != null) {
-                        uri = data.getData();
-                        if (getActivity() != null)
-                        {
-                            ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
-                        }
+            //if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (resultCode == Activity.RESULT_OK)
+            {
+                Uri uri;
+                if (data != null) {
+                    uri = data.getData();
+                    if (getActivity() != null)
+                    {
+                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
                     }
                 }
             }
+            /*}
             else {
                 ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
                 if ((result != null) && (result.getCount() > 0) && (getActivity() != null)) {
                     String file = result.getPath() + result.getNames().get(0);
                     ok = UsersFragment.unzip(file, getActivity().getFilesDir().toString());
                 }
-            }
+            }*/
             if (ok)
             {
                 Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
@@ -274,24 +269,6 @@ public class UsersFragment extends Fragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
-    /**
-     * Unzip a zip file.  Will overwrite existing files.
-     *
-     * @param zipFile Full path of the zip file you'd like to unzip.
-     * @param location Full path of the directory you'd like to unzip to (will be created if it doesn't exist).
-     */
-    static boolean unzip(String zipFile, String location) {
-        boolean ok = false;
-        try {
-            ZipInputStream zin = new ZipInputStream(new BufferedInputStream(new FileInputStream(zipFile), BUFFER_SIZE));
-            ok = unzip(zin, location);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        return ok;
-    }
-
     static boolean unzip(Uri zipFile, String location, ContentResolver contentResolver) {
         boolean ok = false;
         try {
@@ -314,21 +291,21 @@ public class UsersFragment extends Fragment {
             }
             File f = new File(location);
             if(!f.isDirectory()) {
-                f.mkdirs();
+                boolean ignored = f.mkdirs();
             }
             else
             {
                 File fdelete = new File(location + "users");
                 if (fdelete.exists()) {
-                    fdelete.delete();
+                    boolean ignored = fdelete.delete();
                 }
                 fdelete = new File(location + "history");
                 if (fdelete.exists()) {
-                    fdelete.delete();
+                    boolean ignored = fdelete.delete();
                 }
                 fdelete = new File(location + "goals");
                 if (fdelete.exists()) {
-                    fdelete.delete();
+                    boolean ignored = fdelete.delete();
                 }
             }
             try {
@@ -339,14 +316,14 @@ public class UsersFragment extends Fragment {
 
                     if (ze.isDirectory()) {
                         if(!unzipFile.isDirectory()) {
-                            unzipFile.mkdirs();
+                            boolean ignored = unzipFile.mkdirs();
                         }
                     } else {
                         // check for and create parent directories if they don't exist
                         File parentDir = unzipFile.getParentFile();
                         if ( null != parentDir ) {
                             if ( !parentDir.isDirectory() ) {
-                                parentDir.mkdirs();
+                                boolean ignored = parentDir.mkdirs();
                             }
                         }
 

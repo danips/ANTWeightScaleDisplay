@@ -3,11 +3,8 @@ package com.quantrity.antscaledisplay;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.text.format.DateUtils;
 import android.util.Log;
@@ -32,10 +29,11 @@ import androidx.fragment.app.Fragment;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 import java.util.UUID;
 
-import ru.bartwell.exfilepicker.ExFilePicker;
-import ru.bartwell.exfilepicker.data.ExFilePickerResult;
+/*import ru.bartwell.exfilepicker.ExFilePicker;
+import ru.bartwell.exfilepicker.data.ExFilePickerResult;*/
 
 
 public class EditUserFragment extends Fragment {
@@ -237,10 +235,10 @@ public class EditUserFragment extends Fragment {
             sp_units.setSelection((user.usesCm) ? 0 : 3);
         }
         if (user.usesCm) {
-            et_height_cm.setText(Integer.toString(user.height_cm));
+            et_height_cm.setText(String.format(Locale.getDefault(),"%d",user.height_cm));
         } else {
-            et_height_ft.setText(Integer.toString(user.height_ft));
-            et_height_in.setText(Integer.toString(user.height_in));
+            et_height_ft.setText(String.format(Locale.getDefault(),"%d",user.height_ft));
+            et_height_in.setText(String.format(Locale.getDefault(),"%d",user.height_in));
         }
         sp_activity.setSelection(user.activity_level);
         cb_lifetime_athlete.setChecked(user.isLifetimeAthlete);
@@ -313,9 +311,7 @@ public class EditUserFragment extends Fragment {
         cb_auto_upload =  rootView.findViewById(R.id.cb_automatic_upload);
         cb_show_fat_mass =  rootView.findViewById(R.id.cb_fat_mass);
         Button b_gc_token_clear = rootView.findViewById(R.id.garmin_token_clear);
-        b_gc_token_clear.setOnClickListener(v -> {
-            clearGarminTokens();
-        });
+        b_gc_token_clear.setOnClickListener(v -> clearGarminTokens());
 
         //Declare it has items for the actionbar
         setHasOptionsMenu(true);
@@ -383,18 +379,18 @@ public class EditUserFragment extends Fragment {
             }
             return true;
         } else if (itemId == R.id.action_database_restore) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                intent.addCategory(Intent.CATEGORY_OPENABLE);
-                intent.setType("*/*");
-                startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
-            } else {
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            intent.addCategory(Intent.CATEGORY_OPENABLE);
+            intent.setType("*/*");
+            startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
+            /*} else {
                 ExFilePicker exFilePicker = new ExFilePicker();
                 exFilePicker.setCanChooseOnlyOneItem(true);
                 exFilePicker.setSortButtonDisabled(true);
                 exFilePicker.setChoiceType(ExFilePicker.ChoiceType.FILES);
                 exFilePicker.start(this, MainActivity.FILE_PICKER_RESULT);
-            }
+            }*/
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -405,23 +401,23 @@ public class EditUserFragment extends Fragment {
         if (Debug.ON) Log.d(TAG, "onActivityResult2(" + requestCode + "," + resultCode + "," + ((data!=null)?data.getExtras():"") + ")");
         if (requestCode == MainActivity.FILE_PICKER_RESULT) {
             boolean ok = false;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                if (resultCode == Activity.RESULT_OK) {
-                    Uri uri;
-                    if (data != null) {
-                        uri = data.getData();
-                        if (getActivity() != null) {
-                            ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
-                        }
+            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if (resultCode == Activity.RESULT_OK) {
+                Uri uri;
+                if (data != null) {
+                    uri = data.getData();
+                    if (getActivity() != null) {
+                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
                     }
                 }
-            } else {
+            }
+            /*} else {
                 ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
                 if ((result != null) && (result.getCount() > 0) && (getActivity() != null)) {
                     String file = result.getPath() + result.getNames().get(0);
                     ok = UsersFragment.unzip(file, getActivity().getFilesDir().toString());
                 }
-            }
+            }*/
             if (ok) {
                 Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
 

@@ -1,6 +1,7 @@
 package com.quantrity.antscaledisplay;
 
 import android.content.Context;
+import android.util.Log;
 import android.widget.EditText;
 
 import androidx.annotation.NonNull;
@@ -218,7 +219,7 @@ public class User {
 
     static void serializeUsers(final Context context, final ArrayList<User> output) {
         new Thread(() -> {
-            if (Debug.ON) Log.v("TAG", "writing " + output.size() + " users to " + usersFilePath(context) + " output=" + output);
+            if (Debug.ON) Log.v(TAG, "writing " + output.size() + " users to " + usersFilePath(context) + " output=" + output);
             final Collator collator = Collator.getInstance();
             Collections.sort(output, (o1, o2) -> collator.compare(o1.name, o2.name));
             JSONArray jsonArray = new JSONArray();

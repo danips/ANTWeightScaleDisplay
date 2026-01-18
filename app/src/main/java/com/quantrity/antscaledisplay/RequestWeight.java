@@ -15,6 +15,7 @@ import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.Settings;
+import android.util.Log;
 
 import com.dsi.ant.IAnt_6;
 
@@ -372,9 +373,9 @@ class RequestWeight {
                             Runnable task2 = () -> {
                                 if (Debug.ON) Log.v(TAG, "***** scheduledFuture weightTimeout executed *****");
                                 //if ((state == stateEnum.RECEIVING) || (state == stateEnum.WAITING_PROFILE_CONFIRMATION)) {
-                                    if (Debug.ON) Log.v(TAG, "Weight timeout");
-                                    if (the_weight.weight != -1) releaseService(null);
-                                    releaseService(R.string.weight_process_msg_problem_timeout_weight);
+                                if (Debug.ON) Log.v(TAG, "Weight timeout");
+                                if (the_weight.weight != -1) releaseService(null);
+                                releaseService(R.string.weight_process_msg_problem_timeout_weight);
                                 //}
                             };
                             scheduledFuture = worker.schedule(task2, weightTimeout, TimeUnit.SECONDS);

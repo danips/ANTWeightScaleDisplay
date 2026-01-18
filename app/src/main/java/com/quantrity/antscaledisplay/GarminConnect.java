@@ -7,7 +7,6 @@ import android.content.SharedPreferences;
 import android.net.Uri;
 import android.text.InputType;
 import android.util.Log;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -30,12 +29,12 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
@@ -131,8 +130,8 @@ public class GarminConnect {
             Log.d(TAG, "[DEBUG] Login POST Code: " + response.code);
 
             // C. Check Ticket or MFA
-            String ticket = extractRegex(TICKET_PATTERN, response.body);
-            if (ticket.isEmpty()) ticket = extractRegex(TICKET_PATTERN, response.url);
+            String ticket = extractRegex(response.body);
+            if (ticket.isEmpty()) ticket = extractRegex(response.url);
 
             if (ticket.isEmpty()) {
                 if (response.body.contains("MFA") || response.body.contains("mfa-code")) {
@@ -163,14 +162,14 @@ public class GarminConnect {
                         Log.d(TAG, "[DEBUG] MFA Redirect Location: " + loc);
 
                         // 1. Check for Ticket directly
-                        ticket = extractRegex(TICKET_PATTERN, loc);
+                        ticket = extractRegex(loc);
 
                         // 2. Check for Login Token (Double Hop Fix)
                         if (ticket.isEmpty() && loc.contains("logintoken=")) {
                             Log.d(TAG, "[DEBUG] Login Token found. Following redirect...");
                             response = execute("GET", loc, null, null, pageHeaders, true);
-                            ticket = extractRegex(TICKET_PATTERN, response.url);
-                            if (ticket.isEmpty()) ticket = extractRegex(TICKET_PATTERN, response.body);
+                            ticket = extractRegex(response.url);
+                            if (ticket.isEmpty()) ticket = extractRegex(response.body);
                         }
                     }
                 }
@@ -234,7 +233,7 @@ public class GarminConnect {
 
             AlertDialog dialog = builder.create();
             // Show keyboard automatically
-            dialog.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+            Objects.requireNonNull(dialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
             dialog.setOnShowListener(d -> {
                 input.requestFocus();
                 InputMethodManager imm = (InputMethodManager) currentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
@@ -292,7 +291,7 @@ public class GarminConnect {
                 return null; // Success
             } else {
                 // Read the error message from the server to debug the 400 error
-                String errorMsg = "";
+                String errorMsg;
                 InputStream errorStream = conn.getErrorStream();
                 if (errorStream != null) {
                     errorMsg = readStream(errorStream);
@@ -346,8 +345,7 @@ public class GarminConnect {
 
     private String getOAuth1Token(String ticket, OAuthConsumer consumer) {
         try {
-            String baseUrl = OAUTH1_URL;
-            String fullUrl = baseUrl + "?ticket=" + ticket + "&login-url=https://sso.garmin.com/sso/embed&accepts-mfa-tokens=true";
+            String fullUrl = OAUTH1_URL + "?ticket=" + ticket + "&login-url=https://sso.garmin.com/sso/embed&accepts-mfa-tokens=true";
 
             String signedUrl = consumer.sign(fullUrl);
             HttpResponse resp = execute("GET", signedUrl, null, null, null, true);
@@ -405,8 +403,8 @@ public class GarminConnect {
     // --- Virtual Request Helper ---
     private static class VirtualRequest implements HttpRequest {
         private String url;
-        private String method;
-        private Map<String, String> headers;
+        private final String method;
+        private final Map<String, String> headers;
 
         public VirtualRequest(String url, String method) {
             this.url = url;
@@ -471,9 +469,9 @@ public class GarminConnect {
         return "";
     }
 
-    private String extractRegex(Pattern pattern, String content) {
+    private String extractRegex(String content) {
         if (content == null) return "";
-        Matcher m = pattern.matcher(content);
+        Matcher m = GarminConnect.TICKET_PATTERN.matcher(content);
         if (m.find()) return m.group(1);
         return "";
     }
@@ -597,7 +595,7 @@ public class GarminConnect {
                 );
                 return this.oauth2Token.save(prefs);
             }
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         return false;
     }
 

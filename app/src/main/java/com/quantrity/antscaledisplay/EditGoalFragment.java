@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment;
 import com.larswerkman.holocolorpicker.ColorPicker;
 
 import java.util.Calendar;
+import java.util.Locale;
 
 public class EditGoalFragment extends Fragment {
     private final static String TAG = "EditGoalFragment";
@@ -251,20 +252,20 @@ public class EditGoalFragment extends Fragment {
         {
             case BMI:
             case VISCERALFATRATING:
-                et_startValue00.setText(String.format("%.01f", the_goal.start_value));
-                et_endValue00.setText(String.format("%.01f", the_goal.end_value));
+                et_startValue00.setText(String.format(Locale.getDefault(),"%.01f", the_goal.start_value));
+                et_endValue00.setText(String.format(Locale.getDefault(),"%.01f", the_goal.end_value));
                 units = Units.NO_UNITS;
                 break;
 
             case PHYSIQUERATING:
-                et_startValue00.setText(String.format("%.00f", the_goal.start_value));
-                et_endValue00.setText(String.format("%.00f", the_goal.end_value));
+                et_startValue00.setText(String.format(Locale.getDefault(),"%.00f", the_goal.start_value));
+                et_endValue00.setText(String.format(Locale.getDefault(),"%.00f", the_goal.end_value));
                 units = Units.NO_UNITS;
                 break;
 
             case METABOLICAGE:
-                et_startValue10.setText(String.format("%.0f", the_goal.start_value));
-                et_endValue10.setText(String.format("%.0f", the_goal.end_value));
+                et_startValue10.setText(String.format(Locale.getDefault(),"%.0f", the_goal.start_value));
+                et_endValue10.setText(String.format(Locale.getDefault(),"%.0f", the_goal.end_value));
                 tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_years_tag));
                 tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_years_tag));
                 units = Units.ONE_UNIT;
@@ -272,16 +273,16 @@ public class EditGoalFragment extends Fragment {
 
             case ACTIVEMET:
             case BASALMET:
-                et_startValue10.setText(String.format("%.0f", the_goal.start_value));
-                et_endValue10.setText(String.format("%.0f", the_goal.end_value));
+                et_startValue10.setText(String.format(Locale.getDefault(),"%.0f", the_goal.start_value));
+                et_endValue10.setText(String.format(Locale.getDefault(),"%.0f", the_goal.end_value));
                 tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_kcal_tag));
                 tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_kcal_tag));
                 units = Units.ONE_UNIT;
                 break;
 
             case PERCENTHYDRATION:
-                et_startValue10.setText(String.format("%.1f", the_goal.start_value));
-                et_endValue10.setText(String.format("%.1f", the_goal.end_value));
+                et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value));
+                et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value));
                 tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_percent_tag));
                 tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_percent_tag));
                 units = Units.ONE_UNIT;
@@ -295,8 +296,8 @@ public class EditGoalFragment extends Fragment {
             case RIGHTLEGPERCENTFAT:
                 if (the_goal.show_fat_mass) {
                     if (the_user.mass_unit == User.MassUnit.LB) {
-                        et_startValue10.setText(String.format("%.1f", the_goal.start_value * 2.20462262));
-                        et_endValue10.setText(String.format("%.1f", the_goal.end_value * 2.20462262));
+                        et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value * 2.20462262));
+                        et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value * 2.20462262));
                         tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                         tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                         units = Units.ONE_UNIT_WEIGHT;
@@ -304,22 +305,22 @@ public class EditGoalFragment extends Fragment {
                         double lbs = the_goal.start_value * 2.20462262;
                         double divisor = (float)Math.floor(lbs / 14);
                         double remainder = lbs % 14;
-                        et_startValue20.setText(String.format("%.0f", divisor));
-                        et_startValue21.setText(String.format("%.1f", remainder));
+                        et_startValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
+                        et_startValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
                         tv_startValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                         tv_startValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
 
                         lbs = the_goal.end_value * 2.20462262;
                         divisor = (float)Math.floor(lbs / 14);
                         remainder = lbs % 14;
-                        et_endValue20.setText(String.format("%.0f", divisor));
-                        et_endValue21.setText(String.format("%.1f", remainder));
+                        et_endValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
+                        et_endValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
                         tv_endValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                         tv_endValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                         units = Units.TWO_UNITS_WEIGHT;
                     } else {
-                        et_startValue10.setText(String.format("%.1f", the_goal.start_value));
-                        et_endValue10.setText(String.format("%.1f", the_goal.end_value));
+                        et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value));
+                        et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value));
                         tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_kg_tag));
                         tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_kg_tag));
                         units = Units.ONE_UNIT_WEIGHT;
@@ -327,8 +328,8 @@ public class EditGoalFragment extends Fragment {
                 }
                 else
                 {
-                    et_startValue10.setText(String.format("%.1f", the_goal.start_value));
-                    et_endValue10.setText(String.format("%.1f", the_goal.end_value));
+                    et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value));
+                    et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value));
                     tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_percent_tag));
                     tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_percent_tag));
                     units = Units.ONE_UNIT;
@@ -345,8 +346,8 @@ public class EditGoalFragment extends Fragment {
             case WEIGHT:
             default:
                 if (the_user.mass_unit == User.MassUnit.LB) {
-                    et_startValue10.setText(String.format("%.1f", the_goal.start_value * 2.20462262));
-                    et_endValue10.setText(String.format("%.1f", the_goal.end_value * 2.20462262));
+                    et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value * 2.20462262));
+                    et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value * 2.20462262));
                     tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                     tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                     units = Units.ONE_UNIT_WEIGHT;
@@ -354,22 +355,22 @@ public class EditGoalFragment extends Fragment {
                     double lbs = the_goal.start_value * 2.20462262;
                     double divisor = (float)Math.floor(lbs / 14);
                     double remainder = lbs % 14;
-                    et_startValue20.setText(String.format("%.0f", divisor));
-                    et_startValue21.setText(String.format("%.1f", remainder));
+                    et_startValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
+                    et_startValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
                     tv_startValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                     tv_startValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
 
                     lbs = the_goal.end_value * 2.20462262;
                     divisor = (float)Math.floor(lbs / 14);
                     remainder = lbs % 14;
-                    et_endValue20.setText(String.format("%.0f", divisor));
-                    et_endValue21.setText(String.format("%.1f", remainder));
+                    et_endValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
+                    et_endValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
                     tv_endValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                     tv_endValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                     units = Units.TWO_UNITS_WEIGHT;
                 } else {
-                    et_startValue10.setText(String.format("%.1f", the_goal.start_value));
-                    et_endValue10.setText(String.format("%.1f", the_goal.end_value));
+                    et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value));
+                    et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value));
                     tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_kg_tag));
                     tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_kg_tag));
                     units = Units.ONE_UNIT_WEIGHT;
@@ -488,7 +489,7 @@ public class EditGoalFragment extends Fragment {
                 ll_0unit.setVisibility(View.VISIBLE);
                 ll_1unit.setVisibility(View.GONE);
                 ll_2unit.setVisibility(View.GONE);
-                et_Value00.setText(String.format("%.1f", value));
+                et_Value00.setText(String.format(Locale.getDefault(),"%.1f", value));
                 break;
             case 2:
                 ll_0unit.setVisibility(View.GONE);
@@ -497,15 +498,15 @@ public class EditGoalFragment extends Fragment {
                 double lbs = value * 2.20462262;
                 double divisor = (float)Math.floor(lbs / 14);
                 double remainder = lbs % 14;
-                et_Value20.setText(String.format("%.0f", divisor));
-                et_Value21.setText(String.format("%.1f", remainder));
+                et_Value20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
+                et_Value21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
                 break;
             case 1:
             default:
                 ll_0unit.setVisibility(View.GONE);
                 ll_1unit.setVisibility(View.VISIBLE);
                 ll_2unit.setVisibility(View.GONE);
-                et_Value10.setText(String.format("%.1f", value));
+                et_Value10.setText(String.format(Locale.getDefault(),"%.1f", value));
                 break;
         }
 

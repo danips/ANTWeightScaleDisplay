@@ -4,6 +4,7 @@ import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.util.Log;
 import android.widget.Toast;
 
 import com.garmin.fit.DateTime;
@@ -24,6 +25,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.Random;
 
 class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
@@ -56,8 +58,8 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
     @Override
     protected Boolean doInBackground(String... paths) {
         boolean start_gc = (user.gc_user != null) && (user.gc_pass != null)
-                && (!user.gc_user.equals("")) && (!user.gc_pass.equals("")) && try_gc;
-        boolean start_email = (user.email_to != null) && (!user.email_to.equals("")) && try_email;
+                && (!user.gc_user.isEmpty()) && (!user.gc_pass.isEmpty()) && try_gc;
+        boolean start_email = (user.email_to != null) && (!user.email_to.isEmpty()) && try_email;
 
         final int max = ((start_gc) ? 1 : 0) + ((start_email) ? 1 : 0);
         final MainActivity activity = activityRef.get();
@@ -78,13 +80,13 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
                         try {
                             ProviderInstaller.installIfNeeded(activity);
                         } catch (final GooglePlayServicesRepairableException e) {
-                            com.quantrity.antscaledisplay.Log.e("SecurityException", "GooglePlayServicesRepairableException.");
+                            Log.e(TAG, "GooglePlayServicesRepairableException.");
                             // Thrown when Google Play Services is not installed, up-to-date, or enabled
                             // Show dialog to allow users to install, update, or otherwise enable Google Play services.
                             final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-                            activity.runOnUiThread(() -> apiAvailability.getErrorDialog(activity, e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST).show());
+                            activity.runOnUiThread(() -> Objects.requireNonNull(apiAvailability.getErrorDialog(activity, e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST)).show());
                         } catch (GooglePlayServicesNotAvailableException e) {
-                            com.quantrity.antscaledisplay.Log.e("SecurityException", "Google Play Services not available. GooglePlayServicesNotAvailableException");
+                            Log.e(TAG, "Google Play Services not available. GooglePlayServicesNotAvailableException");
                         }
                     }
                     gct = new gcThread();
@@ -182,10 +184,8 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
                 }
             } else {
                 if (activity != null) {
-                    GarminConnect gc = new GarminConnect(user, ((MainActivity)activity).getUsersArray(), activity);
-                    if (!gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
-                        gc_error = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
-                    } else {
+                    GarminConnect gc = new GarminConnect(user, activity.getUsersArray(), activity);
+                    if (gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
                         String result = gc.uploadFitFile(new File(encoding_path));
                         if (result == null) {
                             updateSuccess(R.string.edit_user_fragment_garmin_connect_category);
@@ -193,6 +193,8 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
                             gc_error = result;
                         }
                         //gc.close();
+                    } else {
+                        gc_error = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
                     }
                 }
             }

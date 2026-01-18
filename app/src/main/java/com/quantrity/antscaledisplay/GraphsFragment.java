@@ -239,9 +239,9 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
 
     private void setIcon(int itemid) {
         int resid = R.drawable.ic_weight;
-        if (itemid == R.id.graph_weight) {
+        /*if (itemid == R.id.graph_weight) {
             resid = R.drawable.ic_weight;
-        } else if (itemid == R.id.graph_bmi) {
+        } else*/ if (itemid == R.id.graph_bmi) {
             resid = R.drawable.ic_bmi;
         } else if (itemid == R.id.graph_metabolicAge || itemid == R.id.graph_activeMet || itemid == R.id.graph_basalMet) {
             resid = R.drawable.ic_metabolic;
@@ -422,7 +422,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
             date_limit.add(Calendar.YEAR, -2);
             window = 365 * 2;
         } else {
-            if (weights.size() > 0) {
+            if (!weights.isEmpty()) {
                 date_limit.setTimeInMillis(weights.get(weights.size() - 1).date);
                 window = (float) (weights.get(0).date - weights.get(weights.size() - 1).date) / (1000 * 24 * 3600);
             }
@@ -612,7 +612,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
 
         if (getActivity() != null) {
             ArrayList<Goal> goals = ((MainActivity) getActivity()).getGoalsArray();
-            if ((goals != null) && (goals.size() > 0)) {
+            if ((goals != null) && (!goals.isEmpty())) {
                 for (Goal g : goals) {
                     if (g.uuid.equals(the_user.uuid)) {
                         if (Metric.isSameMetric(g.type, graph_measurement_displayed)) {

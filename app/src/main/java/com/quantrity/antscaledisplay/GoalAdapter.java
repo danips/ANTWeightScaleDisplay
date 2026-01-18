@@ -3,6 +3,7 @@ package com.quantrity.antscaledisplay;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -17,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Locale;
 
 
 class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
@@ -154,40 +156,40 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         switch (item.type)
         {
             case BMI:
-                holder.startValueTV.setText(String.format("%.02f", item.start_value));
-                holder.endValueTV.setText(String.format("%.02f", item.end_value));
+                holder.startValueTV.setText(String.format(Locale.getDefault(),"%.02f", item.start_value));
+                holder.endValueTV.setText(String.format(Locale.getDefault(),"%.02f", item.end_value));
                 double bmi = (last_weight.weight / Math.pow(last_weight.height / 100, 2));
                 totalProgress = bmi - item.start_value;
                 expectedProgress = ((double)(last_weight.date - item.start_date) / (item.end_date - item.start_date)) * (item.end_value - item.start_value) + item.start_value;
                 onTrackProgress = bmi - expectedProgress;
-                holder.totalProgressTV.setText(String.format("%.02f", totalProgress));
+                holder.totalProgressTV.setText(String.format(Locale.getDefault(),"%.02f", totalProgress));
                 Log.v(TAG, now + " " + item.end_date + " " + item.start_date);
                 if ((now <= item.end_date) && (now >= item.start_date)) {
-                    holder.onTrackProgressTV.setText(String.format("%.02f", onTrackProgress));
+                    holder.onTrackProgressTV.setText(String.format(Locale.getDefault(),"%.02f", onTrackProgress));
                 }
                 break;
 
             case PHYSIQUERATING:
-                holder.startValueTV.setText(String.format("%.02f", item.start_value));
-                holder.endValueTV.setText(String.format("%.02f", item.end_value));
+                holder.startValueTV.setText(String.format(Locale.getDefault(),"%.02f", item.start_value));
+                holder.endValueTV.setText(String.format(Locale.getDefault(),"%.02f", item.end_value));
                 totalProgress = last_weight.physiqueRating - item.start_value;
                 expectedProgress = ((double)(last_weight.date - item.start_date) / (item.end_date - item.start_date)) * (item.end_value - item.start_value) + item.start_value;
                 onTrackProgress = last_weight.physiqueRating - expectedProgress;
-                holder.totalProgressTV.setText(String.format("%.02f", totalProgress));
+                holder.totalProgressTV.setText(String.format(Locale.getDefault(),"%.02f", totalProgress));
                 if ((now <= item.end_date) && (now >= item.start_date)) {
-                    holder.onTrackProgressTV.setText(String.format("%.02f", onTrackProgress));
+                    holder.onTrackProgressTV.setText(String.format(Locale.getDefault(),"%.02f", onTrackProgress));
                 }
                 break;
 
             case VISCERALFATRATING:
-                holder.startValueTV.setText(String.format("%.02f", item.start_value));
-                holder.endValueTV.setText(String.format("%.02f", item.end_value));
+                holder.startValueTV.setText(String.format(Locale.getDefault(),"%.02f", item.start_value));
+                holder.endValueTV.setText(String.format(Locale.getDefault(),"%.02f", item.end_value));
                 totalProgress = last_weight.visceralFatRating - item.start_value;
                 expectedProgress = ((double)(last_weight.date - item.start_date) / (item.end_date - item.start_date)) * (item.end_value - item.start_value) + item.start_value;
                 onTrackProgress = last_weight.visceralFatRating - expectedProgress;
-                holder.totalProgressTV.setText(String.format("%.02f", totalProgress));
+                holder.totalProgressTV.setText(String.format(Locale.getDefault(),"%.02f", totalProgress));
                 if ((now <= item.end_date) && (now >= item.start_date)) {
-                    holder.onTrackProgressTV.setText(String.format("%.02f", onTrackProgress));
+                    holder.onTrackProgressTV.setText(String.format(Locale.getDefault(),"%.02f", onTrackProgress));
                 }
                 break;
 
@@ -363,13 +365,13 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
                 lbs = Math.abs(totalProgress * 2.20462262);
                 divisor = (float)Math.floor(lbs / 14);
                 remainder = lbs % 14;
-                holder.totalProgressTV.setText(sign + String.format(mContext.getResources().getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder));
+                holder.totalProgressTV.setText(sign + String.format(Locale.getDefault(), mContext.getResources().getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder));
                 sign = (onTrackProgress > 0) ? "+" : "-";
                 lbs = Math.abs(onTrackProgress * 2.20462262);
                 divisor = (float)Math.floor(lbs / 14);
                 remainder = lbs % 14;
                 if ((now <= item.end_date) && (now >= item.start_date)) {
-                    holder.onTrackProgressTV.setText(sign + String.format(mContext.getResources().getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder));
+                    holder.onTrackProgressTV.setText(sign + String.format(Locale.getDefault(),mContext.getResources().getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder));
                 }
             } else {
                 holder.totalProgressTV.setText(String.format(mContext.getResources().getString(R.string.edit_user_fragment_units_tag_kg), totalProgress));

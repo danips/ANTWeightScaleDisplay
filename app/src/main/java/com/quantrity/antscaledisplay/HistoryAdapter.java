@@ -15,8 +15,10 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Locale;
 
 
 class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
@@ -150,7 +152,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                 return true;
             });
             if (user != null) {
-                if ((user.gc_user != null) && (user.gc_pass != null) && (!user.gc_user.equals("")) && (!user.gc_pass.equals(""))) {
+                if ((user.gc_user != null) && (user.gc_pass != null) && (!user.gc_user.isEmpty()) && (!user.gc_pass.isEmpty())) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_garmin_connect_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
                         AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, true, false);
@@ -159,7 +161,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                         return true;
                     });
                 }
-                if ((user.email_to != null) && !user.email_to.equals("")) {
+                if ((user.email_to != null) && !user.email_to.isEmpty()) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_email_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
                         AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, false, true);
@@ -211,7 +213,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
         double bmi = item.weight / Math.pow((item.height) / 100, 2);
 
-        holder.bmiTV.setText(mContext.getString(R.string.weight_fragment_bmi_tag) + " " + String.format("%.02f", bmi));
+        holder.bmiTV.setText(MessageFormat.format("{0} {1}", mContext.getString(R.string.weight_fragment_bmi_tag), String.format(Locale.getDefault(), "%.02f", bmi)));
 
         holder.weightTV.setText(user.printMass(mContext, item.weight));
         if (item.boneMass != -1) {
@@ -293,7 +295,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
 
         if (item.physiqueRating != -1) {
-            holder.physiqueRatingTV.setText(Integer.toString(item.physiqueRating));
+            holder.physiqueRatingTV.setText(String.format(Locale.getDefault(), "%d", item.physiqueRating));
 
             switch (item.physiqueRating) {
                 case 1:
@@ -313,7 +315,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             holder.physiqueRatingTV.setVisibility(View.VISIBLE);
         } else holder.physiqueRatingTV.setVisibility(View.INVISIBLE);
         if (item.visceralFatRating != -1) {
-            holder.visceralFatRatingTV.setText(String.format("%.2f", item.visceralFatRating));
+            holder.visceralFatRatingTV.setText(String.format(Locale.getDefault(), "%.2f", item.visceralFatRating));
 
             if ((item.visceralFatRating >= 1.0) && (item.visceralFatRating <= 12.5)) {
                 holder.visceralFatRatingIV.setBackgroundResource(R.drawable.rounded_green_mini);

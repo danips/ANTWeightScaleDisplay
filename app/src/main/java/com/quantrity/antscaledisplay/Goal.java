@@ -1,6 +1,7 @@
 package com.quantrity.antscaledisplay;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -115,7 +116,7 @@ public class Goal {
 
     static void serializeGoals(final Context context, final ArrayList<Goal> output) {
         new Thread(() -> {
-            if (Debug.ON) Log.v("TAG", "writing " + output.size() + " goals to " + goalsFilePath(context) + " output=" + output);
+            if (Debug.ON) Log.v(TAG, "writing " + output.size() + " goals to " + goalsFilePath(context) + " output=" + output);
             Collections.sort(output, new EndDateComparator());
             JSONArray jsonArray = new JSONArray();
             Iterator<Goal> tmp = output.iterator();
