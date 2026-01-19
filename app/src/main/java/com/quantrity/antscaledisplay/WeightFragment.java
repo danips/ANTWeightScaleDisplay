@@ -142,25 +142,32 @@ public class WeightFragment extends Fragment {
 
             // Segmental Analysis (Uses helper method for ItemSegmentBinding)
             double lastVal, currVal;
+            boolean hasData = false;
             currVal = displayUser.show_fat_mass ? displayWeight.trunkMuscleMass : displayWeight.trunkPercentFat;
             lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.trunkMuscleMass : lastWeight.trunkPercentFat) : -1;
+            hasData |= currVal != -1;
             updateSegmentUI(binding.segTrunk, displayWeight.trunkPercentFat, displayWeight.trunkMuscleMass, displayWeight, displayUser, lastVal, currVal);
 
             currVal = displayUser.show_fat_mass ? displayWeight.leftArmMuscleMass : displayWeight.leftArmPercentFat;
             lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.leftArmMuscleMass : lastWeight.leftArmPercentFat) : -1;
+            hasData |= currVal != -1;
             updateSegmentUI(binding.segLeftArm, displayWeight.leftArmPercentFat, displayWeight.leftArmMuscleMass, displayWeight, displayUser, lastVal, currVal);
 
             currVal = displayUser.show_fat_mass ? displayWeight.rightArmMuscleMass : displayWeight.rightArmPercentFat;
             lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.rightArmMuscleMass : lastWeight.rightArmPercentFat) : -1;
+            hasData |= currVal != -1;
             updateSegmentUI(binding.segRightArm, displayWeight.rightArmPercentFat, displayWeight.rightArmMuscleMass, displayWeight, displayUser, lastVal, currVal);
 
             currVal = displayUser.show_fat_mass ? displayWeight.leftLegMuscleMass : displayWeight.leftLegPercentFat;
             lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.leftLegMuscleMass : lastWeight.leftLegPercentFat) : -1;
+            hasData |= currVal != -1;
             updateSegmentUI(binding.segLeftLeg, displayWeight.leftLegPercentFat, displayWeight.leftLegMuscleMass, displayWeight, displayUser, lastVal, currVal);
 
             currVal = displayUser.show_fat_mass ? displayWeight.rightLegMuscleMass : displayWeight.rightLegPercentFat;
             lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.rightLegMuscleMass : lastWeight.rightLegPercentFat) : -1;
+            hasData |= currVal != -1;
             updateSegmentUI(binding.segRightLeg, displayWeight.rightLegPercentFat, displayWeight.rightLegMuscleMass, displayWeight, displayUser, lastVal, currVal);
+            binding.segmentalData.setVisibility(hasData ? View.VISIBLE : View.GONE);
 
             // Metric Grid Cards (Uses helper method for ItemMetricCardBinding)
 
@@ -210,7 +217,10 @@ public class WeightFragment extends Fragment {
                     subVal = getString(R.string.visceral_fat_plus13);
                 }
                 updateCardData(binding.cardVisceral, String.format(Locale.getDefault(),"%.2f", displayWeight.visceralFatRating), subVal, s, lastWeight != null ? lastWeight.visceralFatRating : -1, displayWeight.visceralFatRating);
-            } else resetCard(binding.cardVisceral);
+            } else {
+                //resetCard(binding.cardVisceral);
+                binding.cardVisceral.metricCard.setVisibility(View.GONE);
+            }
 
             if (displayWeight.physiqueRating != -1) {
                 String desc = "";
@@ -244,16 +254,25 @@ public class WeightFragment extends Fragment {
                     status = 1;
                 }
                 updateCardData(binding.cardPhysique, String.valueOf(displayWeight.physiqueRating), desc, status, lastWeight != null ? lastWeight.physiqueRating : -1, displayWeight.physiqueRating);
-            } else resetCard(binding.cardPhysique);
+            } else {
+                //resetCard(binding.cardPhysique);
+                binding.cardPhysique.metricCard.setVisibility(View.GONE);
+            }
 
             if (displayWeight.metabolicAge != -1) {
                 int s = (displayWeight.metabolicAge <= displayUser.age) ? 1 : 3;
                 updateCardData(binding.cardMetabolicAge, String.format(getString(R.string.weight_fragment_years_tag), displayWeight.metabolicAge), null, s, lastWeight != null ? lastWeight.metabolicAge : -1, displayWeight.metabolicAge);
-            } else resetCard(binding.cardMetabolicAge);
+            } else {
+                //resetCard(binding.cardMetabolicAge);
+                binding.cardMetabolicAge.metricCard.setVisibility(View.GONE);
+            }
 
             if (displayWeight.basalMet != -1) {
                 updateCardData(binding.cardBMR, String.format(getString(R.string.weight_fragment_kcal_tag), displayWeight.basalMet), null, -1, lastWeight != null ? lastWeight.basalMet : -1, displayWeight.basalMet);
-            } else resetCard(binding.cardBMR);
+            } else {
+                //resetCard(binding.cardBMR);
+                binding.cardBMR.metricCard.setVisibility(View.GONE);
+            }
 
             if ((displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
                 if ((userToUpload != null) && (!enableUploadButton) && (displayUser.autoupload)) {
@@ -332,6 +351,7 @@ public class WeightFragment extends Fragment {
         } else {
             card.metricTrend.setVisibility(View.INVISIBLE);
         }
+        card.metricCard.setVisibility(currVal != -1 ? View.VISIBLE : View.GONE);
     }
 
     private void resetCard(ItemMetricCardBinding card) {
@@ -339,6 +359,7 @@ public class WeightFragment extends Fragment {
         card.metricSubValue.setVisibility(View.GONE);
         card.metricIcon.setBackgroundResource(R.drawable.rounded_grey);
         card.metricTrend.setVisibility(View.INVISIBLE);
+        card.metricCard.setVisibility(View.VISIBLE);
     }
 
     private void resetAllCards() {

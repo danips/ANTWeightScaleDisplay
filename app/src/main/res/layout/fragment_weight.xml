@@ -106,6 +106,7 @@
             app:layout_constraintTop_toBottomOf="@id/cardWeight">
 
             <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/segmentalData"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
 
