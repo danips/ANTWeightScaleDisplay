@@ -18,7 +18,9 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -37,7 +39,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-public class UsersFragment extends Fragment {
+public class UsersFragment extends Fragment implements MenuProvider {
     private final static String TAG = "UsersFragment";
 
     private static final int BUFFER_SIZE = 8192;
@@ -70,56 +72,38 @@ public class UsersFragment extends Fragment {
         mRecyclerView.setAdapter(mAdapter);
 
         //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
     }
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_users_menu, menu);
+        menuInflater.inflate(R.menu.fragment_users_menu, menu);
         if (mAdapter.getItemCount() == 0) menu.findItem(R.id.action_database_backup).setVisible(false);
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        //ExFilePicker exFilePicker;
-        int itemId = item.getItemId();
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.action_database_backup) {
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
             startActivityForResult(intent, MainActivity.DIRECTORY_PICKER_RESULT);
-            /*} else {
-                exFilePicker = new ExFilePicker();
-                exFilePicker.setCanChooseOnlyOneItem(true);
-                exFilePicker.setSortButtonDisabled(true);
-                exFilePicker.setChoiceType(ExFilePicker.ChoiceType.DIRECTORIES);
-                exFilePicker.start(this, MainActivity.DIRECTORY_PICKER_RESULT);
-            }*/
             return true;
         } else if (itemId == R.id.action_database_restore) {
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
             startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
-            /*} else {
-                exFilePicker = new ExFilePicker();
-                exFilePicker.setCanChooseOnlyOneItem(true);
-                exFilePicker.setSortButtonDisabled(true);
-                exFilePicker.setChoiceType(ExFilePicker.ChoiceType.FILES);
-                exFilePicker.start(this, MainActivity.FILE_PICKER_RESULT);
-            }*/
             return true;
         } else if (itemId == R.id.action_adduser) {//Open the edit user fragment with values resetted
             if (getActivity() != null)
                 ((MainActivity) getActivity()).openEditUserFragment(null);
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     void editUser(User user)
@@ -191,7 +175,6 @@ public class UsersFragment extends Fragment {
                 Calendar cal = Calendar.getInstance();
                 SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
                 String displayName = "db_" + format1.format(cal.getTime()) + ".bin";
-                //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
                 Uri uri = data.getData();
                 ContentResolver contentResolver;
                 if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
@@ -208,23 +191,9 @@ public class UsersFragment extends Fragment {
                         e.printStackTrace();
                     }
                 }
-                /*} else {
-                    ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
-                    if ((result != null) && (result.getCount() > 0) && (getActivity() != null)) {
-                        dst = result.getPath() + result.getNames().get(0) + File.separator + displayName;
-                        if (Debug.ON) Log.v(TAG, "Destination backup: " + dst);
-
-                        if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-                            saveBackup();
-                        } else {
-                            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MainActivity.REQUEST_CODE_WRITE_EXTERNAL_STORAGE);
-                        }
-                    }
-                }*/
             }
         } else if (requestCode == MainActivity.FILE_PICKER_RESULT) {
             boolean ok = false;
-            //if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (resultCode == Activity.RESULT_OK)
             {
                 Uri uri;
@@ -236,14 +205,6 @@ public class UsersFragment extends Fragment {
                     }
                 }
             }
-            /*}
-            else {
-                ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
-                if ((result != null) && (result.getCount() > 0) && (getActivity() != null)) {
-                    String file = result.getPath() + result.getNames().get(0);
-                    ok = UsersFragment.unzip(file, getActivity().getFilesDir().toString());
-                }
-            }*/
             if (ok)
             {
                 Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();

@@ -39,10 +39,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <!--activity
-            android:name="ru.bartwell.exfilepicker.ui.activity.ExFilePickerActivity"
-            android:theme="@style/ExFilePickerThemeDark"
-            tools:replace="android:theme"/-->
     </application>
 
 </manifest>

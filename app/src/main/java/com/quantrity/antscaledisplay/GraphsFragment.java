@@ -23,7 +23,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
@@ -47,7 +49,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class GraphsFragment extends Fragment implements OnChartGestureListener {
+public class GraphsFragment extends Fragment implements OnChartGestureListener, MenuProvider {
     private final static String TAG = "GraphsFragment";
 
     private LinearLayout graphLayout;
@@ -109,7 +111,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
         loadGraph(graph_measurement_displayed, graph_period_displayed);
 
         //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
     }
@@ -214,9 +216,9 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
     };
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_graphs_menu, menu);
+        menuInflater.inflate(R.menu.fragment_graphs_menu, menu);
 
         if (getActivity() != null)
             ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
@@ -233,8 +235,6 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
         }
 
         updateActionBar();
-
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     private void setIcon(int itemid) {
@@ -282,45 +282,45 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener {
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        int itemId = item.getItemId();
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.graph_time_week || itemId == R.id.graph_time_two_weeks || itemId == R.id.graph_time_six_weeks || itemId == R.id.graph_time_two_months || itemId == R.id.graph_time_four_months || itemId == R.id.graph_time_half_year || itemId == R.id.graph_time_year || itemId == R.id.graph_time_two_years || itemId == R.id.graph_time_always) {
-            if (graph_period_displayed != item.getItemId()) {
+            if (graph_period_displayed != menuItem.getItemId()) {
                 SharedPreferences settings1 = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 SharedPreferences.Editor editor1 = settings1.edit();
-                editor1.putInt("selected_graph_period", item.getItemId());
+                editor1.putInt("selected_graph_period", menuItem.getItemId());
                 editor1.apply();
-                loadGraph(graph_measurement_displayed, item.getItemId());
+                loadGraph(graph_measurement_displayed, menuItem.getItemId());
             }
         } else if (itemId == R.id.graph_time_month) {
-            if (graph_period_displayed != item.getItemId()) {
+            if (graph_period_displayed != menuItem.getItemId()) {
                 SharedPreferences settings1 = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 SharedPreferences.Editor editor1 = settings1.edit();
-                editor1.putInt("selected_graph_period", item.getItemId());
+                editor1.putInt("selected_graph_period", menuItem.getItemId());
                 editor1.apply();
-                loadGraph(graph_measurement_displayed, item.getItemId());
+                loadGraph(graph_measurement_displayed, menuItem.getItemId());
             }
         } else if (itemId == R.id.graph_percentHydration || itemId == R.id.graph_boneMass || itemId == R.id.graph_muscleMass || itemId == R.id.graph_physiqueRating || itemId == R.id.graph_visceralFatRating || itemId == R.id.graph_metabolicAge || itemId == R.id.graph_activeMet || itemId == R.id.graph_basalMet || itemId == R.id.graph_trunkFatPercent || itemId == R.id.graph_trunkMuscleMass || itemId == R.id.graph_leftArmFatPercent || itemId == R.id.graph_leftArmMuscleMass || itemId == R.id.graph_rightArmFatPercent || itemId == R.id.graph_rightArmMuscleMass || itemId == R.id.graph_leftLegFatPercent || itemId == R.id.graph_leftLegMuscleMass || itemId == R.id.graph_rightLegFatPercent || itemId == R.id.graph_rightLegMuscleMass) {
-            if (graph_measurement_displayed != item.getItemId()) {
+            if (graph_measurement_displayed != menuItem.getItemId()) {
                 SharedPreferences settings2 = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 SharedPreferences.Editor editor2 = settings2.edit();
-                editor2.putInt("selected_graph_measurement", item.getItemId());
+                editor2.putInt("selected_graph_measurement", menuItem.getItemId());
                 editor2.apply();
-                setIcon(item.getItemId());
-                loadGraph(item.getItemId(), graph_period_displayed);
+                setIcon(menuItem.getItemId());
+                loadGraph(menuItem.getItemId(), graph_period_displayed);
             }
         } else if (itemId == R.id.graph_weight || itemId == R.id.graph_bmi || itemId == R.id.graph_percentFat) {
-            if (graph_measurement_displayed != item.getItemId()) {
+            if (graph_measurement_displayed != menuItem.getItemId()) {
                 SharedPreferences settings2 = PreferenceManager.getDefaultSharedPreferences(getActivity());
                 SharedPreferences.Editor editor2 = settings2.edit();
-                editor2.putInt("selected_graph_measurement", item.getItemId());
+                editor2.putInt("selected_graph_measurement", menuItem.getItemId());
                 editor2.apply();
-                setIcon(item.getItemId());
-                loadGraph(item.getItemId(), graph_period_displayed);
+                setIcon(menuItem.getItemId());
+                loadGraph(menuItem.getItemId(), graph_period_displayed);
             }
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     private Entry getEntry(int item_id, Weight w) {

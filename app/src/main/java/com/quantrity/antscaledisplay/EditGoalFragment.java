@@ -19,15 +19,17 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
 
 import java.util.Calendar;
 import java.util.Locale;
 
-public class EditGoalFragment extends Fragment {
-    private final static String TAG = "EditGoalFragment";
+public class EditGoalFragment extends Fragment implements MenuProvider {
+    //private final static String TAG = "EditGoalFragment";
 
     enum Units {
         NO_UNITS,
@@ -99,6 +101,7 @@ public class EditGoalFragment extends Fragment {
     private Goal checkValues() {
         Goal tmp = new Goal();
 
+        if (getActivity() == null) return null;
         tmp.uuid = ((MainActivity) getActivity()).getSelectedUser().uuid;
         Units units;
         switch (sp_type.getSelectedItemPosition())
@@ -391,15 +394,15 @@ public class EditGoalFragment extends Fragment {
                 ll_0unitStart.setVisibility(View.VISIBLE);
                 ll_0unitEnd.setVisibility(View.VISIBLE);
                 break;
+            case TWO_UNITS_WEIGHT:
+                ll_2unitStart.setVisibility(View.VISIBLE);
+                ll_2unitEnd.setVisibility(View.VISIBLE);
+                break;
             case ONE_UNIT:
             case ONE_UNIT_WEIGHT:
             default:
                 ll_1unitStart.setVisibility(View.VISIBLE);
                 ll_1unitEnd.setVisibility(View.VISIBLE);
-                break;
-            case TWO_UNITS_WEIGHT:
-                ll_2unitStart.setVisibility(View.VISIBLE);
-                ll_2unitEnd.setVisibility(View.VISIBLE);
                 break;
         }
     }
@@ -514,7 +517,6 @@ public class EditGoalFragment extends Fragment {
     }
 
     private void resetValues() {
-        last = ((MainActivity) getActivity()).getLastHistorySelectedUser();
         cp.setColor(Color.RED);
         the_goal.color = Color.RED;
         the_goal.type = Metric.WEIGHT;
@@ -529,6 +531,8 @@ public class EditGoalFragment extends Fragment {
         et_startdate.setText(DateUtils.formatDateTime(getActivity(), startdate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
         et_enddate.setText(DateUtils.formatDateTime(getActivity(), enddate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
 
+        if (getActivity() == null) last = null;
+        else last = ((MainActivity) getActivity()).getLastHistorySelectedUser();
         if (last != null) {
             the_goal.start_value = last.weight;
             the_goal.end_value = last.weight;
@@ -581,7 +585,7 @@ public class EditGoalFragment extends Fragment {
         cp = rootView.findViewById(R.id.picker);
 
         //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         this.needs_to_sync = true;
 
@@ -782,16 +786,15 @@ public class EditGoalFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_edit_goal_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+        menuInflater.inflate(R.menu.fragment_edit_goal_menu, menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        int itemId = item.getItemId();
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.action_editgoal_cancel) {
             if (getActivity() != null)
                 ((MainActivity) getActivity()).closeEditGoalFragment(null);
@@ -803,6 +806,6 @@ public class EditGoalFragment extends Fragment {
             }
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 }

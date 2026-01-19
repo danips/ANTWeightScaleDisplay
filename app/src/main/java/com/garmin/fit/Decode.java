@@ -644,12 +644,12 @@ public class Decode {
 
             if ( ( fileHdrOffset == fileHdrSize ) && ( fileHdrSize != 0 ) ) {
                // We don't care about the CRC when the file size is invalid
-            if ( (invalidDataSize) && (invalidFileDataSize) )
-                  fileBytesLeft = DECODE_DATA_RECORDS_ONLY;
-               else
-                  fileBytesLeft = fileDataSize + 2; // include crc
+                if ( (invalidDataSize) && (invalidFileDataSize) )
+                    fileBytesLeft = DECODE_DATA_RECORDS_ONLY;
+                else
+                    fileBytesLeft = fileDataSize + 2; // include crc
 
-               state = STATE.RECORD;
+                state = STATE.RECORD;
             }
             break;
 

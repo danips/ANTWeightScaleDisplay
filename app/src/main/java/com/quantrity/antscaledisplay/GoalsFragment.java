@@ -10,11 +10,13 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-public class GoalsFragment extends Fragment {
+public class GoalsFragment extends Fragment implements MenuProvider {
     //private final static String TAG = "GoalsFragment";
 
     private GoalAdapter mAdapter;
@@ -42,7 +44,7 @@ public class GoalsFragment extends Fragment {
         }
 
         //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
     }
@@ -65,24 +67,22 @@ public class GoalsFragment extends Fragment {
     };
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         //Log.v(TAG, "onCreateOptionsMenu");
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_goals_menu, menu);
+        menuInflater.inflate(R.menu.fragment_goals_menu, menu);
         if (getActivity() != null)
             ((MainActivity) getActivity()).addUsersSpinner(menu, oisListener);
-
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        if (item.getItemId() == R.id.action_add_goal) {
+        if (menuItem.getItemId() == R.id.action_add_goal) {
             if (getActivity() != null)
                 ((MainActivity) getActivity()).openEditGoalFragment(null);
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 }

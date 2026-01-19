@@ -24,7 +24,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -48,7 +50,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
-public class HistoryFragment extends Fragment {
+public class HistoryFragment extends Fragment implements MenuProvider {
     private final static String TAG = "HistoryFragment";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
     private final static String GARMIN_CONNECT_CHANNEL_ID = "GC";
@@ -81,8 +83,7 @@ public class HistoryFragment extends Fragment {
             mRecyclerView.setAdapter(mAdapter);
         }
 
-        //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
     }
@@ -110,10 +111,9 @@ public class HistoryFragment extends Fragment {
     };
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        //Log.v(TAG, "onCreateOptionsMenu");
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_history_menu, menu);
+        menuInflater.inflate(R.menu.fragment_history_menu, menu);
         if (getActivity() != null) {
             usersSpinner = ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
         }
@@ -133,14 +133,12 @@ public class HistoryFragment extends Fragment {
             }
         }
         csvMI.setVisible(mAdapter.getItemCount() != 0);
-
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        int itemId = item.getItemId();
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.action_download_history_gc) {
             download_history_gc();
             return true;
@@ -148,34 +146,15 @@ public class HistoryFragment extends Fragment {
             export_history_csv();
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     private void export_history_csv() {
         if (Debug.ON) Log.v(TAG, "export_history_csv");
 
-        //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         startActivityForResult(intent, MainActivity.CSV_DIRECTORY_PICKER_RESULT);
-        /*}
-        else {
-            ExFilePicker exFilePicker = new ExFilePicker();
-            exFilePicker.setCanChooseOnlyOneItem(true);
-            exFilePicker.setSortButtonDisabled(true);
-            exFilePicker.setChoiceType(ExFilePicker.ChoiceType.DIRECTORIES);
-            exFilePicker.start(this, MainActivity.CSV_DIRECTORY_PICKER_RESULT);
-        }*/
     }
-
-    /*private void writeCSV(String dst, User user, SimpleDateFormat format, String filename, List<Weight> wl)
-    {
-        try {
-            FileWriter fCsv = new FileWriter(dst);
-            writeCSV(fCsv, user, format, filename, wl);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
 
     private void writeCSV(ParcelFileDescriptor destFileDesc, User user, SimpleDateFormat format, String filename, List<Weight> wl)
     {
@@ -294,7 +273,6 @@ public class HistoryFragment extends Fragment {
             User user = (User) usersSpinner.getSelectedItem();
             SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
             String displayName = user.name + "_" + format1.format(cal.getTime()) + ".csv";
-            //if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
             Uri uri = data.getData();
             ContentResolver contentResolver;
             if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
@@ -309,14 +287,6 @@ public class HistoryFragment extends Fragment {
                     e.printStackTrace();
                 }
             }
-            /*}
-            else {
-                ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
-                if ((result != null) && (result.getCount() > 0) && (!result.getNames().isEmpty()) && (getActivity() != null)) {
-                    String dst = result.getPath() + result.getNames().get(0) + File.separator + displayName;
-                    writeCSV(dst, user, format1, displayName, wl);
-                }
-            }*/
         }
         super.onActivityResult(requestCode, resultCode, data);
     }

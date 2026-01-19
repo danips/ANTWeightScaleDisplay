@@ -13,7 +13,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 
 import com.quantrity.antscaledisplay.databinding.FragmentWeightBinding;
 import com.quantrity.antscaledisplay.databinding.ItemMetricCardBinding;
@@ -22,8 +24,8 @@ import com.quantrity.antscaledisplay.databinding.ItemSegmentBinding;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class WeightFragment extends Fragment {
-    private static final String TAG = "WeightFragment";
+public class WeightFragment extends Fragment implements MenuProvider {
+    //private static final String TAG = "WeightFragment";
 
     private FragmentWeightBinding binding;
     private boolean enableUploadButton = false;
@@ -67,7 +69,7 @@ public class WeightFragment extends Fragment {
             }
         });
 
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
         return rootView;
     }
 
@@ -111,7 +113,7 @@ public class WeightFragment extends Fragment {
                 }
             }
 
-            if (displayWeight == null || displayUser == null) {
+            if (displayWeight == null) {
                 resetAllCards();
                 return;
             }
@@ -424,15 +426,14 @@ public class WeightFragment extends Fragment {
 
     // --- Menu ---
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.fragment_weight_menu, menu);
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
+        menuInflater.inflate(R.menu.fragment_weight_menu, menu);
         if (getActivity() != null)
             usersSpinner = ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
         if (!enableUploadButton) {
             MenuItem upload = menu.findItem(R.id.action_weight_upload);
             upload.setVisible(false);
         }
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     private final AdapterView.OnItemSelectedListener oisListener = new AdapterView.OnItemSelectedListener() {
@@ -447,8 +448,8 @@ public class WeightFragment extends Fragment {
     };
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int itemId = item.getItemId();
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.action_weight) {
             User user = null;
             if (usersSpinner != null) user = (User)usersSpinner.getSelectedItem();
@@ -475,6 +476,6 @@ public class WeightFragment extends Fragment {
             if (getActivity() != null) getActivity().invalidateOptionsMenu();
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 }

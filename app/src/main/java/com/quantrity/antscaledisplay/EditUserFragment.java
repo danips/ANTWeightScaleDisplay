@@ -25,18 +25,16 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.UUID;
 
-/*import ru.bartwell.exfilepicker.ExFilePicker;
-import ru.bartwell.exfilepicker.data.ExFilePickerResult;*/
-
-
-public class EditUserFragment extends Fragment {
+public class EditUserFragment extends Fragment implements MenuProvider {
     private final static String TAG = "EditUserFragment";
 
     private LinearLayout cm_ll;
@@ -314,7 +312,7 @@ public class EditUserFragment extends Fragment {
         b_gc_token_clear.setOnClickListener(v -> clearGarminTokens());
 
         //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         this.needs_to_sync = true;
 
@@ -358,16 +356,15 @@ public class EditUserFragment extends Fragment {
     }
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_edit_user_menu, menu);
-        super.onCreateOptionsMenu(menu, inflater);
+        menuInflater.inflate(R.menu.fragment_edit_user_menu, menu);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        int itemId = item.getItemId();
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.action_edituser_cancel) {
             if (getActivity() != null)
                 ((MainActivity) getActivity()).closeEditUserFragment(null);
@@ -379,21 +376,13 @@ public class EditUserFragment extends Fragment {
             }
             return true;
         } else if (itemId == R.id.action_database_restore) {
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
             startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
-            /*} else {
-                ExFilePicker exFilePicker = new ExFilePicker();
-                exFilePicker.setCanChooseOnlyOneItem(true);
-                exFilePicker.setSortButtonDisabled(true);
-                exFilePicker.setChoiceType(ExFilePicker.ChoiceType.FILES);
-                exFilePicker.start(this, MainActivity.FILE_PICKER_RESULT);
-            }*/
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     @Override
@@ -401,7 +390,6 @@ public class EditUserFragment extends Fragment {
         if (Debug.ON) Log.d(TAG, "onActivityResult2(" + requestCode + "," + resultCode + "," + ((data!=null)?data.getExtras():"") + ")");
         if (requestCode == MainActivity.FILE_PICKER_RESULT) {
             boolean ok = false;
-            //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if (resultCode == Activity.RESULT_OK) {
                 Uri uri;
                 if (data != null) {
@@ -411,13 +399,6 @@ public class EditUserFragment extends Fragment {
                     }
                 }
             }
-            /*} else {
-                ExFilePickerResult result = ExFilePickerResult.getFromIntent(data);
-                if ((result != null) && (result.getCount() > 0) && (getActivity() != null)) {
-                    String file = result.getPath() + result.getNames().get(0);
-                    ok = UsersFragment.unzip(file, getActivity().getFilesDir().toString());
-                }
-            }*/
             if (ok) {
                 Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
 

@@ -14,10 +14,10 @@
 	<string name="edit_user_fragment_activity">haftalık egzersiz süresi</string>
 	<string name="edit_user_fragment_activity_option_0">Sıfır egzersiz</string>
 	<string name="edit_user_fragment_activity_option_1">20 dk\'ya kadar</string>
-	<string name="edit_user_fragment_activity_option_2">21-40 dakika arası</string>
-	<string name="edit_user_fragment_activity_option_3">41-60 dakika arası</string>
-	<string name="edit_user_fragment_activity_option_4">1-5 saat arası</string>
-	<string name="edit_user_fragment_activity_option_5">5-9 saat arası</string>
+	<string name="edit_user_fragment_activity_option_2">21–40 dakika arası</string>
+	<string name="edit_user_fragment_activity_option_3">41–60 dakika arası</string>
+	<string name="edit_user_fragment_activity_option_4">1–5 saat arası</string>
+	<string name="edit_user_fragment_activity_option_5">5–9 saat arası</string>
 	<string name="edit_user_fragment_activity_option_6">9 saatten fazla</string>
 	<string name="edit_user_fragment_advanced_settings_category">Gelişmiş ayarlar</string>
 	<string name="edit_user_fragment_athlete_mode">Atlet modu</string>

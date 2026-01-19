@@ -748,27 +748,25 @@ class RequestWeight {
             if (state == stateEnum.STARTING_UP)
             {
                 //Check ANT Radio Service permissions
-                if (Build.VERSION.SDK_INT >= 16) {
-                    try {
-                        PackageInfo pi = sContext.getApplicationContext().getPackageManager().getPackageInfo("com.dsi.ant.service.socket", PackageManager.GET_PERMISSIONS);
-                        final String[] requestedPermissions = pi.requestedPermissions;
-                        boolean enabled = false;
-                        for (int i = 0, len = requestedPermissions.length; i < len; i++) {
-                            if (requestedPermissions[i].startsWith("com.dsi.ant.permission.ANT") &&
-                                    ((pi.requestedPermissionsFlags[i] & PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0))
-                            {
-                                enabled = true;
-                                break;
-                            }
-                        }
-                        if (!enabled)
+                try {
+                    PackageInfo pi = sContext.getApplicationContext().getPackageManager().getPackageInfo("com.dsi.ant.service.socket", PackageManager.GET_PERMISSIONS);
+                    final String[] requestedPermissions = pi.requestedPermissions;
+                    boolean enabled = false;
+                    for (int i = 0, len = requestedPermissions.length; i < len; i++) {
+                        if (requestedPermissions[i].startsWith("com.dsi.ant.permission.ANT") &&
+                                ((pi.requestedPermissionsFlags[i] & PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0))
                         {
-                            releaseService(R.string.msg_problem_ant_permission_disabled);
-                            return;
+                            enabled = true;
+                            break;
                         }
-                    } catch (PackageManager.NameNotFoundException e) {
-                        e.printStackTrace();
                     }
+                    if (!enabled)
+                    {
+                        releaseService(R.string.msg_problem_ant_permission_disabled);
+                        return;
+                    }
+                } catch (PackageManager.NameNotFoundException e) {
+                    e.printStackTrace();
                 }
             }
             releaseService(R.string.weight_process_msg_problem_timeout);

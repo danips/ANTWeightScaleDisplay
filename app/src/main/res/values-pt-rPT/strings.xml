@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-	<string name="ant_radio_service">ANT Radio Service</string>
+	<string name="ant_radio_service">ANT Rádio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
 	<string name="bmi_value_0">Baixo peso</string>
@@ -105,7 +105,7 @@
 	<string name="lateral_menu_option_history">História</string>
 	<string name="lateral_menu_option_users">Usuários</string>
 	<string name="lateral_menu_option_weight">Peso</string>
-	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
+	<string name="msg_problem_ant_permission_disabled">ANT Rádio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> não encontrado.\nInstale-o no Google Play.</string>
 	<string name="msg_problem_setting_up_billing">Problema ao configurar a cobrança in-app</string>
 	<string name="msg_problem_usb_stick_not_detected">Seu dispositivo não parece ter um rádio ANT+ integrado, você precisa conectar um stick ANT+ USB para se comunicar com sua escala de peso.</string>

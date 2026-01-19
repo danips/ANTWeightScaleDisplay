@@ -21,7 +21,9 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Lifecycle;
 
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -29,7 +31,7 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Locale;
 
-public class EditWeightFragment extends Fragment {
+public class EditWeightFragment extends Fragment implements MenuProvider {
     private static final String TAG = "EditWeightFragment";
 
     private TextView dateTV = null;
@@ -181,7 +183,7 @@ public class EditWeightFragment extends Fragment {
         });
 
         //Declare it has items for the actionbar
-        setHasOptionsMenu(true);
+        requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
     }
@@ -364,19 +366,18 @@ public class EditWeightFragment extends Fragment {
     };
 
     @Override
-    public void onCreateOptionsMenu(@NonNull Menu menu, MenuInflater inflater) {
+    public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
-        inflater.inflate(R.menu.fragment_edit_weight_menu, menu);
+        menuInflater.inflate(R.menu.fragment_edit_weight_menu, menu);
         if (getActivity() != null) {
             ((MainActivity) getActivity()).addUsersSpinner(menu, oisListener);
         }
-        super.onCreateOptionsMenu(menu, inflater);
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
-        int itemId = item.getItemId();
+        int itemId = menuItem.getItemId();
         if (itemId == R.id.action_editweight_cancel) {
             if (getActivity() != null)
                 ((MainActivity) getActivity()).closeEditWeightFragment((MainActivity) getActivity(), null, null, edit, false);
@@ -387,7 +388,7 @@ public class EditWeightFragment extends Fragment {
             }
             return true;
         }
-        return super.onOptionsItemSelected(item);
+        return false;
     }
 
     private boolean checkValues()
