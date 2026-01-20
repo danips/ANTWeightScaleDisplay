@@ -276,12 +276,14 @@ public class WeightFragment extends Fragment implements MenuProvider {
                 binding.cardBMR.metricCard.setVisibility(View.GONE);
             }
 
-            if ((displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
+            if ((rw != null) && (displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
                 if ((userToUpload != null) && (!enableUploadButton) && (displayUser.autoupload)) {
                     MainActivity.uploadButton(mainActivity, rw != null ? rw.the_weight : displayWeight, userToUpload);
                 }
                 enableUploadButton = true;
                 userToUpload = displayUser;
+            } else {
+                enableUploadButton = false;
             }
             getActivity().invalidateOptionsMenu();
         });

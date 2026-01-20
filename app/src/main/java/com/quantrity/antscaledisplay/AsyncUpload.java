@@ -185,7 +185,7 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
             } else {
                 if (activity != null) {
                     GarminConnect gc = new GarminConnect(user, activity.getUsersArray(), activity);
-                    if (gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
+                    if (gc.signin(user)) {
                         String result = gc.uploadFitFile(new File(encoding_path));
                         if (result == null) {
                             updateSuccess(R.string.edit_user_fragment_garmin_connect_category);

@@ -330,7 +330,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                     try {
                         final User user = (User)usersSpinner.getSelectedItem();
                         GarminConnect gc = new GarminConnect(user, ((MainActivity)getActivity()).getUsersArray(), getActivity());
-                        if (gc.signin(user.gc_user.trim().replaceAll("[\n\r]", ""), user.gc_pass.trim().replaceAll("[\n\r]", ""))) {
+                        if (gc.signin(user)) {
                             success = gc.downloadHistory(result);
                             if (success) {
                                 String history = result.toString();

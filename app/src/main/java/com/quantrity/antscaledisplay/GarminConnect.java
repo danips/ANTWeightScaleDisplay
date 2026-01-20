@@ -2,14 +2,18 @@ package com.quantrity.antscaledisplay;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.ComponentName;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
+import android.content.Intent;
+import android.provider.Settings;
 import android.text.InputType;
 import android.util.Log;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+
+import androidx.lifecycle.Observer;
 
 import org.json.JSONObject;
 
@@ -80,16 +84,19 @@ public class GarminConnect {
         this.cookieManager = new CookieManager();
         this.cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
         CookieHandler.setDefault(this.cookieManager);
-        Log.d(TAG, "[DEBUG] GarminConnect initialized.");
+        Log.d(TAG, "[DEBUG] GarminConnect initialized for user: " + (user != null ? user.name : "null"));
     }
 
-    public boolean signin(final String username, final String password) {
+    public boolean signin(final User user) {
         Log.d(TAG, "[DEBUG] Starting signin flow...");
-        try {
-            SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
+        if (user == null) return false;
+        String username = user.gc_user.trim().replaceAll("[\n\r]", "");
+        String password = user.gc_pass.trim().replaceAll("[\n\r]", "");
 
-            if (loadOauth2(prefs) || tryRefresh(prefs)) {
-                Log.d(TAG, "[DEBUG] Valid token found/refreshed.");
+        try {
+            // Check User object directly for valid tokens
+            if (loadOauth2() || tryRefresh()) {
+                Log.d(TAG, "[DEBUG] Valid token found/refreshed in User object.");
                 return true;
             }
 
@@ -140,7 +147,7 @@ public class GarminConnect {
                     String mfaCsrf = extractCsrf(response.body);
                     if(mfaCsrf.isEmpty()) mfaCsrf = csrf;
 
-                    // Prompt User
+                    // Prompt User (Updated to handle permissions)
                     String mfaCode = promptMFAModalDialog();
                     if (mfaCode == null || mfaCode.isEmpty()) return false;
 
@@ -202,12 +209,11 @@ public class GarminConnect {
 
             Log.d(TAG, "[DEBUG] Starting OAuth2 Exchange...");
             if (performOAuth2Exchange(consumer)) {
-                Log.d(TAG, "[DEBUG] Signin Success! Saving tokens.");
-                return oauth2Token.save(prefs);
+                Log.d(TAG, "[DEBUG] Signin Success! Saving tokens to User.");
+                return oauth2Token.save();
             } else {
                 Log.e(TAG, "[ERROR] OAuth2 Exchange Failed.");
             }
-
         } catch (Exception e) {
             Log.e(TAG, "[CRITICAL] Signin crashed", e);
         }
@@ -219,32 +225,112 @@ public class GarminConnect {
         if (currentActivity == null || currentActivity.isFinishing()) return null;
 
         BlockingQueue<String> inputQueue = new LinkedBlockingQueue<>();
+
         currentActivity.runOnUiThread(() -> {
-            AlertDialog.Builder builder = new AlertDialog.Builder(currentActivity);
-            builder.setTitle("Garmin Verification");
-            final EditText input = new EditText(currentActivity);
-            input.setInputType(InputType.TYPE_CLASS_NUMBER);
-            input.setHint("Enter 6-digit code");
-            builder.setView(input);
-            builder.setMessage("Enter the code sent to your email/SMS:");
-
-            builder.setPositiveButton("Submit", (d, id) -> inputQueue.add(input.getText().toString()));
-            builder.setNegativeButton("Cancel", (d, i) -> inputQueue.add(""));
-
-            AlertDialog dialog = builder.create();
-            // Show keyboard automatically
-            Objects.requireNonNull(dialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
-            dialog.setOnShowListener(d -> {
-                input.requestFocus();
-                InputMethodManager imm = (InputMethodManager) currentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
-                if (imm != null) {
-                    imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
-                }
-            });
-            dialog.show();
+            // 1. Check if Notification Permission is missing
+            if (!isNotificationServiceEnabled(context)) {
+                // Show info dialog, then redirect, then show MFA input
+                new AlertDialog.Builder(currentActivity)
+                        .setTitle("Enable Auto-Verification?")
+                        .setMessage("To automatically detect the Garmin code from your email, please enable Notification Access for this app.")
+                        .setPositiveButton("Enable", (dialog, which) -> {
+                            Intent intent;
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
+                                intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS);
+                                ComponentName componentName = new ComponentName(context, NotificationListener.class);
+                                intent.putExtra(Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME, componentName.flattenToString());
+                            } else {
+                                intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS);
+                            }
+                            currentActivity.startActivity(intent);
+                        })
+                        .setNegativeButton("Skip", null)
+                        .setOnDismissListener(dialog -> {
+                            // 2. Regardless of choice, show the input field
+                            showMFAInputField(inputQueue);
+                        })
+                        .show();
+            } else {
+                // Permission already exists, show input immediately
+                showMFAInputField(inputQueue);
+            }
         });
 
+        // Block until user inputs code OR code is auto-detected
         return inputQueue.take();
+    }
+
+    private void showMFAInputField(BlockingQueue<String> inputQueue) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(currentActivity);
+        builder.setTitle("Garmin Verification");
+        final EditText input = new EditText(currentActivity);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER);
+        input.setHint("Enter 6-digit code");
+        builder.setView(input);
+        builder.setMessage("Enter the code sent to your email/SMS:\n(Listening for code...)");
+
+        final Observer<String>[] observerRef = new Observer[1];
+
+        // Buttons
+        builder.setPositiveButton("Submit", (d, id) -> {
+            inputQueue.add(input.getText().toString());
+        });
+        builder.setNegativeButton("Cancel", (d, i) -> {
+            inputQueue.add("");
+        });
+
+        AlertDialog dialog = builder.create();
+
+        // Observer Logic
+        observerRef[0] = code -> {
+            if (code != null && code.matches("\\d{6}")) {
+                if (dialog.isShowing()) {
+                    Log.d(TAG, "[MFA] Auto-detected code: " + code);
+                    input.setText(code);
+                    inputQueue.add(code);
+                    dialog.dismiss();
+                }
+            }
+        };
+
+        // Start observing
+        NotificationRepository.getInstance().getLatestNotification().observeForever(observerRef[0]);
+
+        dialog.setOnDismissListener(d -> {
+            // Clean up observer when dialog closes (manually or via auto-fill)
+            NotificationRepository.getInstance().getLatestNotification().removeObserver(observerRef[0]);
+
+            // Safety: If dialog is dismissed via back button, ensure queue isn't blocked
+            if (inputQueue.isEmpty()) {
+                inputQueue.add("");
+            }
+        });
+
+        // Show keyboard automatically
+        Objects.requireNonNull(dialog.getWindow()).setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE);
+        dialog.setOnShowListener(d -> {
+            input.requestFocus();
+            InputMethodManager imm = (InputMethodManager) currentActivity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            if (imm != null) {
+                imm.showSoftInput(input, InputMethodManager.SHOW_IMPLICIT);
+            }
+        });
+        dialog.show();
+    }
+
+    private boolean isNotificationServiceEnabled(Context c) {
+        String pkgName = c.getPackageName();
+        final String flat = Settings.Secure.getString(c.getContentResolver(), "enabled_notification_listeners");
+        if (flat != null && !flat.isEmpty()) {
+            final String[] names = flat.split(":");
+            for (String name : names) {
+                ComponentName cn = ComponentName.unflattenFromString(name);
+                if (cn != null && pkgName.equals(cn.getPackageName())) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public String uploadFitFile(File fitFile) {
@@ -310,12 +396,11 @@ public class GarminConnect {
     public boolean downloadHistory(StringBuilder result) {
         // Auto-load token if missing (e.g. after app restart)
         if (oauth2Token == null) {
-            SharedPreferences prefs = context.getSharedPreferences(context.getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
-            if (!loadOauth2(prefs)) {
-                Log.e(TAG, "[ERROR] downloadHistory: No saved token found. User must sign in.");
+            if (!loadOauth2()) {
+                Log.e(TAG, "[ERROR] downloadHistory: No saved token in User object.");
                 return false;
             }
-            Log.d(TAG, "[DEBUG] Token auto-loaded from storage.");
+            Log.d(TAG, "[DEBUG] Token auto-loaded with loadOauth2.");
         }
 
         try {
@@ -342,7 +427,6 @@ public class GarminConnect {
     }
 
     // --- Internals ---
-
     private String getOAuth1Token(String ticket, OAuthConsumer consumer) {
         try {
             String fullUrl = OAUTH1_URL + "?ticket=" + ticket + "&login-url=https://sso.garmin.com/sso/embed&accepts-mfa-tokens=true";
@@ -540,37 +624,44 @@ public class GarminConnect {
             this.refreshExpiry = now + refreshExp;
         }
 
-        boolean save(SharedPreferences prefs) {
-            SharedPreferences.Editor ed = prefs.edit();
-            ed.putString("oauth2_access", accessToken);
-            ed.putString("oauth2_refresh", refreshToken);
-            ed.putLong("oauth2_expiry", expiry);
-            ed.putLong("oauth2_refresh_expiry", refreshExpiry);
-
+        // UPDATED: Save directly to user object and serialize
+        boolean save() {
             if (user != null) {
                 user.garminOauth2Token = accessToken;
                 user.garminOauth2RefreshToken = refreshToken;
+                user.garminOauth2ExpiryTimestamp = expiry;
+                user.garminOauth2RefreshExpiryTimestamp = refreshExpiry;
+
+                Log.d(TAG, "[DEBUG] Saving tokens to User object: " + user.name);
+                User.serializeUsers(context, users);
+                return true;
             }
-            User.serializeUsers(context, users);
-            return ed.commit();
+            return false;
         }
     }
 
-    private boolean loadOauth2(SharedPreferences prefs) {
-        String acc = prefs.getString("oauth2_access", null);
-        long exp = prefs.getLong("oauth2_expiry", 0);
-        if (acc != null && exp > (System.currentTimeMillis()/1000)) {
-            this.oauth2Token = new OAuth2Token(acc, prefs.getString("oauth2_refresh", null), 0, 0);
-            this.oauth2Token.expiry = exp;
+    // UPDATED: Load directly from User object
+    private boolean loadOauth2() {
+        if (user != null && user.garminOauth2Token != null && user.garminOauth2ExpiryTimestamp > (System.currentTimeMillis()/1000)) {
+            this.oauth2Token = new OAuth2Token(user.garminOauth2Token, user.garminOauth2RefreshToken, 0, 0);
+            this.oauth2Token.expiry = user.garminOauth2ExpiryTimestamp;
+            this.oauth2Token.refreshExpiry = user.garminOauth2RefreshExpiryTimestamp;
             return true;
         }
         return false;
     }
 
-    private boolean tryRefresh(SharedPreferences prefs) {
-        String ref = prefs.getString("oauth2_refresh", null);
-        long refExp = prefs.getLong("oauth2_refresh_expiry", 0);
-        if (ref == null || refExp < (System.currentTimeMillis()/1000)) return false;
+    // UPDATED: Load directly from User object
+    private boolean tryRefresh() {
+        if (user == null || user.garminOauth2RefreshToken == null) return false;
+
+        String ref = user.garminOauth2RefreshToken;
+        long refExp = user.garminOauth2RefreshExpiryTimestamp;
+
+        if (refExp < (System.currentTimeMillis()/1000)) {
+            Log.d(TAG, "[DEBUG] Refresh token expired.");
+            return false;
+        }
 
         try {
             HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
@@ -593,9 +684,11 @@ public class GarminConnect {
                         json.optLong("expires_in", 3600),
                         json.optLong("refresh_token_expires_in", 86400)
                 );
-                return this.oauth2Token.save(prefs);
+                return this.oauth2Token.save();
             }
-        } catch (Exception ignored) {}
+        } catch (Exception ignored) {
+            Log.e(TAG, "[ERROR] Token Refresh failed", ignored);
+        }
         return false;
     }
 
