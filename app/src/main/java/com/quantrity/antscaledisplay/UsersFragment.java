@@ -17,6 +17,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
@@ -218,17 +220,17 @@ public class UsersFragment extends Fragment implements MenuProvider {
         super.onActivityResult(requestCode, resultCode, data);
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        if (requestCode == MainActivity.REQUEST_CODE_WRITE_EXTERNAL_STORAGE)
-        {
-            if ((grantResults.length > 0) && (grantResults[0] == PackageManager.PERMISSION_GRANTED))
-            {
-                saveBackup();
-            }
-        }
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-    }
+    private final ActivityResultLauncher<String> requestPermissionLauncher =
+            //REQUEST_CODE_WRITE_EXTERNAL_STORAGE
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    // Permission granted: Action to take
+                    saveBackup();
+                } /*else {
+                    // Permission denied: Inform the user
+                    // Toast.makeText(getContext(), "Permission denied", Toast.LENGTH_SHORT).show();
+                }*/
+            });
 
     static boolean unzip(Uri zipFile, String location, ContentResolver contentResolver) {
         boolean ok = false;

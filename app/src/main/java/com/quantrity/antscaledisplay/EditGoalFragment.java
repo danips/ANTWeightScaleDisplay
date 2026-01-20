@@ -1,5 +1,6 @@
 package com.quantrity.antscaledisplay;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.graphics.Color;
@@ -80,6 +81,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         if ((activity.getCurrentFocus() != null) && (inputMethodManager != null)) inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private void setupUI(View view) {
         //Set up touch listener for non-text box views to hide keyboard.
         if(!(view instanceof EditText) && (getActivity() != null)) {

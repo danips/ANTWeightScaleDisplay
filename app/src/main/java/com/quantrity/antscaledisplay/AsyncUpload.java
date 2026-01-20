@@ -26,7 +26,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.Random;
 
 class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
     private static final String TAG = "AsyncUpload";
@@ -133,8 +132,6 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
 
     private String export2byte(Weight weight) {
         Date date = new Date(weight.date);
-        /* TODO: Remove on next release!!!!! */
-        date.setSeconds(new Random().nextInt((59) + 1));
         WeightScaleMesg weightMesg = new WeightScaleMesg();
         weightMesg.setTimestamp(new DateTime(date));
 

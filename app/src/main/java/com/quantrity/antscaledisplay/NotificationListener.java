@@ -36,8 +36,6 @@ public class NotificationListener extends NotificationListenerService {
     }
 
     private void processNotification(StatusBarNotification sbn) {
-        String packageName = sbn.getPackageName();
-
         Notification notification = sbn.getNotification();
         if (notification == null || notification.extras == null) return;
 

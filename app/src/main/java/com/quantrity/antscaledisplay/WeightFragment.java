@@ -278,7 +278,8 @@ public class WeightFragment extends Fragment implements MenuProvider {
 
             if ((rw != null) && (displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
                 if ((userToUpload != null) && (!enableUploadButton) && (displayUser.autoupload)) {
-                    MainActivity.uploadButton(mainActivity, rw != null ? rw.the_weight : displayWeight, userToUpload);
+                    //MainActivity.uploadButton(mainActivity, rw != null ? rw.the_weight : displayWeight, userToUpload);
+                    MainActivity.uploadButton(mainActivity, rw.the_weight, userToUpload);
                 }
                 enableUploadButton = true;
                 userToUpload = displayUser;
@@ -300,11 +301,10 @@ public class WeightFragment extends Fragment implements MenuProvider {
             String val, sub;
             if (u.show_fat_mass) {
                 val = u.printMass(getContext(), w.weight * percent / 100);
-                sub = (muscle != -1) ? u.printMass(getContext(), muscle) : "";
             } else {
                 val = String.format(getString(R.string.weight_fragment_percent_tag), percent);
-                sub = (muscle != -1) ? u.printMass(getContext(), muscle) : "";
             }
+            sub = (muscle != -1) ? u.printMass(getContext(), muscle) : "";
             seg.metricValue.setText(val);
             if (!sub.isEmpty()) {
                 seg.metricSubValue.setText(sub);

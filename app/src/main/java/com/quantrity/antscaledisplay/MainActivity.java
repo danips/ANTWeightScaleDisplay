@@ -1,5 +1,6 @@
 package com.quantrity.antscaledisplay;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.ComponentName;
@@ -416,6 +417,7 @@ public class MainActivity extends AppCompatActivity
         editor.apply();
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     private final View.OnTouchListener spinnerOnTouch = (v, event) -> {
         if (event.getAction() == MotionEvent.ACTION_UP) {
             showSearch((Spinner)v);

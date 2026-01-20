@@ -376,6 +376,7 @@ public class User {
             e.printStackTrace();
             return -1;
         }
+        assert number != null;
         return calc_mass(number.doubleValue(), weight, percent);
     }
 }
