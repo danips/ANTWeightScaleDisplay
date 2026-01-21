@@ -267,7 +267,7 @@ public class GarminConnect {
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
         input.setHint("Enter 6-digit code");
         builder.setView(input);
-        builder.setMessage("Enter the code sent to your email/SMS:\n(Listening for code...)");
+        builder.setMessage("Enter the code sent to your email/SMS:");
 
         final Observer<String>[] observerRef = new Observer[1];
 
@@ -334,7 +334,18 @@ public class GarminConnect {
     }
 
     public String uploadFitFile(File fitFile) {
-        if (oauth2Token == null) return "Not authenticated";
+        // 1. Check if we have a token loaded
+        if (oauth2Token == null) {
+            if (!loadOauth2()) return "Not authenticated (No saved token)";
+        }
+
+        // 2. Check if Access Token is expired (or close to it)
+        if (oauth2Token.expiry < (System.currentTimeMillis() / 1000) + 60) {
+            Log.d(TAG, "Access token expired. Attempting refresh...");
+            if (!tryRefresh()) {
+                return "Session expired. Please login again.";
+            }
+        }
 
         String boundary = "---------------------------" + System.currentTimeMillis();
         String lineEnd = "\r\n";
@@ -394,13 +405,20 @@ public class GarminConnect {
     }
 
     public boolean downloadHistory(StringBuilder result) {
-        // Auto-load token if missing (e.g. after app restart)
         if (oauth2Token == null) {
             if (!loadOauth2()) {
-                Log.e(TAG, "[ERROR] downloadHistory: No saved token in User object.");
+                Log.e(TAG, "[ERROR] downloadHistory: No saved token.");
                 return false;
             }
             Log.d(TAG, "[DEBUG] Token auto-loaded with loadOauth2.");
+        }
+
+        // AUTO-REFRESH CHECK
+        if (oauth2Token.expiry < (System.currentTimeMillis() / 1000) + 60) {
+            if (!tryRefresh()) {
+                Log.e(TAG, "[ERROR] downloadHistory: Refresh failed.");
+                return false;
+            }
         }
 
         try {
