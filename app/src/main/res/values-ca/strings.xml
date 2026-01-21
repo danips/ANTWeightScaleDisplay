@@ -51,8 +51,8 @@
 	<string name="edit_user_fragment_units_tag_cm">cm</string>
 	<string name="edit_user_fragment_units_tag_ft">\'</string>
 	<string name="edit_user_fragment_units_tag_in">\"</string>
-	<string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.2f</xliff:g> kg</string>
-	<string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.2f</xliff:g> lb</string>
+	<string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.1f</xliff:g> kg</string>
+	<string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.1f</xliff:g> lb</string>
 	<string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
 	<string name="edit_user_fragment_user">Usuari</string>
 	<string name="fat_percent_value_0">Manca de pes</string>
@@ -165,7 +165,7 @@
 	<string name="weight_fragment_msg_uploading_failure">S\'ha produït un problema carregant el fitxer FIT a Garming Connect. Intenta-ho més tard.</string>
 	<string name="weight_fragment_msg_waiting">Esperant la mesura del pes</string>
 	<string name="weight_fragment_msg_wrong_credentials">Error de nom d\'usuari o de mot de pas Garmin Connect!</string>
-	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.2f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> anys</string>
 	<string name="weight_process_msg_error">Error</string>
 	<string name="weight_process_msg_problem_bind">No es pot enllaçar amb el servei ANT</string>

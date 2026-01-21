@@ -51,8 +51,8 @@
 	<string name="edit_user_fragment_units_tag_cm">cm</string>
 	<string name="edit_user_fragment_units_tag_ft">\'</string>
 	<string name="edit_user_fragment_units_tag_in">\"</string>
-	<string name="edit_user_fragment_units_tag_kg">%1$.2f kg</string>
-	<string name="edit_user_fragment_units_tag_lb">%1$.2f lb</string>
+	<string name="edit_user_fragment_units_tag_kg">%1$.1f kg</string>
+	<string name="edit_user_fragment_units_tag_lb">%1$.1f lb</string>
 	<string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
 	<string name="edit_user_fragment_user">Użytkownik</string>
 	<string name="fat_percent_value_0">Zbyt niski</string>
@@ -165,7 +165,7 @@
 	<string name="weight_fragment_msg_uploading_failure">Przesyłanie pliku FIT do Garmin Connect nie udane.\nSpróbuj ponownie później.</string>
 	<string name="weight_fragment_msg_waiting">Oczekiwanie na tarowanie wagi</string>
 	<string name="weight_fragment_msg_wrong_credentials">Błąd nazwy użytkownika lub hasła Garmin Connect!</string>
-	<string name="weight_fragment_percent_tag">%1$.2f %%</string>
+	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d lat</string>
 	<string name="weight_process_msg_error">Błąd</string>
 	<string name="weight_process_msg_problem_bind">Nie można nawiązać połączenia z serwisem ANT</string>

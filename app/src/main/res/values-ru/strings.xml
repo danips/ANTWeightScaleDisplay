@@ -51,8 +51,8 @@
 	<string name="edit_user_fragment_units_tag_cm">см</string>
 	<string name="edit_user_fragment_units_tag_ft">Фут</string>
 	<string name="edit_user_fragment_units_tag_in">Дюйм</string>
-	<string name="edit_user_fragment_units_tag_kg">%1$.2f кг</string>
-	<string name="edit_user_fragment_units_tag_lb">%1$.2f фунт</string>
+	<string name="edit_user_fragment_units_tag_kg">%1$.1f кг</string>
+	<string name="edit_user_fragment_units_tag_lb">%1$.1f фунт</string>
 	<string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> камень <xliff:g id="number">%2$.1f</xliff:g> фунт</string>
 	<string name="edit_user_fragment_user">Пользователь</string>
 	<string name="fat_percent_value_0">Недостаток жира</string>
@@ -165,7 +165,7 @@
 	<string name="weight_fragment_msg_uploading_failure">Возникла проблема при загрузке FIT файла в Garmin Connect. Попробуйте позже.</string>
 	<string name="weight_fragment_msg_waiting">Ожидание результата измерения</string>
 	<string name="weight_fragment_msg_wrong_credentials">Неверное имя пользователя или пароль Garmin Connect !</string>
-	<string name="weight_fragment_percent_tag">%1$.2f %%</string>
+	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d лет</string>
 	<string name="weight_process_msg_error">Ошибка</string>
 	<string name="weight_process_msg_problem_bind">Невозможно привязать весы ANT+</string>

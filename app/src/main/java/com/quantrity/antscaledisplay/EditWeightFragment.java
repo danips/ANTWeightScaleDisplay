@@ -249,11 +249,11 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 if (the_weight.rightArmMuscleMass != -1) rightArmMuscleMassTV.setText(the_user.printMass(getContext(), the_weight.rightArmMuscleMass, false, true));
                 if (the_weight.leftLegMuscleMass != -1) leftLegMuscleMassTV.setText(the_user.printMass(getContext(), the_weight.leftLegMuscleMass, false, true));
                 if (the_weight.rightLegMuscleMass != -1) rightLegMuscleMassTV.setText(the_user.printMass(getContext(), the_weight.rightLegMuscleMass, false, true));
-                if (the_weight.percentHydration != -1) percentHydrationTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.percentHydration));
+                if (the_weight.percentHydration != -1) percentHydrationTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.percentHydration));
                 if (the_weight.boneMass != -1) boneMassTV.setText(the_user.printMass(getContext(), the_weight.boneMass, false, true));
                 if (the_weight.muscleMass != -1) muscleMassTV.setText(the_user.printMass(getContext(), the_weight.muscleMass, false, true));
                 if (the_weight.physiqueRating != -1) physiqueRatingTV.setText(String.format(Locale.getDefault(),"%d", the_weight.physiqueRating));
-                if (the_weight.visceralFatRating != -1) visceralFatRatingTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.visceralFatRating));
+                if (the_weight.visceralFatRating != -1) visceralFatRatingTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.visceralFatRating));
                 if (the_weight.metabolicAge != -1) metabolicAgeTV.setText(String.format(Locale.getDefault(),"%d", the_weight.metabolicAge));
                 if (the_weight.basalMet != -1) basalMetTV.setText(String.format(Locale.getDefault(),"%1$.0f", the_weight.basalMet));
 
@@ -268,12 +268,12 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 }
                 else
                 {
-                    if (the_weight.percentFat != -1) percentFatTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.percentFat));
-                    if (the_weight.trunkPercentFat != -1) trunkPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.trunkPercentFat));
-                    if (the_weight.rightArmPercentFat != -1) rightArmPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.rightArmPercentFat));
-                    if (the_weight.leftArmPercentFat != -1) leftArmPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.leftArmPercentFat));
-                    if (the_weight.leftLegPercentFat != -1) leftLegPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.leftLegPercentFat));
-                    if (the_weight.rightLegPercentFat != -1) rightLegPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.2f", the_weight.rightLegPercentFat));
+                    if (the_weight.percentFat != -1) percentFatTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.percentFat));
+                    if (the_weight.trunkPercentFat != -1) trunkPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.trunkPercentFat));
+                    if (the_weight.rightArmPercentFat != -1) rightArmPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.rightArmPercentFat));
+                    if (the_weight.leftArmPercentFat != -1) leftArmPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.leftArmPercentFat));
+                    if (the_weight.leftLegPercentFat != -1) leftLegPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.leftLegPercentFat));
+                    if (the_weight.rightLegPercentFat != -1) rightLegPercentFatTV.setText(String.format(Locale.getDefault(),"%1$.1f", the_weight.rightLegPercentFat));
                 }
             }
             dateTV.setText(DateUtils.formatDateTime(getContext(), the_weight.date, DateUtils.FORMAT_SHOW_YEAR | DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_SHOW_TIME));

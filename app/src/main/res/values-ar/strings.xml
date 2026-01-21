@@ -51,8 +51,8 @@
 	<string name="edit_user_fragment_units_tag_cm">سم</string>
 	<string name="edit_user_fragment_units_tag_ft">\'</string>
 	<string name="edit_user_fragment_units_tag_in">\"</string>
-	<string name="edit_user_fragment_units_tag_kg">كج <xliff:g id="number">%1$.2f</xliff:g></string>
-	<string name="edit_user_fragment_units_tag_lb">رطل <xliff:g id="number">%1$.2f</xliff:g></string>
+	<string name="edit_user_fragment_units_tag_kg">كج <xliff:g id="number">%1$.1f</xliff:g></string>
+	<string name="edit_user_fragment_units_tag_lb">رطل <xliff:g id="number">%1$.1f</xliff:g></string>
 	<string name="edit_user_fragment_units_tag_st">رطل <xliff:g id="number">%2$.1f</xliff:g> ست <xliff:g id="number">%1$.0f</xliff:g></string>
 	<string name="edit_user_fragment_user">مستخدم</string>
 	<string name="fat_percent_value_0">دهون مخفضة</string>
@@ -165,7 +165,7 @@
 	<string name="weight_fragment_msg_uploading_failure">يوجد خطأ عند رفع ملف الفيت الى جارمن كونيكت. حاول مرةً أخرى.</string>
 	<string name="weight_fragment_msg_waiting">في إنتظار قياس الوزن</string>
 	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
-	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.2f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> سنة</string>
 	<string name="weight_process_msg_error">خطأ</string>
 	<string name="weight_process_msg_problem_bind">عم التمكن من التوافق مع خدمة ANT</string>

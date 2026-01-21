@@ -287,7 +287,7 @@ public class User {
             double lbs = mass * 2.20462262;
             if (!show_units)
             {
-                return String.format(Locale.getDefault(),"%1$.2f", Math.floor(lbs/14));
+                return String.format(Locale.getDefault(),"%1$.1f", Math.floor(lbs/14));
             }
 
             double divisor = (float)Math.floor(lbs / 14);
@@ -308,7 +308,7 @@ public class User {
         }
         else
         {
-            return String.format(Locale.getDefault(),"%1$.2f", value);
+            return String.format(Locale.getDefault(),"%1$.1f", value);
         }
     }
 

@@ -51,8 +51,8 @@
 	<string name="edit_user_fragment_units_tag_cm">cm</string>
 	<string name="edit_user_fragment_units_tag_ft">\'</string>
 	<string name="edit_user_fragment_units_tag_in">\"</string>
-	<string name="edit_user_fragment_units_tag_kg">%1$.2f kg</string>
-	<string name="edit_user_fragment_units_tag_lb">%1$.2f lb</string>
+	<string name="edit_user_fragment_units_tag_kg">%1$.1f kg</string>
+	<string name="edit_user_fragment_units_tag_lb">%1$.1f lb</string>
 	<string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
 	<string name="edit_user_fragment_user">Χρήστης</string>
 	<string name="fat_percent_value_0">Μειωμένο λίπος</string>
@@ -165,7 +165,7 @@
 	<string name="weight_fragment_msg_uploading_failure">Παρουσιάστηκε κάποιο πρόβλημα στο ανέβασμα του αρχείου FIT στο Garmin Connect.\nΠροσπαθήστε πάλι αργότερα.</string>
 	<string name="weight_fragment_msg_waiting">Αναμονή για μέτρηση βάρους</string>
 	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
-	<string name="weight_fragment_percent_tag">%1$.2f %%</string>
+	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d έτη</string>
 	<string name="weight_process_msg_error">Σφάλμα</string>
 	<string name="weight_process_msg_problem_bind">Αδυμαμία σύνδεσης με ΑΝΤ+ service</string>
