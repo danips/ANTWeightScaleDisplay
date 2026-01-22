@@ -1,8 +1,11 @@
 package com.quantrity.antscaledisplay;
 
-
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
 import android.text.format.DateUtils;
+import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -20,16 +23,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Locale;
 
-
 class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     //private static final String TAG = "HistoryAdapter";
 
     private ArrayList<Weight> mDataset;
     private final Context mContext;
-
     private User user;
-
     private final SimpleDateFormat dateFormatter;
+
+    // Tracks the expanded/collapsed state of each item position
+    private final SparseBooleanArray expandedStates = new SparseBooleanArray();
 
     // Provide a suitable constructor (depends on the kind of dataset)
     HistoryAdapter(ArrayList<Weight> myDataset, Context mContext, User user) {
@@ -40,16 +43,29 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         this.dateFormatter.applyPattern(dateFormatter.toPattern().replaceAll("y", "yy").replaceAll("y{4}", "yy"));
     }
 
+    void replaceAll(ArrayList<Weight> myDataset, User user) {
+        this.user = user;
+        mDataset = myDataset;
+        // Reset expanded states when data changes/reloads
+        expandedStates.clear();
+        notifyDataSetChanged();
+    }
+
     // Provide a reference to the views for each data item
-    // Complex data items may need more than one view per item, and
-    // you provide access to all the views for a data item in a view holder
     class ViewHolder extends RecyclerView.ViewHolder implements View.OnCreateContextMenuListener {
-        // each data item is just a string in this case
         private Weight weight;
+
+        // Header Views
         final TextView dateTV;
         final TextView timeTV;
         final TextView weightTV;
         final TextView bmiTV;
+        final ImageView expandIcon; // New Arrow Icon
+
+        // Details Container
+        final View detailsContainer; // The container to hide/show
+
+        // Detail Views (Inside the container)
         final TextView trunkPercentFatTV;
         final TextView trunkMuscleMassTV;
         final TextView leftArmPercentFatTV;
@@ -68,8 +84,6 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         final TextView visceralFatRatingTV;
         final TextView metabolicAgeTV;
         final TextView basalMetTV;
-        final ImageView weightIV;
-        final ImageView bmiIV;
         final ImageView percentFatIV;
         final ImageView percentHydrationIV;
         final ImageView boneMassIV;
@@ -78,6 +92,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         final ImageView visceralFatRatingIV;
         final ImageView metabolicAgeIV;
         final ImageView basalMetIV;
+
         final TableRow tftmTR;
         final TableRow laflamTR;
         final TableRow raframTR;
@@ -91,10 +106,16 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         ViewHolder(View v) {
             super(v);
 
+            // New View References for Expandable Layout
+            detailsContainer = v.findViewById(R.id.row_details_container);
+            expandIcon = v.findViewById(R.id.expand_icon);
+
+            // Existing View References
             dateTV = v.findViewById(R.id.row_weight_dateTV);
             timeTV = v.findViewById(R.id.row_weight_timeTV);
             weightTV = v.findViewById(R.id.row_weight_weightTV);
             bmiTV = v.findViewById(R.id.row_weight_bmiTV);
+
             trunkPercentFatTV = v.findViewById(R.id.row_weight_trunkPercentFatTV);
             trunkMuscleMassTV = v.findViewById(R.id.row_weight_trunkMuscleMassTV);
             leftArmPercentFatTV = v.findViewById(R.id.row_weight_leftArmPercentFatTV);
@@ -113,8 +134,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             visceralFatRatingTV = v.findViewById(R.id.row_weight_visceralFatRatingTV);
             metabolicAgeTV = v.findViewById(R.id.row_weight_metabolicAgeTV);
             basalMetTV = v.findViewById(R.id.row_weight_basalMetTV);
-            weightIV = v.findViewById(R.id.row_weight_weightIV);
-            bmiIV = v.findViewById(R.id.row_weight_bmiIV);
+
             percentFatIV = v.findViewById(R.id.row_weight_percentFatIV);
             percentHydrationIV = v.findViewById(R.id.row_weight_percentHydrationIV);
             boneMassIV = v.findViewById(R.id.row_weight_boneMassIV);
@@ -123,6 +143,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             visceralFatRatingIV = v.findViewById(R.id.row_weight_visceralFatRatingIV);
             metabolicAgeIV = v.findViewById(R.id.row_weight_metabolicAgeIV);
             basalMetIV = v.findViewById(R.id.row_weight_basalMetIV);
+
             tftmTR = v.findViewById(R.id.tftmTR);
             laflamTR = v.findViewById(R.id.laflamTR);
             raframTR = v.findViewById(R.id.raframTR);
@@ -134,30 +155,29 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             maamTR = v.findViewById(R.id.maamTR);
 
             v.setOnCreateContextMenuListener(this);
-            v.setOnClickListener(View::showContextMenu);
         }
-
-
 
         @Override
         public void onCreateContextMenu(ContextMenu contextMenu, View view, ContextMenu.ContextMenuInfo contextMenuInfo) {
-            //Log.v(TAG, contextMenu + "__" + view + ".." + contextMenuInfo);
             contextMenu.setHeaderTitle(R.string.users_fragment_user_contextmenu_title);
-            MenuItem mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_delete);//groupId, itemId, order, title
+            MenuItem mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_delete);
             mi.setOnMenuItemClickListener(menuItem -> {
                 int position = mDataset.indexOf(weight);
-                notifyItemRemoved(position);
-                mDataset.remove(weight);
-                ((MainActivity)mContext).deleteWeight(weight);
+                if (position != -1) {
+                    mDataset.remove(weight);
+                    expandedStates.delete(position); // Remove state for deleted item
+                    notifyItemRemoved(position);
+                    ((MainActivity) mContext).deleteWeight(weight);
+                }
                 return true;
             });
+
             if (user != null) {
                 if ((user.gc_user != null) && (user.gc_pass != null) && (!user.gc_user.isEmpty()) && (!user.gc_pass.isEmpty())) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_garmin_connect_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
                         AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, true, false);
                         au.execute(mContext.getCacheDir() + "/weight.fit");
-                        //((MainActivity) mContext).showMessage(mContext.getString(R.string.gc_warning));
                         return true;
                     });
                 }
@@ -177,36 +197,48 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                 });
             }
         }
-
-    }
-
-    void replaceAll(ArrayList<Weight> myDataset, User user) {
-        this.user = user;
-        mDataset = myDataset;
-        notifyDataSetChanged();
     }
 
     // Create new views (invoked by the layout manager)
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        //Log.v("TAG", "onCreateViewHolder");
-        // create a new view
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_weight, parent, false);
-        // set the view's size, margins, paddings and layout parameters
         return new ViewHolder(v);
     }
 
     // Replace the contents of a view (invoked by the layout manager)
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        //Log.v("TAG", "onBindViewHolder");
-        // - get element from your dataset at this position
-        // - replace the contents of the view with that element
         final Weight item = mDataset.get(position);
-
         holder.weight = item;
         int age_then = User.calcAge(user.birthdate, item.date);
+
+        // --- EXPANSION LOGIC ---
+        final boolean isExpanded = expandedStates.get(position, false);
+
+        // Show/Hide details based on state
+        if (holder.detailsContainer != null) {
+            holder.detailsContainer.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+        }
+
+        // Rotate arrow icon based on state
+        if (holder.expandIcon != null) {
+            holder.expandIcon.setRotation(isExpanded ? 180f : 0f);
+        }
+
+        // Click Listener for the Card/Row
+        holder.itemView.setOnClickListener(v -> {
+            boolean newState = !expandedStates.get(holder.getAdapterPosition(), false);
+            if (newState) {
+                expandedStates.put(holder.getAdapterPosition(), true);
+            } else {
+                expandedStates.delete(holder.getAdapterPosition());
+            }
+            // Use notifyItemChanged to animate the specific row update
+            notifyItemChanged(holder.getAdapterPosition());
+        });
+        // -----------------------
 
         holder.dateTV.setText(dateFormatter.format(item.date));
         holder.timeTV.setText(DateUtils.formatDateTime(mContext, item.date, DateUtils.FORMAT_SHOW_TIME));
@@ -216,17 +248,16 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         holder.bmiTV.setText(MessageFormat.format("{0} {1}", mContext.getString(R.string.weight_fragment_bmi_tag), String.format(Locale.getDefault(), "%.02f", bmi)));
 
         holder.weightTV.setText(user.printMass(mContext, item.weight));
+
+        // Note: The visibility logic below applies to the internal TableRows.
+        // Even if these are set to VISIBLE, they won't show up if detailsContainer is GONE.
+
         if (item.boneMass != -1) {
             holder.boneMassTV.setText(user.printMass(mContext, item.boneMass));
             switch (RequestWeight.getBoneMassDesc((float) item.weight, (float) item.boneMass, item.isMale)) {
-                case 0:
-                    holder.boneMassIV.setBackgroundResource(R.drawable.rounded_red_mini);
-                    break;
-                case 1:
-                    holder.boneMassIV.setBackgroundResource(R.drawable.rounded_green_mini);
-                    break;
-                default:
-                    holder.boneMassIV.setBackgroundResource(R.drawable.rounded_blue_mini);
+                case 0: holder.boneMassIV.setBackgroundResource(R.drawable.rounded_red_mini); break;
+                case 1: holder.boneMassIV.setBackgroundResource(R.drawable.rounded_green_mini); break;
+                default: holder.boneMassIV.setBackgroundResource(R.drawable.rounded_blue_mini);
             }
             holder.boneMassTV.setVisibility(View.VISIBLE);
         } else holder.boneMassTV.setVisibility(View.INVISIBLE);
@@ -236,26 +267,34 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             holder.muscleMassTV.setVisibility(View.VISIBLE);
         } else holder.muscleMassTV.setVisibility(View.INVISIBLE);
 
+        // BMI Color Logic
+        Shader textShader;
+        int c1, c2;
         switch (RequestWeight.getBMIDesc((byte) age_then, (float) bmi, item.isMale)) {
             case 0:
             case 2:
-                holder.weightIV.setBackgroundResource(R.drawable.rounded_yellow_mini);
-                holder.bmiIV.setBackgroundResource(R.drawable.rounded_yellow_mini);
+                c1 = Color.parseColor("#f3ae1b");
+                c2 = Color.parseColor("#bb6008");
                 break;
-            case 1: holder.weightIV.setBackgroundResource(R.drawable.rounded_green_mini);
-                holder.bmiIV.setBackgroundResource(R.drawable.rounded_green_mini);
+            case 1:
+                c1 = Color.parseColor("#70c656");
+                c2 = Color.parseColor("#53933f");
                 break;
-            case 3: holder.weightIV.setBackgroundResource(R.drawable.rounded_red_mini);
-                holder.bmiIV.setBackgroundResource(R.drawable.rounded_red_mini);
+            case 3:
+                c1 = Color.parseColor("#ef4444");
+                c2 = Color.parseColor("#992f2f");
                 break;
-            default: holder.weightIV.setBackgroundResource(R.drawable.rounded_blue_mini);
-                holder.bmiIV.setBackgroundResource(R.drawable.rounded_blue_mini);
+            default:
+                c1 = Color.parseColor("#33b5e5");
+                c2 = Color.parseColor("#2f6699");
                 break;
         }
+        textShader = new LinearGradient(0, 0, 0, holder.weightTV.getTextSize(),
+                new int[]{ c1, c2 }, null, Shader.TileMode.CLAMP);
+        holder.weightTV.getPaint().setShader(textShader);
 
         if (item.percentFat != -1) {
-            if (user.show_fat_mass)
-            {
+            if (user.show_fat_mass) {
                 holder.percentFatTV.setText(user.printMass(mContext, item.weight * item.percentFat / 100));
             } else {
                 holder.percentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.percentFat));
@@ -263,60 +302,36 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
             switch (RequestWeight.getPercentFatDesc((byte) age_then, (float) item.percentFat, item.isMale)) {
                 case 0:
-                case 2:
-                    holder.percentFatIV.setBackgroundResource(R.drawable.rounded_yellow_mini);
-                    break;
-                case 1: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_green_mini);
-                    break;
-                case 3: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_red_mini);
-                    break;
+                case 2: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_yellow_mini); break;
+                case 1: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_green_mini); break;
+                case 3: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_red_mini); break;
                 default: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_blue_mini);
             }
             holder.percentFatTV.setVisibility(View.VISIBLE);
         } else holder.percentFatTV.setVisibility(View.INVISIBLE);
 
-
         if (item.percentHydration != -1) {
             holder.percentHydrationTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), item.percentHydration));
-
             switch (RequestWeight.getPercentHydrationDesc((float) item.percentHydration, item.isMale)) {
                 case 0:
-                case 2:
-                    holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_yellow_mini);
-                    break;
-                case 1:
-                    holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_green_mini);
-                    break;
-                default:
-                    holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_blue_mini);
+                case 2: holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_yellow_mini); break;
+                case 1: holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_green_mini); break;
+                default: holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_blue_mini);
             }
             holder.percentHydrationTV.setVisibility(View.VISIBLE);
         } else holder.percentHydrationTV.setVisibility(View.INVISIBLE);
 
-
         if (item.physiqueRating != -1) {
             holder.physiqueRatingTV.setText(String.format(Locale.getDefault(), "%d", item.physiqueRating));
-
             switch (item.physiqueRating) {
-                case 1:
-                case 2:
-                case 3:
-                    holder.physiqueRatingIV.setBackgroundResource(R.drawable.rounded_red_mini);
-                    break;
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
-                    holder.physiqueRatingIV.setBackgroundResource(R.drawable.rounded_green_mini);
-                    break;
+                case 1: case 2: case 3: holder.physiqueRatingIV.setBackgroundResource(R.drawable.rounded_red_mini); break;
+                case 4: case 5: case 6: case 7: case 8: case 9: holder.physiqueRatingIV.setBackgroundResource(R.drawable.rounded_green_mini); break;
             }
             holder.physiqueRatingTV.setVisibility(View.VISIBLE);
         } else holder.physiqueRatingTV.setVisibility(View.INVISIBLE);
+
         if (item.visceralFatRating != -1) {
             holder.visceralFatRatingTV.setText(String.format(Locale.getDefault(), "%.2f", item.visceralFatRating));
-
             if ((item.visceralFatRating >= 1.0) && (item.visceralFatRating <= 12.5)) {
                 holder.visceralFatRatingIV.setBackgroundResource(R.drawable.rounded_green_mini);
             } else if ((item.visceralFatRating >= 12.5) && (item.visceralFatRating <= 59.0)) {
@@ -351,113 +366,51 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             holder.basalMetIV.setVisibility(View.INVISIBLE);
         }
 
+        // Segmental Analysis Rows
         if (item.trunkPercentFat != -1) {
-            if (user.show_fat_mass)
-            {
-                holder.trunkPercentFatTV.setText(user.printMass(mContext, item.weight * item.trunkPercentFat / 100));
-            } else {
-                holder.trunkPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.trunkPercentFat));
-            }
-            //holder.trunkPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.trunkPercentFat));
+            if (user.show_fat_mass) holder.trunkPercentFatTV.setText(user.printMass(mContext, item.weight * item.trunkPercentFat / 100));
+            else holder.trunkPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.trunkPercentFat));
             holder.trunkPercentFatTV.setVisibility(View.VISIBLE);
-        }
-        else holder.trunkPercentFatTV.setVisibility(View.INVISIBLE);
+        } else holder.trunkPercentFatTV.setVisibility(View.INVISIBLE);
+
         if (item.trunkMuscleMass != -1) {
             holder.trunkMuscleMassTV.setText(user.printMass(mContext, item.trunkMuscleMass));
             holder.trunkMuscleMassTV.setVisibility(View.VISIBLE);
-        }
-        else holder.trunkMuscleMassTV.setVisibility(View.INVISIBLE);
+        } else holder.trunkMuscleMassTV.setVisibility(View.INVISIBLE);
 
-        if (item.leftArmPercentFat != -1) {
-            if (user.show_fat_mass)
-            {
-                holder.leftArmPercentFatTV.setText(user.printMass(mContext, item.weight * item.leftArmPercentFat / 100));
-            } else {
-                holder.leftArmPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.leftArmPercentFat));
-            }
-            //holder.leftArmPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.leftArmPercentFat));
-            holder.leftArmPercentFatTV.setVisibility(View.VISIBLE);
-        }
-        else holder.leftArmPercentFatTV.setVisibility(View.INVISIBLE);
-        if (item.leftArmMuscleMass != -1) {
-            holder.leftArmMuscleMassTV.setText(user.printMass(mContext, item.leftArmMuscleMass));
-            holder.leftArmMuscleMassTV.setVisibility(View.VISIBLE);
-        }
-        else holder.leftArmMuscleMassTV.setVisibility(View.INVISIBLE);
+        // Arms and Legs logic (same pattern as above, kept concise here)
+        updateSegmentalView(holder.leftArmPercentFatTV, item.leftArmPercentFat, item.weight, user);
+        updateSegmentalView(holder.rightArmPercentFatTV, item.rightArmPercentFat, item.weight, user);
+        updateSegmentalView(holder.leftLegPercentFatTV, item.leftLegPercentFat, item.weight, user);
+        updateSegmentalView(holder.rightLegPercentFatTV, item.rightLegPercentFat, item.weight, user);
 
-        if (item.rightArmPercentFat != -1) {
-            if (user.show_fat_mass)
-            {
-                holder.rightArmPercentFatTV.setText(user.printMass(mContext, item.weight * item.rightArmPercentFat / 100));
-            } else {
-                holder.rightArmPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.rightArmPercentFat));
-            }
-            //holder.rightArmPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.rightArmPercentFat));
-            holder.rightArmPercentFatTV.setVisibility(View.VISIBLE);
-        }
-        else holder.rightArmPercentFatTV.setVisibility(View.INVISIBLE);
-        if (item.rightArmMuscleMass != -1) {
-            holder.rightArmMuscleMassTV.setText(user.printMass(mContext, item.rightArmMuscleMass));
-            holder.rightArmMuscleMassTV.setVisibility(View.VISIBLE);
-        }
-        else holder.rightArmMuscleMassTV.setVisibility(View.INVISIBLE);
+        if (item.leftArmMuscleMass != -1) { holder.leftArmMuscleMassTV.setText(user.printMass(mContext, item.leftArmMuscleMass)); holder.leftArmMuscleMassTV.setVisibility(View.VISIBLE); } else holder.leftArmMuscleMassTV.setVisibility(View.INVISIBLE);
+        if (item.rightArmMuscleMass != -1) { holder.rightArmMuscleMassTV.setText(user.printMass(mContext, item.rightArmMuscleMass)); holder.rightArmMuscleMassTV.setVisibility(View.VISIBLE); } else holder.rightArmMuscleMassTV.setVisibility(View.INVISIBLE);
+        if (item.leftLegMuscleMass != -1) { holder.leftLegMuscleMassTV.setText(user.printMass(mContext, item.leftLegMuscleMass)); holder.leftLegMuscleMassTV.setVisibility(View.VISIBLE); } else holder.leftLegMuscleMassTV.setVisibility(View.INVISIBLE);
+        if (item.rightLegMuscleMass != -1) { holder.rightLegMuscleMassTV.setText(user.printMass(mContext, item.rightLegMuscleMass)); holder.rightLegMuscleMassTV.setVisibility(View.VISIBLE); } else holder.rightLegMuscleMassTV.setVisibility(View.INVISIBLE);
 
-        if (item.leftLegPercentFat != -1) {
-            if (user.show_fat_mass)
-            {
-                holder.leftLegPercentFatTV.setText(user.printMass(mContext, item.weight * item.leftLegPercentFat / 100));
-            } else {
-                holder.leftLegPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.leftLegPercentFat));
-            }
-            //holder.leftLegPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.leftLegPercentFat));
-            holder.leftLegPercentFatTV.setVisibility(View.VISIBLE);
-        }
-        else holder.leftLegPercentFatTV.setVisibility(View.INVISIBLE);
-        if (item.leftLegMuscleMass != -1) {
-            holder.leftLegMuscleMassTV.setText(user.printMass(mContext, item.leftLegMuscleMass));
-            holder.leftLegMuscleMassTV.setVisibility(View.VISIBLE);
-        }
-        else holder.leftLegMuscleMassTV.setVisibility(View.INVISIBLE);
-
-        if (item.rightLegPercentFat != -1) {
-            if (user.show_fat_mass)
-            {
-                holder.rightLegPercentFatTV.setText(user.printMass(mContext, item.weight * item.rightLegPercentFat / 100));
-            } else {
-                holder.rightLegPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.rightLegPercentFat));
-            }
-            //holder.rightLegPercentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.rightLegPercentFat));
-            holder.rightLegPercentFatTV.setVisibility(View.VISIBLE);
-        }
-        else holder.rightLegPercentFatTV.setVisibility(View.INVISIBLE);
-        if (item.rightLegMuscleMass != -1) {
-            holder.rightLegMuscleMassTV.setText(user.printMass(mContext, item.rightLegMuscleMass));
-            holder.rightLegMuscleMassTV.setVisibility(View.VISIBLE);
-        }
-        else holder.rightLegMuscleMassTV.setVisibility(View.INVISIBLE);
-
-        if ((item.boneMass == -1) && (item.muscleMass == -1)) holder.bmmmTR.setVisibility(View.GONE);
-        else holder.bmmmTR.setVisibility(View.VISIBLE);
-        if ((item.trunkPercentFat == -1) && (item.trunkMuscleMass == -1)) holder.tftmTR.setVisibility(View.GONE);
-        else holder.tftmTR.setVisibility(View.VISIBLE);
-        if ((item.leftArmPercentFat == -1) && (item.leftArmMuscleMass == -1)) holder.laflamTR.setVisibility(View.GONE);
-        else holder.laflamTR.setVisibility(View.VISIBLE);
-        if ((item.rightArmPercentFat == -1) && (item.rightArmMuscleMass == -1)) holder.raframTR.setVisibility(View.GONE);
-        else holder.raframTR.setVisibility(View.VISIBLE);
-        if ((item.leftArmPercentFat == -1) && (item.leftLegMuscleMass == -1)) holder.llfllmTR.setVisibility(View.GONE);
-        else holder.llfllmTR.setVisibility(View.VISIBLE);
-        if ((item.rightArmPercentFat == -1) && (item.rightLegMuscleMass == -1)) holder.rlfrlmTR.setVisibility(View.GONE);
-        else holder.rlfrlmTR.setVisibility(View.VISIBLE);
-        if ((item.percentFat == -1) && (item.percentHydration == -1)) holder.pfphTR.setVisibility(View.GONE);
-        else holder.pfphTR.setVisibility(View.VISIBLE);
-        if ((item.physiqueRating == -1) && (item.visceralFatRating == -1)) holder.prvfTR.setVisibility(View.GONE);
-        else holder.prvfTR.setVisibility(View.VISIBLE);
-        if ((item.metabolicAge == -1) && (item.activeMet == -1) && (item.basalMet == -1)) holder.maamTR.setVisibility(View.GONE);
-        else holder.maamTR.setVisibility(View.VISIBLE);
+        // Hiding entire rows if data is missing (Standard logic preserved)
+        if ((item.boneMass == -1) && (item.muscleMass == -1)) holder.bmmmTR.setVisibility(View.GONE); else holder.bmmmTR.setVisibility(View.VISIBLE);
+        if ((item.trunkPercentFat == -1) && (item.trunkMuscleMass == -1)) holder.tftmTR.setVisibility(View.GONE); else holder.tftmTR.setVisibility(View.VISIBLE);
+        if ((item.leftArmPercentFat == -1) && (item.leftArmMuscleMass == -1)) holder.laflamTR.setVisibility(View.GONE); else holder.laflamTR.setVisibility(View.VISIBLE);
+        if ((item.rightArmPercentFat == -1) && (item.rightArmMuscleMass == -1)) holder.raframTR.setVisibility(View.GONE); else holder.raframTR.setVisibility(View.VISIBLE);
+        if ((item.leftArmPercentFat == -1) && (item.leftLegMuscleMass == -1)) holder.llfllmTR.setVisibility(View.GONE); else holder.llfllmTR.setVisibility(View.VISIBLE);
+        if ((item.rightArmPercentFat == -1) && (item.rightLegMuscleMass == -1)) holder.rlfrlmTR.setVisibility(View.GONE); else holder.rlfrlmTR.setVisibility(View.VISIBLE);
+        if ((item.percentFat == -1) && (item.percentHydration == -1)) holder.pfphTR.setVisibility(View.GONE); else holder.pfphTR.setVisibility(View.VISIBLE);
+        if ((item.physiqueRating == -1) && (item.visceralFatRating == -1)) holder.prvfTR.setVisibility(View.GONE); else holder.prvfTR.setVisibility(View.VISIBLE);
+        if ((item.metabolicAge == -1) && (item.activeMet == -1) && (item.basalMet == -1)) holder.maamTR.setVisibility(View.GONE); else holder.maamTR.setVisibility(View.VISIBLE);
     }
 
-    // Return the size of your dataset (invoked by the layout manager)
+    private void updateSegmentalView(TextView tv, double val, double weight, User user) {
+        if (val != -1) {
+            if (user.show_fat_mass) tv.setText(user.printMass(mContext, weight * val / 100));
+            else tv.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) val));
+            tv.setVisibility(View.VISIBLE);
+        } else {
+            tv.setVisibility(View.INVISIBLE);
+        }
+    }
+
     @Override
     public int getItemCount() { return mDataset.size(); }
-
 }

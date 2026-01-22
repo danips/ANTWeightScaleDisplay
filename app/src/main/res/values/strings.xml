@@ -99,6 +99,7 @@
 	<string name="history_fragment_action_download">Download</string>
 	<string name="history_fragment_action_export">Export</string>
 	<string name="history_fragment_action_export_csv">CSV</string>
+    <string name="history_fragment_action_jump_to">Jump to Date</string>
 	<string name="history_fragment_date">Date</string>
 	<string name="history_fragment_download"><xliff:g id="name">%1$s</xliff:g> download</string>
 	<string name="history_fragment_download_complete">Download complete</string>

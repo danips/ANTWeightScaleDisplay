@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:yourapp="http://schemas.android.com/apk/res-auto">
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_select_user"
         android:title="@string/edit_user_fragment_user"
-        yourapp:actionViewClass="android.widget.Spinner"
-        yourapp:showAsAction="ifRoom"/>
+        app:actionViewClass="android.widget.Spinner"
+        app:showAsAction="ifRoom"/>
     <item
         android:id="@+id/action_graph_param_time"
         android:icon="@drawable/ic_time_period"
         android:title="@string/graphs_fragment_period_tag"
-        yourapp:showAsAction="always">
+        app:showAsAction="always">
         <menu>
             <item
                 android:id="@+id/graph_time_week"
@@ -48,7 +48,7 @@
         android:id="@+id/action_graph_param"
         android:icon="@drawable/ic_weight"
         android:title="@string/graphs_fragment_measure_tag"
-        yourapp:showAsAction="always">
+        app:showAsAction="always">
         <menu>
             <item
                 android:id="@+id/graph_weight"

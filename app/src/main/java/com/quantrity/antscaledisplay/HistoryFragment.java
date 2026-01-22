@@ -62,6 +62,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     private MenuItem downloadMI = null;
     private MenuItem gcMI = null;
     private Spinner usersSpinner = null;
+    private RecyclerView mRecyclerView = null;
 
     public HistoryFragment() {
         // Empty constructor required for fragment subclasses
@@ -72,7 +73,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_history, container, false);
 
-        RecyclerView mRecyclerView = rootView.findViewById(R.id.history_recycler_view);
+        mRecyclerView = rootView.findViewById(R.id.history_recycler_view);
 
         if (getActivity() != null) {
             // use a linear layout manager
@@ -145,8 +146,59 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         } else if (itemId == R.id.action_export_history_csv) {
             export_history_csv();
             return true;
+        }else if (itemId == R.id.action_jump_to_date) { // <--- Add this block
+            showJumpToDateDialog();
+            return true;
         }
         return false;
+    }
+
+    private void showJumpToDateDialog() {
+        if (getContext() == null) return;
+
+        final Calendar c = Calendar.getInstance();
+        android.app.DatePickerDialog dpd = new android.app.DatePickerDialog(getActivity(),
+                (view, year, month, dayOfMonth) -> {
+                    Calendar target = Calendar.getInstance();
+                    target.set(year, month, dayOfMonth);
+                    jumpToClosestDate(target.getTimeInMillis());
+                },
+                c.get(Calendar.YEAR), c.get(Calendar.MONTH), c.get(Calendar.DAY_OF_MONTH));
+        dpd.show();
+    }
+
+    private void jumpToClosestDate(long targetTime) {
+        if (getActivity() == null || mRecyclerView == null) return;
+
+        // 1. Get the current list from MainActivity
+        List<Weight> history = ((MainActivity) getActivity()).getHistoryArraySelectedUser();
+        if (history == null || history.isEmpty()) return;
+
+        int closestIndex = -1;
+        long minDiff = Long.MAX_VALUE;
+
+        // 2. Iterate to find the closest date match
+        for (int i = 0; i < history.size(); i++) {
+            long diff = Math.abs(history.get(i).date - targetTime);
+            if (diff < minDiff) {
+                minDiff = diff;
+                closestIndex = i;
+            }
+        }
+
+        // 3. Scroll to that position
+        if (closestIndex != -1) {
+            LinearLayoutManager layoutManager = (LinearLayoutManager) mRecyclerView.getLayoutManager();
+            if (layoutManager != null) {
+                // scrollToPositionWithOffset(index, 0) puts the item at the very top of the screen
+                layoutManager.scrollToPositionWithOffset(closestIndex, 0);
+
+                // Optional: Show a toast confirming the date found
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                String foundDate = sdf.format(new Date(history.get(closestIndex).date));
+                Toast.makeText(getContext(), "Jumped to " + foundDate, Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     private void export_history_csv() {
