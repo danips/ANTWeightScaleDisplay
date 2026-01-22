@@ -47,6 +47,7 @@ public class WeightScaleMesg extends Mesg {
    
    public static final int UserProfileIndexFieldNum = 12;
    
+   public static final int BmiFieldNum = 13;
 
    protected static final  Mesg weightScaleMesg;
    static {
@@ -77,6 +78,8 @@ public class WeightScaleMesg extends Mesg {
       weightScaleMesg.addField(new Field("visceral_fat_rating", VisceralFatRatingFieldNum, 2, 1, 0, "", false, Profile.Type.UINT8));
       
       weightScaleMesg.addField(new Field("user_profile_index", UserProfileIndexFieldNum, 132, 1, 0, "", false, Profile.Type.MESSAGE_INDEX));
+
+      weightScaleMesg.addField(new Field("bmi", BmiFieldNum, 132, 10, 0, "kg/m^2", false, Profile.Type.UINT16));
       
    }
 
@@ -345,6 +348,26 @@ public class WeightScaleMesg extends Mesg {
     */
    public void setUserProfileIndex(Integer userProfileIndex) {
       setFieldValue(12, 0, userProfileIndex, Fit.SUBFIELD_INDEX_MAIN_FIELD);
+   }
+
+   /**
+    * Get bmi field
+    * Units: kg/m^2
+    *
+    * @return bmi
+    */
+   public Float getBmi() {
+       return getFieldFloatValue(13, 0, Fit.SUBFIELD_INDEX_MAIN_FIELD);
+   }
+
+   /**
+    * Set bmi field
+    * Units: kg/m^2
+    *
+    * @param bmi The new bmi value to be set
+    */
+   public void setBmi(Float bmi) {
+       setFieldValue(13, 0, bmi, Fit.SUBFIELD_INDEX_MAIN_FIELD);
    }
 
 }

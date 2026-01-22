@@ -204,6 +204,7 @@ class AsyncUpload {
         if (weight.metabolicAge != -1) weightMesg.setMetabolicAge((short) weight.metabolicAge);
         if (weight.basalMet != -1) weightMesg.setActiveMet((float) weight.basalMet);
         else if (weight.activeMet != -1) weightMesg.setActiveMet((float) weight.activeMet);
+        if ((weight.height != -1) && (weight.weight != -1)) weightMesg.setBmi((float) (weight.weight / Math.pow((weight.height) / 100, 2)));
 
         FileIdMesg fileIdMesg = new FileIdMesg();
         fileIdMesg.setType(com.garmin.fit.File.WEIGHT);
