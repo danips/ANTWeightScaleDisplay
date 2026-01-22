@@ -21,4 +21,4 @@
 -renamesourcefileattribute SourceFile
 
 #-keep class com.android.vending.billing.**
--keep class com.github.mikephil.charting.** { *; }
+#-keep class com.github.mikephil.charting.** { *; }

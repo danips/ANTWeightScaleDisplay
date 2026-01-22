@@ -130,10 +130,6 @@
     <string name="physique_rating_9">Mycket muskulös</string>
     <string name="pref_clear_garmin_token">Rensa Garmin-tokens</string>
     <string name="pref_clear_garmin_token_summary">Rensa Garmin OAuth1- och OAuth2-tokens. De kommer att återskapas vid lyckad inloggning.</string>
-    <string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
-    <string name="string_no_decimal_value" translatable="false">-%c-</string>
-    <string name="string_no_percent_value" translatable="false">- %%</string>
-    <string name="string_no_value" translatable="false">-</string>
     <string name="users_fragment_action_add_user">Lägg till användare</string>
     <string name="users_fragment_user_contextmenu_delete">Radera</string>
     <string name="users_fragment_user_contextmenu_edit">Redigera</string>

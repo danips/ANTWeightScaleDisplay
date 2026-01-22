@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class ArrayAdapterWithContainsFilter extends ArrayAdapter {
+public class ArrayAdapterWithContainsFilter extends ArrayAdapter<String> {
 
     private final List<String> items;
     private final ArrayList<String> arraylist;

@@ -272,12 +272,8 @@ public class GarminConnect {
         final Observer<String>[] observerRef = new Observer[1];
 
         // Buttons
-        builder.setPositiveButton(R.string.auth_garmin_verification_submit, (d, id) -> {
-            inputQueue.add(input.getText().toString());
-        });
-        builder.setNegativeButton(R.string.auth_garmin_verification_cancel, (d, i) -> {
-            inputQueue.add("");
-        });
+        builder.setPositiveButton(R.string.auth_garmin_verification_submit, (d, id) -> inputQueue.add(input.getText().toString()));
+        builder.setNegativeButton(R.string.auth_garmin_verification_cancel, (d, i) -> inputQueue.add(""));
 
         AlertDialog dialog = builder.create();
 

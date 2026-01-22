@@ -130,10 +130,6 @@
     <string name="physique_rating_9">筋肉質</string>
     <string name="pref_clear_garmin_token">Garminトークンの消去</string>
     <string name="pref_clear_garmin_token_summary">Garmin OAuth1およびOAuth2トークンを消去します。これらは正常にログインすると再生成されます。</string>
-    <string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
-    <string name="string_no_decimal_value" translatable="false">-%c-</string>
-    <string name="string_no_percent_value" translatable="false">- %%</string>
-    <string name="string_no_value" translatable="false">-</string>
     <string name="users_fragment_action_add_user">ユーザーを追加</string>
     <string name="users_fragment_user_contextmenu_delete">削除</string>
     <string name="users_fragment_user_contextmenu_edit">編集</string>

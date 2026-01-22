@@ -36,12 +36,12 @@ public class SpinnerDialog {
         this.dTitle = dialogTitle;
     }
 
-    public SpinnerDialog(Activity activity, ArrayList<String> items, String dialogTitle, int style) {
+    /*public SpinnerDialog(Activity activity, ArrayList<String> items, String dialogTitle, int style) {
         this.items = items;
         this.context = activity;
         this.dTitle = dialogTitle;
         this.style = style;
-    }
+    }*/
 
     void bindOnSpinerListener(OnSpinerItemClick onSpinerItemClick1) {
         this.onSpinerItemClick = onSpinerItemClick1;
@@ -62,7 +62,9 @@ public class SpinnerDialog {
         listView.setAdapter(adapter);
         adb.setView(v);
         alertDialog = adb.create();
-        alertDialog.getWindow().getAttributes().windowAnimations = style;//R.style.DialogAnimations_SmileWindow;
+        if (alertDialog.getWindow() != null) {
+            alertDialog.getWindow().getAttributes().windowAnimations = style;
+        }
 
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
             TextView t = view.findViewById(R.id.text1);
@@ -110,8 +112,10 @@ public class SpinnerDialog {
 
     private void hideKeyboard(){
         try {
-            InputMethodManager inputManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            inputManager.hideSoftInputFromWindow(context.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            if (context.getCurrentFocus() != null) {
+                InputMethodManager inputManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
+                inputManager.hideSoftInputFromWindow(context.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+            }
         } catch (Exception ignored) {
         }
     }
@@ -146,8 +150,8 @@ public class SpinnerDialog {
         this.showKeyboard = showKeyboard;
     }
 
-    public void setUseContainsFilter(boolean useContainsFilter) {
+    /*public void setUseContainsFilter(boolean useContainsFilter) {
         this.useContainsFilter = useContainsFilter;
-    }
+    }*/
 
 }

@@ -35,18 +35,18 @@ public class Goal {
         deserializeFromObj(obj);
     }
 
-    public Goal(String serializedObj) throws JSONException {
+    /*public Goal(String serializedObj) throws JSONException {
         deserialize(serializedObj);
-    }
+    }*/
 
     static String goalsFilePath(Context context) {
         return context.getFilesDir() + "/goals";
     }
 
-    private void deserialize(String serializedObj) throws JSONException {
+    /*private void deserialize(String serializedObj) throws JSONException {
         JSONObject obj = new JSONObject(serializedObj);
         deserializeFromObj(obj);
-    }
+    }*/
 
     private void deserializeFromObj(JSONObject obj) throws JSONException {
         this.uuid = obj.getString("uuid");
@@ -90,7 +90,7 @@ public class Goal {
             reader.close();
             json = sb.toString();
         } catch (Exception e) {
-            if (Debug.ON) e.printStackTrace();
+            e.printStackTrace();
         }
         return json;
     }

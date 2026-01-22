@@ -513,6 +513,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         {
             try {
                 number = format.parse(percentHydrationTV.getText().toString());
+                assert number != null;
                 the_weight.percentHydration = number.doubleValue();
             } catch (ParseException e) {
                 e.printStackTrace();
@@ -552,6 +553,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
 
             try {
                 number = format.parse(visceralFatRatingTV.getText().toString());
+                assert number != null;
                 the_weight.visceralFatRating = number.doubleValue();
             } catch (ParseException e) {
                 e.printStackTrace();

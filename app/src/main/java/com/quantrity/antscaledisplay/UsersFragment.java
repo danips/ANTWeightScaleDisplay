@@ -3,7 +3,6 @@ package com.quantrity.antscaledisplay;
 import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
@@ -50,6 +49,62 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
     private UsersAdapter mAdapter;
 
+    // Launcher for Database Backup (Directory Picker)
+    private final ActivityResultLauncher<Intent> backupLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    Calendar cal = Calendar.getInstance();
+                    SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
+                    String displayName = "db_" + format1.format(cal.getTime()) + ".bin";
+                    Uri uri = data.getData();
+                    ContentResolver contentResolver;
+                    if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null) && uri != null) {
+                        Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+                        try {
+                            Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "application/octet-stream", displayName);
+                            if (fileUri != null) {
+                                ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
+                                if (destFileDesc != null) {
+                                    dst = displayName;
+                                    saveBackup(destFileDesc);
+                                }
+                            }
+                        } catch (FileNotFoundException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+    );
+
+    // Launcher for Database Restore (File Picker)
+    private final ActivityResultLauncher<Intent> restoreLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    boolean ok = false;
+                    Uri uri = data.getData();
+                    if (getActivity() != null && uri != null) {
+                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
+                    }
+
+                    if (ok && getActivity() != null) {
+                        Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
+
+                        //Recargar base de datos
+                        ((MainActivity) getActivity()).reloadDB();
+                        getActivity().invalidateOptionsMenu();
+                        if (mAdapter != null) {
+                            mAdapter.notifyDataSetChanged();
+                        }
+                    }
+                }
+            }
+    );
+
     public UsersFragment() {
         // Empty constructor required for fragment subclasses
     }
@@ -60,7 +115,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
         final View rootView = inflater.inflate(R.layout.fragment_users, container, false);
 
         RecyclerView mRecyclerView = rootView.findViewById(R.id.users_recycler_view);
-	    // use this setting to improve performance if you know that changes
+        // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
 
@@ -70,7 +125,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
         // specify an adapter
         if (getActivity() != null)
-            mAdapter = new UsersAdapter(((MainActivity)getActivity()).getUsersArray(), getActivity(), this);
+            mAdapter = new UsersAdapter(((MainActivity) getActivity()).getUsersArray(), getActivity(), this);
         mRecyclerView.setAdapter(mAdapter);
 
         //Declare it has items for the actionbar
@@ -83,7 +138,8 @@ public class UsersFragment extends Fragment implements MenuProvider {
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         // Inflate the menu items for use in the action bar
         menuInflater.inflate(R.menu.fragment_users_menu, menu);
-        if (mAdapter.getItemCount() == 0) menu.findItem(R.id.action_database_backup).setVisible(false);
+        if (mAdapter != null && mAdapter.getItemCount() == 0)
+            menu.findItem(R.id.action_database_backup).setVisible(false);
     }
 
     @Override
@@ -92,13 +148,13 @@ public class UsersFragment extends Fragment implements MenuProvider {
         int itemId = menuItem.getItemId();
         if (itemId == R.id.action_database_backup) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-            startActivityForResult(intent, MainActivity.DIRECTORY_PICKER_RESULT);
+            backupLauncher.launch(intent);
             return true;
         } else if (itemId == R.id.action_database_restore) {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
-            startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
+            restoreLauncher.launch(intent);
             return true;
         } else if (itemId == R.id.action_adduser) {//Open the edit user fragment with values resetted
             if (getActivity() != null)
@@ -108,14 +164,12 @@ public class UsersFragment extends Fragment implements MenuProvider {
         return false;
     }
 
-    void editUser(User user)
-    {
+    void editUser(User user) {
         if (getActivity() != null)
-            ((MainActivity)getActivity()).openEditUserFragment(user);
+            ((MainActivity) getActivity()).openEditUserFragment(user);
     }
 
-    private void saveBackup()
-    {
+    private void saveBackup() {
         ZipOutputStream out;
         try {
             out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(dst)));
@@ -125,15 +179,13 @@ public class UsersFragment extends Fragment implements MenuProvider {
         }
     }
 
-    private void saveBackup(ParcelFileDescriptor destFileDesc)
-    {
+    private void saveBackup(ParcelFileDescriptor destFileDesc) {
         FileOutputStream fileOutputStream = new FileOutputStream(destFileDesc.getFileDescriptor());
         ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
         saveBackup(zipOutputStream);
     }
 
-    private void saveBackup(ZipOutputStream out)
-    {
+    private void saveBackup(ZipOutputStream out) {
         if (getActivity() == null) return;
         BufferedInputStream origin;
         out.setLevel(Deflater.BEST_COMPRESSION);
@@ -166,71 +218,25 @@ public class UsersFragment extends Fragment implements MenuProvider {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            Toast.makeText(getActivity(), String.format(getString(R.string.history_fragment_action_database_backup_ok), dst), Toast.LENGTH_LONG).show();
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getActivity(), String.format(getString(R.string.history_fragment_action_database_backup_ok), dst), Toast.LENGTH_LONG).show()
+                );
+            }
         }
     }
 
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == MainActivity.DIRECTORY_PICKER_RESULT) {
-            if ((resultCode == Activity.RESULT_OK) && (data != null)) {
-                Calendar cal = Calendar.getInstance();
-                SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
-                String displayName = "db_" + format1.format(cal.getTime()) + ".bin";
-                Uri uri = data.getData();
-                ContentResolver contentResolver;
-                if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
-                    Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                    try {
-                        Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "application/octet-stream", displayName);
-                        assert fileUri != null;
-                        ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
-                        if (destFileDesc != null) {
-                            dst = displayName;
-                            saveBackup(destFileDesc);
-                        }
-                    } catch (FileNotFoundException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } else if (requestCode == MainActivity.FILE_PICKER_RESULT) {
-            boolean ok = false;
-            if (resultCode == Activity.RESULT_OK)
-            {
-                Uri uri;
-                if (data != null) {
-                    uri = data.getData();
-                    if (getActivity() != null)
-                    {
-                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
-                    }
-                }
-            }
-            if (ok)
-            {
-                Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
-
-                //Recargar base de datos
-                ((MainActivity)getActivity()).reloadDB();
-                getActivity().invalidateOptionsMenu();
-                mAdapter.notifyDataSetChanged();
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    private final ActivityResultLauncher<String> requestPermissionLauncher =
+    /*private final ActivityResultLauncher<String> requestPermissionLauncher =
             //REQUEST_CODE_WRITE_EXTERNAL_STORAGE
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     // Permission granted: Action to take
                     saveBackup();
-                } /*else {
+                } //else {
                     // Permission denied: Inform the user
                     // Toast.makeText(getContext(), "Permission denied", Toast.LENGTH_SHORT).show();
-                }*/
-            });
+                //}
+            });*/
 
     static boolean unzip(Uri zipFile, String location, ContentResolver contentResolver) {
         boolean ok = false;
@@ -249,15 +255,13 @@ public class UsersFragment extends Fragment implements MenuProvider {
         byte[] buffer = new byte[BUFFER_SIZE];
 
         try {
-            if ( !location.endsWith("/") ) {
+            if (!location.endsWith("/")) {
                 location += "/";
             }
             File f = new File(location);
-            if(!f.isDirectory()) {
+            if (!f.isDirectory()) {
                 boolean ignored = f.mkdirs();
-            }
-            else
-            {
+            } else {
                 File fdelete = new File(location + "users");
                 if (fdelete.exists()) {
                     boolean ignored = fdelete.delete();
@@ -278,14 +282,14 @@ public class UsersFragment extends Fragment implements MenuProvider {
                     File unzipFile = new File(path);
 
                     if (ze.isDirectory()) {
-                        if(!unzipFile.isDirectory()) {
+                        if (!unzipFile.isDirectory()) {
                             boolean ignored = unzipFile.mkdirs();
                         }
                     } else {
                         // check for and create parent directories if they don't exist
                         File parentDir = unzipFile.getParentFile();
-                        if ( null != parentDir ) {
-                            if ( !parentDir.isDirectory() ) {
+                        if (null != parentDir) {
+                            if (!parentDir.isDirectory()) {
                                 boolean ignored = parentDir.mkdirs();
                             }
                         }
@@ -294,25 +298,22 @@ public class UsersFragment extends Fragment implements MenuProvider {
                         FileOutputStream out = new FileOutputStream(unzipFile, false);
                         BufferedOutputStream fout = new BufferedOutputStream(out, BUFFER_SIZE);
                         try {
-                            while ( (size = zin.read(buffer, 0, BUFFER_SIZE)) != -1 ) {
+                            while ((size = zin.read(buffer, 0, BUFFER_SIZE)) != -1) {
                                 fout.write(buffer, 0, size);
                             }
 
                             zin.closeEntry();
                             ok = true;
-                        }
-                        finally {
+                        } finally {
                             fout.flush();
                             fout.close();
                         }
                     }
                 }
-            }
-            finally {
+            } finally {
                 zin.close();
             }
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             Log.v(TAG, "Unzip exception " + e.getMessage());
         }
         return ok;

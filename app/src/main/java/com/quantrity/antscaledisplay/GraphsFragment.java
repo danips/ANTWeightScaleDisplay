@@ -8,7 +8,6 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -103,12 +102,13 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         if (getActivity() != null) {
             weights = ((MainActivity) getActivity()).getHistoryArraySelectedUser();
             the_user = ((MainActivity) getActivity()).getSelectedUser();
-        }
 
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getActivity());
-        graph_measurement_displayed = settings.getInt("selected_graph_measurement", R.id.graph_weight);
-        graph_period_displayed = settings.getInt("selected_graph_period", R.id.graph_time_month);
-        loadGraph(graph_measurement_displayed, graph_period_displayed);
+            // Replaced deprecated PreferenceManager.getDefaultSharedPreferences
+            SharedPreferences settings = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
+            graph_measurement_displayed = settings.getInt("selected_graph_measurement", R.id.graph_weight);
+            graph_period_displayed = settings.getInt("selected_graph_period", R.id.graph_time_month);
+            loadGraph(graph_measurement_displayed, graph_period_displayed);
+        }
 
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
@@ -229,9 +229,10 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         measurement_selection = menu.findItem(R.id.action_graph_param);
         setIcon(graph_measurement_displayed);
         measurement_items = measurement_selection.getSubMenu();
-        for (int i = 0; i < measurement_items.size(); i++)
-        {
-            turnWhite(measurement_items.getItem(i).getIcon());
+        if (measurement_items != null) {
+            for (int i = 0; i < measurement_items.size(); i++) {
+                turnWhite(measurement_items.getItem(i).getIcon());
+            }
         }
 
         updateActionBar();
@@ -285,9 +286,11 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
         // Handle presses on the action bar items
         int itemId = menuItem.getItemId();
+        if (getActivity() == null) return false;
+
         if (itemId == R.id.graph_time_week || itemId == R.id.graph_time_two_weeks || itemId == R.id.graph_time_six_weeks || itemId == R.id.graph_time_two_months || itemId == R.id.graph_time_four_months || itemId == R.id.graph_time_half_year || itemId == R.id.graph_time_year || itemId == R.id.graph_time_two_years || itemId == R.id.graph_time_always) {
             if (graph_period_displayed != menuItem.getItemId()) {
-                SharedPreferences settings1 = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                SharedPreferences settings1 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor1 = settings1.edit();
                 editor1.putInt("selected_graph_period", menuItem.getItemId());
                 editor1.apply();
@@ -295,7 +298,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
             }
         } else if (itemId == R.id.graph_time_month) {
             if (graph_period_displayed != menuItem.getItemId()) {
-                SharedPreferences settings1 = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                SharedPreferences settings1 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor1 = settings1.edit();
                 editor1.putInt("selected_graph_period", menuItem.getItemId());
                 editor1.apply();
@@ -303,7 +306,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
             }
         } else if (itemId == R.id.graph_percentHydration || itemId == R.id.graph_boneMass || itemId == R.id.graph_muscleMass || itemId == R.id.graph_physiqueRating || itemId == R.id.graph_visceralFatRating || itemId == R.id.graph_metabolicAge || itemId == R.id.graph_activeMet || itemId == R.id.graph_basalMet || itemId == R.id.graph_trunkFatPercent || itemId == R.id.graph_trunkMuscleMass || itemId == R.id.graph_leftArmFatPercent || itemId == R.id.graph_leftArmMuscleMass || itemId == R.id.graph_rightArmFatPercent || itemId == R.id.graph_rightArmMuscleMass || itemId == R.id.graph_leftLegFatPercent || itemId == R.id.graph_leftLegMuscleMass || itemId == R.id.graph_rightLegFatPercent || itemId == R.id.graph_rightLegMuscleMass) {
             if (graph_measurement_displayed != menuItem.getItemId()) {
-                SharedPreferences settings2 = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                SharedPreferences settings2 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor2 = settings2.edit();
                 editor2.putInt("selected_graph_measurement", menuItem.getItemId());
                 editor2.apply();
@@ -312,7 +315,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
             }
         } else if (itemId == R.id.graph_weight || itemId == R.id.graph_bmi || itemId == R.id.graph_percentFat) {
             if (graph_measurement_displayed != menuItem.getItemId()) {
-                SharedPreferences settings2 = PreferenceManager.getDefaultSharedPreferences(getActivity());
+                SharedPreferences settings2 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor2 = settings2.edit();
                 editor2.putInt("selected_graph_measurement", menuItem.getItemId());
                 editor2.apply();
@@ -806,6 +809,15 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         private final String measureFormat;
         private final boolean stones;
         private final boolean pounds;
+
+        // Added standard constructor for tools
+        public MyMarkerView(Context context) {
+            super(context, R.layout.custom_marker_view);
+            tvContent = findViewById(R.id.tvContent);
+            this.measureFormat = "%.1f";
+            this.stones = false;
+            this.pounds = false;
+        }
 
         public MyMarkerView(Context context, int layoutResource, String measureFormat, boolean stones, boolean pounds) {
             super(context, layoutResource);

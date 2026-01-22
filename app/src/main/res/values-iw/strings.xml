@@ -130,10 +130,6 @@
     <string name="physique_rating_9">שרירי מאוד</string>
     <string name="pref_clear_garmin_token">נקה אסימוני Garmin</string>
     <string name="pref_clear_garmin_token_summary">נקה אסימוני Garmin OAuth1 ו-OAuth2. הם יווצרו מחדש לאחר כניסה מוצלחת.</string>
-    <string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
-    <string name="string_no_decimal_value" translatable="false">-%c-</string>
-    <string name="string_no_percent_value" translatable="false">- %%</string>
-    <string name="string_no_value" translatable="false">-</string>
     <string name="users_fragment_action_add_user">הוסף משתמש</string>
     <string name="users_fragment_user_contextmenu_delete">מחק</string>
     <string name="users_fragment_user_contextmenu_edit">ערוך</string>

@@ -229,14 +229,20 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
         // Click Listener for the Card/Row
         holder.itemView.setOnClickListener(v -> {
-            boolean newState = !expandedStates.get(holder.getAdapterPosition(), false);
-            if (newState) {
-                expandedStates.put(holder.getAdapterPosition(), true);
-            } else {
-                expandedStates.delete(holder.getAdapterPosition());
+            // Use getBindingAdapterPosition() instead of the deprecated getAdapterPosition()
+            int pos = holder.getBindingAdapterPosition();
+
+            // Always check for NO_POSITION to prevent crashes during animations
+            if (pos != RecyclerView.NO_POSITION) {
+                boolean newState = !expandedStates.get(pos, false);
+                if (newState) {
+                    expandedStates.put(pos, true);
+                } else {
+                    expandedStates.delete(pos);
+                }
+                // Use notifyItemChanged to animate the specific row update
+                notifyItemChanged(pos);
             }
-            // Use notifyItemChanged to animate the specific row update
-            notifyItemChanged(holder.getAdapterPosition());
         });
         // -----------------------
 

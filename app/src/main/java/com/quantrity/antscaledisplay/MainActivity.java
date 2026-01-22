@@ -14,8 +14,8 @@ import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -28,6 +28,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity
                 selectedUser = mUsersArray.get(0);
             }
             else {
-                SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(MainActivity.this);
+                SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 String selected_user = settings.getString("selected_user", null);
                 final Collator collator = Collator.getInstance();
                 Collections.sort(mUsersArray, (o1, o2) -> collator.compare(o1.name, o2.name));
@@ -145,13 +146,34 @@ public class MainActivity extends AppCompatActivity
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        // Handle Back Press using OnBackPressedDispatcher
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawer.isDrawerOpen(GravityCompat.START)) {
+                    drawer.closeDrawer(GravityCompat.START);
+                } else {
+                    Fragment current_fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+                    if (current_fragment instanceof EditWeightFragment) {
+                        closeEditWeightFragment((MainActivity) current_fragment.getActivity(), null, null, ((EditWeightFragment) current_fragment).edit, false);
+                    } else if (current_fragment instanceof EditUserFragment) {
+                        closeEditUserFragment(null);
+                    } else {
+                        // Disable this callback and call default back behavior (finish activity)
+                        setEnabled(false);
+                        getOnBackPressedDispatcher().onBackPressed();
+                    }
+                }
+            }
+        });
+
         if (!isPackageInstalled("com.dsi.ant.service.socket")) goToMarketANTRadioService();
         else if (!AntSupportChecker.hasAntFeature(this)) {
             if (!AntSupportChecker.hasAntAddOn(this)) {
                 goToMarketANTUSBService();
             }
 
-            SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+            SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
             boolean never_no_ant_msg = settings.getBoolean("never_no_ant_msg", false);
             if (!never_no_ant_msg) {
                 boolean show_message = true;
@@ -411,7 +433,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void setSelectedUser(User user) {
         selectedUser = user;
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = settings.edit();
         editor.putString("selected_user", user.name);
         editor.apply();
@@ -460,20 +482,21 @@ public class MainActivity extends AppCompatActivity
         ArrayList<User> mUsersArray = getUsersArray();
         if (!mUsersArray.isEmpty()) {
             Spinner spinner = (Spinner)mSpinnerItem.getActionView();
-            final ArrayAdapter<User> adapter = new ArrayAdapter<>(this, R.layout.fragment_weight_user_spinner_item, mUsersArray);
-            adapter.setDropDownViewResource(R.layout.fragment_weight_user_spinner_dropdown_item);
-            spinner.setAdapter(adapter);
+            // Check for null to avoid NPE on setAdapter
+            if (spinner != null) {
+                final ArrayAdapter<User> adapter = new ArrayAdapter<>(this, R.layout.fragment_weight_user_spinner_item, mUsersArray);
+                adapter.setDropDownViewResource(R.layout.fragment_weight_user_spinner_dropdown_item);
+                spinner.setAdapter(adapter);
 
-            if (mUsersArray.size() > 1) {
-                spinner.setSelection(mUsersArray.indexOf(selectedUser), false);
-                if (mUsersArray.size() > 10)
-                {
-                    spinner.setOnTouchListener(spinnerOnTouch);
-                    spinner.setOnKeyListener(spinnerOnKey);
-                }
-            } else mSpinnerItem.setVisible(false);
-            spinner.setOnItemSelectedListener(oisListener);
-
+                if (mUsersArray.size() > 1) {
+                    spinner.setSelection(mUsersArray.indexOf(selectedUser), false);
+                    if (mUsersArray.size() > 10) {
+                        spinner.setOnTouchListener(spinnerOnTouch);
+                        spinner.setOnKeyListener(spinnerOnKey);
+                    }
+                } else mSpinnerItem.setVisible(false);
+                spinner.setOnItemSelectedListener(oisListener);
+            }
             return spinner;
         } else {
             if (Debug.ON) Log.v(TAG, "mUsersArray.size() = 0; " + mUsersArray.size());
@@ -484,7 +507,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void deleteHistoryAndUser(User user) {
-        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
         String selected_user = settings.getString("selected_user", null);
         if ((selected_user == null) || selected_user.equals(user.name) || (selected_user.isEmpty())) {
             SharedPreferences.Editor editor = settings.edit();
@@ -508,27 +531,6 @@ public class MainActivity extends AppCompatActivity
     ///////////////////////////////////////////////////////////////////////////////////////////////
     ///// >CoreInterface
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            Fragment current_fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
-            if (current_fragment instanceof EditWeightFragment)
-            {
-                closeEditWeightFragment((MainActivity)current_fragment.getActivity(),null, null, ((EditWeightFragment)current_fragment).edit, false);
-            }
-            else if (current_fragment instanceof EditUserFragment)
-            {
-                closeEditUserFragment(null);
-            }
-            else
-            {
-                super.onBackPressed();
-            }
-        }
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -538,7 +540,10 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        return selectItem(item.getTitle().toString());
+        if (item.getTitle() != null) {
+            return selectItem(item.getTitle().toString());
+        }
+        return false;
     }
 
     private boolean selectItem(String item) {
@@ -659,7 +664,7 @@ public class MainActivity extends AppCompatActivity
             builder.setMessage(R.string.msg_problem_usb_stick_not_detected)
                     .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.dismiss())
                     .setNeutralButton(R.string.msg_problem_usb_stick_not_detected_never, (dialog, id) -> {
-                        SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                        SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = settings.edit();
                         editor.putBoolean("never_no_ant_msg", true);
                         editor.apply();
@@ -730,8 +735,18 @@ public class MainActivity extends AppCompatActivity
         if (activity == null) return false;
         ConnectivityManager cm = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return false;
-        NetworkInfo netInfo = cm.getActiveNetworkInfo();
-        return netInfo != null && netInfo.isConnected();
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            android.net.Network network = cm.getActiveNetwork();
+            if (network == null) return false;
+            android.net.NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
+            return capabilities != null && (capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                    capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                    capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET));
+        } else {
+            NetworkInfo netInfo = cm.getActiveNetworkInfo();
+            return netInfo != null && netInfo.isConnected();
+        }
     }
 
     public static void uploadButton(MainActivity activity, Weight weight, User user) {

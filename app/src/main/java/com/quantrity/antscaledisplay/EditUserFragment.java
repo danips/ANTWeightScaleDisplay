@@ -25,6 +25,8 @@ import android.widget.RadioGroup;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
@@ -59,6 +61,27 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private EditText et_email_to;
     private CheckBox cb_auto_upload;
     private CheckBox cb_show_fat_mass;
+
+    // Replacement for startActivityForResult
+    private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Uri uri = result.getData().getData();
+                    boolean ok = false;
+                    if (getActivity() != null && uri != null) {
+                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
+                    }
+
+                    if (ok && getActivity() != null) {
+                        Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
+                        ((MainActivity) getActivity()).reloadDB();
+                        getActivity().invalidateOptionsMenu();
+                        ((MainActivity) getActivity()).closeEditUserFragment(null);
+                    }
+                }
+            }
+    );
 
     public EditUserFragment() {}
 
@@ -381,34 +404,10 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
             intent.addCategory(Intent.CATEGORY_OPENABLE);
             intent.setType("*/*");
-            startActivityForResult(intent, MainActivity.FILE_PICKER_RESULT);
+            filePickerLauncher.launch(intent);
             return true;
         }
         return false;
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (Debug.ON) Log.d(TAG, "onActivityResult2(" + requestCode + "," + resultCode + "," + ((data!=null)?data.getExtras():"") + ")");
-        if (requestCode == MainActivity.FILE_PICKER_RESULT) {
-            boolean ok = false;
-            if (resultCode == Activity.RESULT_OK) {
-                Uri uri;
-                if (data != null) {
-                    uri = data.getData();
-                    if (getActivity() != null) {
-                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
-                    }
-                }
-            }
-            if (ok) {
-                Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
-
-                ((MainActivity) getActivity()).reloadDB();
-                getActivity().invalidateOptionsMenu();
-                ((MainActivity) getActivity()).closeEditUserFragment(null);
-            }
-        }
     }
 
     /* Clear Garmin OAuth Tokens */
@@ -431,6 +430,4 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             }
         }
     }
-
-
 }

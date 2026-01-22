@@ -32,8 +32,7 @@
                 android:id="@+id/searchIcon"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
-                app:srcCompat="@drawable/ic_search_white_36dp"
-                android:contentDescription="TODO" />
+                app:srcCompat="@drawable/ic_search_white_36dp" />
 
             <EditText
                 android:id="@+id/searchBox"

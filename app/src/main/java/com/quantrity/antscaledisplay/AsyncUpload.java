@@ -1,15 +1,21 @@
 package com.quantrity.antscaledisplay;
 
-import android.app.ProgressDialog;
+import android.app.AlertDialog;
 import android.content.Intent;
-import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.garmin.fit.DateTime;
 import com.garmin.fit.FileEncoder;
 import com.garmin.fit.FileIdMesg;
+import com.garmin.fit.Fit;
 import com.garmin.fit.FitRuntimeException;
 import com.garmin.fit.Manufacturer;
 import com.garmin.fit.WeightScaleMesg;
@@ -26,21 +32,30 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
-class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
+class AsyncUpload {
     private static final String TAG = "AsyncUpload";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     private final WeakReference<MainActivity> activityRef;
     private final Weight weight;
     private final User user;
-    private ProgressDialog pd;
     private final boolean try_gc;
     private final boolean try_email;
 
+    // Replacements for AsyncTask/ProgressDialog
+    private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
+    private AlertDialog progressDialog;
+    private ProgressBar progressBar;
+    private volatile boolean isCancelled = false;
+
     private static final DateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
-    private static final DecimalFormat df2 = (DecimalFormat)DecimalFormat.getInstance(Locale.US);
-    private static final DecimalFormat df1 = (DecimalFormat)DecimalFormat.getInstance(Locale.US);
+    private static final DecimalFormat df2 = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+    private static final DecimalFormat df1 = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
+
     static {
         df2.applyPattern("#.##");
         df1.applyPattern("#.#");
@@ -54,80 +69,121 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
         this.try_email = try_email;
     }
 
-    @Override
-    protected Boolean doInBackground(String... paths) {
+    // Emulates AsyncTask.execute()
+    public void execute(String... paths) {
+        final MainActivity activity = activityRef.get();
+        if (activity == null) return;
+
+        // 1. Pre-Execute: Show UI
         boolean start_gc = (user.gc_user != null) && (user.gc_pass != null)
                 && (!user.gc_user.isEmpty()) && (!user.gc_pass.isEmpty()) && try_gc;
         boolean start_email = (user.email_to != null) && (!user.email_to.isEmpty()) && try_email;
-
         final int max = ((start_gc) ? 1 : 0) + ((start_email) ? 1 : 0);
-        final MainActivity activity = activityRef.get();
-        if (activity != null) {
-            activity.runOnUiThread(() -> {
-                pd = new ProgressDialog(activity);
-                pd.setMessage(activity.getString(R.string.weight_fragment_msg_uploading));
-                pd.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
-                pd.setCancelable(false);
-                pd.setMax(max);
-                pd.show();
+
+        showCustomProgressDialog(activity, max);
+
+        // 2. Background Execution
+        executor.execute(() -> {
+            doInBackground(start_gc, start_email, paths);
+
+            // 3. Post-Execute: Dismiss UI
+            mainHandler.post(() -> {
+                if (progressDialog != null && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                    progressDialog = null;
+                }
             });
+        });
+    }
 
-            for (String path : paths) {
-                gcThread gct = null;
-                if (start_gc) {
-                    if (Build.VERSION.SDK_INT < 29) {
-                        try {
-                            ProviderInstaller.installIfNeeded(activity);
-                        } catch (final GooglePlayServicesRepairableException e) {
-                            Log.e(TAG, "GooglePlayServicesRepairableException.");
-                            // Thrown when Google Play Services is not installed, up-to-date, or enabled
-                            // Show dialog to allow users to install, update, or otherwise enable Google Play services.
-                            final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
-                            activity.runOnUiThread(() -> Objects.requireNonNull(apiAvailability.getErrorDialog(activity, e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST)).show());
-                        } catch (GooglePlayServicesNotAvailableException e) {
-                            Log.e(TAG, "Google Play Services not available. GooglePlayServicesNotAvailableException");
-                        }
+    // Emulates AsyncTask.cancel()
+    public void cancel() {
+        isCancelled = true;
+        // ExecutorService doesn't support easy interruption of running tasks like AsyncTask
+        // without keeping a Future reference, but the flag is sufficient for logical cancellation.
+    }
+
+    private void doInBackground(boolean start_gc, boolean start_email, String... paths) {
+        final MainActivity activity = activityRef.get();
+        if (activity == null) return;
+
+        for (String path : paths) {
+            gcThread gct = null;
+            if (start_gc) {
+                if (Build.VERSION.SDK_INT < 29) {
+                    try {
+                        ProviderInstaller.installIfNeeded(activity);
+                    } catch (final GooglePlayServicesRepairableException e) {
+                        Log.e(TAG, "GooglePlayServicesRepairableException.");
+                        final GoogleApiAvailability apiAvailability = GoogleApiAvailability.getInstance();
+                        mainHandler.post(() -> Objects.requireNonNull(apiAvailability.getErrorDialog(activity, e.getConnectionStatusCode(), PLAY_SERVICES_RESOLUTION_REQUEST)).show());
+                    } catch (GooglePlayServicesNotAvailableException e) {
+                        Log.e(TAG, "Google Play Services not available. GooglePlayServicesNotAvailableException");
                     }
-                    gct = new gcThread();
-                    gct.path = path;
-                    gct.start();
                 }
-
-                emailThread et = null;
-                if (start_email) {
-                    et = new emailThread();
-                    et.start();
-                }
-
-                try {
-                    if (gct != null) gct.join();
-                    if (et != null) et.join();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
-                activity.runOnUiThread(() -> {
-                    if (pd != null && pd.isShowing()) {
-                        pd.dismiss();
-                        pd = null;
-                    }
-                });
-
-                if ((start_gc && gct.gc_error != null) || (start_email && et.email_error != null)) {
-                    final StringBuilder sb = new StringBuilder();
-                    if (start_gc && gct.gc_error != null)
-                        sb.append(activity.getString(R.string.edit_user_fragment_garmin_connect_category)).append(": ").append(gct.gc_error);
-                    if (start_email && et.email_error != null)
-                        sb.append(activity.getString(R.string.edit_user_fragment_email_category)).append(": ").append(et.email_error);
-                    activity.runOnUiThread(() -> activity.showMessage(sb.toString()));
-                }
-
-                // Escape early if cancel() is called
-                if (isCancelled()) break;
+                gct = new gcThread();
+                gct.path = path;
+                gct.start();
             }
-        }
 
-        return true;
+            emailThread et = null;
+            if (start_email) {
+                et = new emailThread();
+                et.start();
+            }
+
+            try {
+                if (gct != null) gct.join();
+                if (et != null) et.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            if ((start_gc && gct.gc_error != null) || (start_email && et.email_error != null)) {
+                final StringBuilder sb = new StringBuilder();
+                if (start_gc && gct.gc_error != null)
+                    sb.append(activity.getString(R.string.edit_user_fragment_garmin_connect_category)).append(": ").append(gct.gc_error);
+                if (start_email && et.email_error != null)
+                    sb.append(activity.getString(R.string.edit_user_fragment_email_category)).append(": ").append(et.email_error);
+
+                mainHandler.post(() -> activity.showMessage(sb.toString()));
+            }
+
+            if (isCancelled) break;
+        }
+    }
+
+    // Replaces the deprecated ProgressDialog with an AlertDialog containing a ProgressBar
+    private void showCustomProgressDialog(MainActivity activity, int max) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+
+        LinearLayout layout = new LinearLayout(activity);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+        layout.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+
+        TextView tvMessage = new TextView(activity);
+        tvMessage.setText(activity.getString(R.string.weight_fragment_msg_uploading));
+        tvMessage.setPadding(0, 0, 0, 20);
+        layout.addView(tvMessage);
+
+        progressBar = new ProgressBar(activity, null, android.R.attr.progressBarStyleHorizontal);
+        progressBar.setIndeterminate(false);
+        progressBar.setMax(max);
+        layout.addView(progressBar);
+
+        builder.setView(layout);
+        builder.setCancelable(false);
+        progressDialog = builder.create();
+        progressDialog.show();
+    }
+
+    private void incProgress() {
+        mainHandler.post(() -> {
+            if (progressBar != null) {
+                progressBar.incrementProgressBy(1);
+            }
+        });
     }
 
     private String export2byte(Weight weight) {
@@ -135,16 +191,19 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
         WeightScaleMesg weightMesg = new WeightScaleMesg();
         weightMesg.setTimestamp(new DateTime(date));
 
-        weightMesg.setWeight((float)weight.weight);
-        if (weight.percentFat != -1) weightMesg.setPercentFat((float)weight.percentFat);
-        if (weight.percentHydration != -1) weightMesg.setPercentHydration((float)weight.percentHydration);
-        if (weight.boneMass != -1) weightMesg.setBoneMass((float)weight.boneMass);
-        if (weight.muscleMass != -1) weightMesg.setMuscleMass((float)weight.muscleMass);
-        if (weight.physiqueRating != -1) weightMesg.setPhysiqueRating((short)weight.physiqueRating);
-        if (weight.visceralFatRating != -1) weightMesg.setVisceralFatRating((short) Math.round(weight.visceralFatRating));
-        if (weight.metabolicAge != -1) weightMesg.setMetabolicAge((short)weight.metabolicAge);
-        if (weight.basalMet != -1) weightMesg.setActiveMet((float)weight.basalMet);
-        else if (weight.activeMet != -1) weightMesg.setActiveMet((float)weight.activeMet);
+        weightMesg.setWeight((float) weight.weight);
+        if (weight.percentFat != -1) weightMesg.setPercentFat((float) weight.percentFat);
+        if (weight.percentHydration != -1)
+            weightMesg.setPercentHydration((float) weight.percentHydration);
+        if (weight.boneMass != -1) weightMesg.setBoneMass((float) weight.boneMass);
+        if (weight.muscleMass != -1) weightMesg.setMuscleMass((float) weight.muscleMass);
+        if (weight.physiqueRating != -1)
+            weightMesg.setPhysiqueRating((short) weight.physiqueRating);
+        if (weight.visceralFatRating != -1)
+            weightMesg.setVisceralFatRating((short) Math.round(weight.visceralFatRating));
+        if (weight.metabolicAge != -1) weightMesg.setMetabolicAge((short) weight.metabolicAge);
+        if (weight.basalMet != -1) weightMesg.setActiveMet((float) weight.basalMet);
+        else if (weight.activeMet != -1) weightMesg.setActiveMet((float) weight.activeMet);
 
         FileIdMesg fileIdMesg = new FileIdMesg();
         fileIdMesg.setType(com.garmin.fit.File.WEIGHT);
@@ -155,7 +214,7 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
         FileEncoder encode;
         try {
             String filename = activityRef.get().getFilesDir() + "/weight.fit";
-            encode = new FileEncoder(new File(activityRef.get().getFilesDir(), "weight.fit"));//Fit.ProtocolVersion.V2_0);
+            encode = new FileEncoder(new File(activityRef.get().getFilesDir(), "weight.fit"), Fit.ProtocolVersion.V2_0);
             encode.write(fileIdMesg);
             encode.write(weightMesg);
             encode.close();
@@ -189,13 +248,11 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
                         } else {
                             gc_error = result;
                         }
-                        //gc.close();
                     } else {
                         gc_error = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
                     }
                 }
             }
-
             incProgress();
         }
     }
@@ -275,28 +332,17 @@ class AsyncUpload extends AsyncTask<String, Integer, Boolean> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-
             incProgress();
         }
     }
 
-    private void incProgress()
-    {
-        MainActivity activity = activityRef.get();
-        if (activity != null) {
-            activity.runOnUiThread(() -> pd.incrementProgressBy(1));
-        }
-    }
-
-    private void updateSuccess(final int resId)
-    {
+    private void updateSuccess(final int resId) {
         final MainActivity activity = activityRef.get();
         if (activity != null) {
-            activity.runOnUiThread(() -> {
+            mainHandler.post(() -> {
                 Toast toast = Toast.makeText(activity, String.format(activity.getString(R.string.weight_fragment_msg_updating_success), activity.getString(resId)), Toast.LENGTH_SHORT);
                 toast.show();
             });
         }
-
     }
 }

@@ -193,7 +193,7 @@ public class User {
             reader.close();
             json = sb.toString();
         } catch (Exception e) {
-            if (Debug.ON) e.printStackTrace();
+            e.printStackTrace();
         }
         return json;
     }

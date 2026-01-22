@@ -22,6 +22,8 @@ import android.widget.AdapterView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.view.MenuProvider;
@@ -64,6 +66,42 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     private Spinner usersSpinner = null;
     private RecyclerView mRecyclerView = null;
 
+    // Launcher for CSV Export Directory Picker
+    private final ActivityResultLauncher<Intent> csvExportLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                    Intent data = result.getData();
+                    Log.v(TAG, "CSV Directory Selected: " + data.getData());
+
+                    if (getActivity() != null && usersSpinner != null) {
+                        List<Weight> wl = ((MainActivity) getActivity()).getHistoryArraySelectedUser();
+                        Calendar cal = Calendar.getInstance();
+                        User user = (User) usersSpinner.getSelectedItem();
+                        SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
+                        String displayName = user.name + "_" + format1.format(cal.getTime()) + ".csv";
+                        Uri uri = data.getData();
+                        ContentResolver contentResolver = getActivity().getContentResolver();
+
+                        if (contentResolver != null && uri != null) {
+                            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
+                            try {
+                                Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "text/csv", displayName);
+                                if (fileUri != null) {
+                                    ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
+                                    if (destFileDesc != null) {
+                                        writeCSV(destFileDesc, user, format1, displayName, wl);
+                                    }
+                                }
+                            } catch (FileNotFoundException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                }
+            }
+    );
+
     public HistoryFragment() {
         // Empty constructor required for fragment subclasses
     }
@@ -95,11 +133,11 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             //Log.v(TAG, "onItemSelected " + view);
             if ((view != null) && (getActivity() != null)) {
                 //Log.v(TAG, "onItemSelected2 " + view);
-                User user = (User)adapterView.getItemAtPosition(i);
-                ((MainActivity)getActivity()).setSelectedUser(user);
+                User user = (User) adapterView.getItemAtPosition(i);
+                ((MainActivity) getActivity()).setSelectedUser(user);
 
                 //Mostrar todos los pesos del usuario
-                mAdapter.replaceAll(((MainActivity)getActivity()).getHistoryArraySelectedUser(), user);
+                mAdapter.replaceAll(((MainActivity) getActivity()).getHistoryArraySelectedUser(), user);
 
                 if ((user.gc_user != null && user.gc_pass != null)) {
                     downloadMI.setVisible(true);
@@ -107,8 +145,10 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                 } else downloadMI.setVisible(false);
             }
         }
+
         @Override
-        public void onNothingSelected(AdapterView<?> adapterView) {}
+        public void onNothingSelected(AdapterView<?> adapterView) {
+        }
     };
 
     @Override
@@ -116,7 +156,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         // Inflate the menu items for use in the action bar
         menuInflater.inflate(R.menu.fragment_history_menu, menu);
         if (getActivity() != null) {
-            usersSpinner = ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
+            usersSpinner = ((MainActivity) getActivity()).addUsersSpinner(menu, oisListener);
         }
         downloadMI = menu.findItem(R.id.action_download_history);
         downloadMI.setVisible(false);
@@ -146,7 +186,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         } else if (itemId == R.id.action_export_history_csv) {
             export_history_csv();
             return true;
-        }else if (itemId == R.id.action_jump_to_date) { // <--- Add this block
+        } else if (itemId == R.id.action_jump_to_date) { // <--- Add this block
             showJumpToDateDialog();
             return true;
         }
@@ -154,7 +194,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     }
 
     private void showJumpToDateDialog() {
-        if (getContext() == null) return;
+        if ((getContext() == null) || (getActivity() == null)) return;
 
         final Calendar c = Calendar.getInstance();
         android.app.DatePickerDialog dpd = new android.app.DatePickerDialog(getActivity(),
@@ -205,17 +245,16 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         if (Debug.ON) Log.v(TAG, "export_history_csv");
 
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
-        startActivityForResult(intent, MainActivity.CSV_DIRECTORY_PICKER_RESULT);
+        // Using new Launcher instead of deprecated startActivityForResult
+        csvExportLauncher.launch(intent);
     }
 
-    private void writeCSV(ParcelFileDescriptor destFileDesc, User user, SimpleDateFormat format, String filename, List<Weight> wl)
-    {
+    private void writeCSV(ParcelFileDescriptor destFileDesc, User user, SimpleDateFormat format, String filename, List<Weight> wl) {
         FileWriter fCsv = new FileWriter(destFileDesc.getFileDescriptor());
         writeCSV(fCsv, user, format, filename, wl);
     }
 
-    private void writeCSV(FileWriter fCsv, User user, SimpleDateFormat format, String filename, List<Weight> wl)
-    {
+    private void writeCSV(FileWriter fCsv, User user, SimpleDateFormat format, String filename, List<Weight> wl) {
         try {
             fCsv.append(getString(R.string.edit_user_fragment_user)).append(",");
             fCsv.append(getString(R.string.history_fragment_date)).append(",");
@@ -240,7 +279,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             fCsv.append(getString(R.string.graphs_fragment_measurement_right_leg_percent_fat)).append(",");
             fCsv.append(getString(R.string.graphs_fragment_measurement_right_leg_muscle_mass)).append("\n");
 
-            DecimalFormat df = (DecimalFormat)DecimalFormat.getInstance(Locale.US);
+            DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
             df.applyPattern("#.##");
             for (Weight w : wl) {
                 fCsv.append(user.name).append(",");
@@ -248,56 +287,44 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                 fCsv.append((w.weight != -1) ? df.format(w.weight) : "").append(",");
                 if (user.show_fat_mass) {
                     fCsv.append((w.percentFat != -1) ? df.format(w.weight * w.percentFat / 100) : "").append(",");
-                }
-                else
-                {
+                } else {
                     fCsv.append((w.percentFat != -1) ? df.format(w.percentFat) : "").append(",");
                 }
                 fCsv.append((w.percentHydration != -1) ? df.format(w.percentHydration) : "").append(",");
                 fCsv.append((w.muscleMass != -1) ? df.format(w.muscleMass) : "").append(",");
-                fCsv.append((w.physiqueRating != -1) ? w.physiqueRating+"" : "").append(",");
+                fCsv.append((w.physiqueRating != -1) ? w.physiqueRating + "" : "").append(",");
                 fCsv.append((w.visceralFatRating != -1) ? df.format(w.visceralFatRating) : "").append(",");
                 fCsv.append((w.boneMass != -1) ? df.format(w.boneMass) : "").append(",");
-                fCsv.append((w.metabolicAge != -1) ? w.metabolicAge + "":"").append(",");
+                fCsv.append((w.metabolicAge != -1) ? w.metabolicAge + "" : "").append(",");
                 fCsv.append((w.basalMet != -1) ? df.format(w.basalMet) : "").append(",");
                 fCsv.append((w.activeMet != -1) ? df.format(w.activeMet) : "").append(",");
                 if (user.show_fat_mass) {
                     fCsv.append((w.trunkPercentFat != -1) ? user.printMass(getContext(), w.weight * w.trunkPercentFat / 100) : "").append(",");
-                }
-                else
-                {
+                } else {
                     fCsv.append((w.trunkPercentFat != -1) ? df.format(w.trunkPercentFat) : "").append(",");
                 }
                 fCsv.append((w.trunkMuscleMass != -1) ? df.format(w.trunkMuscleMass) : "").append(",");
                 if (user.show_fat_mass) {
                     fCsv.append((w.leftArmPercentFat != -1) ? df.format(w.weight * w.leftArmPercentFat / 100) : "").append(",");
-                }
-                else
-                {
+                } else {
                     fCsv.append((w.leftArmPercentFat != -1) ? df.format(w.leftArmPercentFat) : "").append(",");
                 }
                 fCsv.append((w.leftArmMuscleMass != -1) ? df.format(w.leftArmMuscleMass) : "").append(",");
                 if (user.show_fat_mass) {
                     fCsv.append((w.rightArmPercentFat != -1) ? df.format(w.weight * w.rightArmPercentFat / 100) : "").append(",");
-                }
-                else
-                {
+                } else {
                     fCsv.append((w.rightArmPercentFat != -1) ? df.format(w.rightArmPercentFat) : "").append(",");
                 }
                 fCsv.append((w.rightArmMuscleMass != -1) ? df.format(w.rightArmMuscleMass) : "").append(",");
                 if (user.show_fat_mass) {
                     fCsv.append((w.leftLegPercentFat != -1) ? df.format(w.weight * w.leftLegPercentFat / 100) : "").append(",");
-                }
-                else
-                {
+                } else {
                     fCsv.append((w.leftLegPercentFat != -1) ? df.format(w.leftLegPercentFat) : "").append(",");
                 }
                 fCsv.append((w.leftLegMuscleMass != -1) ? df.format(w.leftLegMuscleMass) : "").append(",");
                 if (user.show_fat_mass) {
                     fCsv.append((w.rightLegPercentFat != -1) ? df.format(w.weight * w.rightLegPercentFat / 100) : "").append(",");
-                }
-                else
-                {
+                } else {
                     fCsv.append((w.rightLegPercentFat != -1) ? df.format(w.rightLegPercentFat) : "").append(",");
                 }
                 fCsv.append((w.rightLegMuscleMass != -1) ? df.format(w.rightLegMuscleMass) : "").append("\n");
@@ -305,42 +332,19 @@ public class HistoryFragment extends Fragment implements MenuProvider {
 
             fCsv.flush();
         } catch (Exception e) {
-            if (Debug.ON) Log.e(TAG, "CSV_DIRECTORY_PICKER_RESULT :: " + e);
+            Log.e(TAG, "CSV_DIRECTORY_PICKER_RESULT :: " + e);
         } finally {
             try {
                 if (fCsv != null) fCsv.close();
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            Toast.makeText(getActivity(), String.format(getString(R.string.history_fragment_action_database_backup_ok), filename), Toast.LENGTH_LONG).show();
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        Log.v(TAG, "onActivityResult " + requestCode + " " + resultCode + " " + data);
-        if ((requestCode == MainActivity.CSV_DIRECTORY_PICKER_RESULT) && (getActivity() != null) && (resultCode == Activity.RESULT_OK) && (data != null)) {
-            List<Weight> wl = ((MainActivity)getActivity()).getHistoryArraySelectedUser();
-            Calendar cal = Calendar.getInstance();
-            User user = (User) usersSpinner.getSelectedItem();
-            SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
-            String displayName = user.name + "_" + format1.format(cal.getTime()) + ".csv";
-            Uri uri = data.getData();
-            ContentResolver contentResolver;
-            if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null)) {
-                Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                try {
-                    Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "text/csv", displayName);
-                    assert fileUri != null;
-                    ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
-                    assert destFileDesc != null;
-                    writeCSV(destFileDesc, user, format1, displayName, wl);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() ->
+                        Toast.makeText(getActivity(), String.format(getString(R.string.history_fragment_action_database_backup_ok), filename), Toast.LENGTH_LONG).show()
+                );
             }
         }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     private void download_history_gc() {
@@ -360,7 +364,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             }
         }
 
-        final NotificationManager notificationManager = (NotificationManager)getContext().getSystemService(Context.NOTIFICATION_SERVICE);
+        final NotificationManager notificationManager = (NotificationManager) getContext().getSystemService(Context.NOTIFICATION_SERVICE);
         final NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(getContext(), GARMIN_CONNECT_CHANNEL_ID);
         mBuilder.setContentTitle(String.format(getString(R.string.history_fragment_download), getString(R.string.edit_user_fragment_garmin_connect_category)))
                 .setContentText(getString(R.string.history_fragment_download_in_progress))
@@ -380,13 +384,13 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                     StringBuilder result = new StringBuilder();
                     boolean success = false;
                     try {
-                        final User user = (User)usersSpinner.getSelectedItem();
-                        GarminConnect gc = new GarminConnect(user, ((MainActivity)getActivity()).getUsersArray(), getActivity());
+                        final User user = (User) usersSpinner.getSelectedItem();
+                        GarminConnect gc = new GarminConnect(user, ((MainActivity) getActivity()).getUsersArray(), getActivity());
                         if (gc.signin(user)) {
                             success = gc.downloadHistory(result);
                             if (success) {
                                 String history = result.toString();
-                                List<Weight> wl = ((MainActivity)getActivity()).getHistoryArray();
+                                List<Weight> wl = ((MainActivity) getActivity()).getHistoryArray();
                                 List<Weight> tmp = new ArrayList<>();
 
                                 JSONObject jo = new JSONObject(history);
@@ -416,18 +420,18 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                     weight = jsonobject.getDouble("weight");
                                     oW.weight = weight / 1000.0;
 
-                                    oW.percentFat = (jsonobject.isNull("bodyFat"))  ? -1 : jsonobject.getDouble("bodyFat");
-                                    oW.percentHydration = (jsonobject.isNull("bodyWater"))  ? -1 : jsonobject.getDouble("bodyWater");
+                                    oW.percentFat = (jsonobject.isNull("bodyFat")) ? -1 : jsonobject.getDouble("bodyFat");
+                                    oW.percentHydration = (jsonobject.isNull("bodyWater")) ? -1 : jsonobject.getDouble("bodyWater");
                                     if (!jsonobject.isNull("metabolicAge")) {
                                         bodyMetabolicAge = jsonobject.getDouble("metabolicAge");
                                         double res = bodyMetabolicAge / 365250;
                                         res = res / 86400;
-                                        oW.metabolicAge = (int)Math.round(res);
+                                        oW.metabolicAge = (int) Math.round(res);
                                     }
-                                    oW.visceralFatRating = (jsonobject.isNull("visceralFat"))  ? -1 : jsonobject.getInt("visceralFat");
-                                    oW.physiqueRating = (jsonobject.isNull("physiqueRating"))  ? -1 : jsonobject.getInt("physiqueRating");
-                                    oW.muscleMass = (jsonobject.isNull("muscleMass"))  ? -1 : jsonobject.getInt("muscleMass") / 1000.0;
-                                    oW.boneMass = (jsonobject.isNull("boneMass"))  ? -1 : jsonobject.getInt("boneMass") / 1000.0;
+                                    oW.visceralFatRating = (jsonobject.isNull("visceralFat")) ? -1 : jsonobject.getInt("visceralFat");
+                                    oW.physiqueRating = (jsonobject.isNull("physiqueRating")) ? -1 : jsonobject.getInt("physiqueRating");
+                                    oW.muscleMass = (jsonobject.isNull("muscleMass")) ? -1 : jsonobject.getInt("muscleMass") / 1000.0;
+                                    oW.boneMass = (jsonobject.isNull("boneMass")) ? -1 : jsonobject.getInt("boneMass") / 1000.0;
 
                                     boolean repeated = false;
                                     //Comprobar que no sea repetida
@@ -439,52 +443,42 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                         {
                                             //if (Debug.ON) Log.v(TAG, ".- Too old measurements IN=" + new Date(w.date) + " and NEW=" + new Date(lDate) + " = " + (w.date - lDate));
                                             break;
-                                        }
-                                        else
-                                        {
+                                        } else {
                                             delta = Math.abs(delta);
                                             if ((w.uuid.equals(user.uuid)) && (delta <= 7200000L)) {
                                                 repeated = (Math.abs(oW.weight - w.weight) < 0.05);
                                                 int out = 1;
-                                                if (repeated && (oW.percentFat != -1))
-                                                {
+                                                if (repeated && (oW.percentFat != -1)) {
                                                     repeated = (Math.abs(oW.percentFat - w.percentFat) < 0.01);
                                                     out = 2;
                                                 }
-                                                if (repeated && (oW.percentHydration != -1))
-                                                {
+                                                if (repeated && (oW.percentHydration != -1)) {
                                                     repeated = (Math.abs(oW.percentHydration - w.percentHydration) < 0.01);
                                                     out = 3;
                                                 }
-                                                if (repeated && (oW.boneMass != -1))
-                                                {
+                                                if (repeated && (oW.boneMass != -1)) {
                                                     repeated = (Math.abs(oW.boneMass - w.boneMass) < 0.01);
                                                     out = 4;
                                                 }
-                                                if (repeated && (oW.muscleMass != -1))
-                                                {
+                                                if (repeated && (oW.muscleMass != -1)) {
                                                     repeated = (Math.abs(oW.muscleMass - w.muscleMass) < 0.01);
                                                     out = 5;
                                                 }
-                                                if (repeated && (oW.physiqueRating != -1))
-                                                {
+                                                if (repeated && (oW.physiqueRating != -1)) {
                                                     repeated = (oW.physiqueRating == w.physiqueRating);
                                                     out = 6;
                                                 }
-                                                if (repeated && (oW.percentFat != -1))
-                                                {
+                                                if (repeated && (oW.percentFat != -1)) {
                                                     repeated = (Math.round(oW.visceralFatRating) == Math.round(w.visceralFatRating));
                                                     out = 7;
                                                 }
-                                                if (repeated && (oW.metabolicAge != -1))
-                                                {
+                                                if (repeated && (oW.metabolicAge != -1)) {
                                                     repeated = (oW.metabolicAge - w.metabolicAge <= 1);
                                                     out = 8;
                                                 }
 
                                                 if (repeated) break;
-                                                else if (Debug.ON)
-                                                {
+                                                else if (Debug.ON) {
                                                     Log.v(TAG, jsonobject.toString());
                                                     Log.v(TAG, "Same date: DIFF=" + (lDate - w.date));
 
@@ -500,16 +494,16 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                                             + " activeMet=" + w.activeMet + " basalMet=" + w.basalMet + " AGE=" + w.metabolicAge
                                                             + " VISCERALFAT=" + w.visceralFatRating + " PHYRATING=" + w.physiqueRating
                                                             + " MUSCLEMASS=" + w.muscleMass + " BONEMASS=" + w.boneMass);
-                                                    Log.v(TAG, "out="+out);
+                                                    Log.v(TAG, "out=" + out);
                                                     Log.v(TAG, "r1=" + repeated + " " + Math.abs(oW.weight - w.weight));
                                                     Log.v(TAG, "r2=" + repeated + " " + Math.abs(oW.percentFat - w.percentFat));
-                                                    Log.v(TAG, "r3=" + repeated+ " " + Math.abs(oW.percentHydration - w.percentHydration));
-                                                    Log.v(TAG, "r4=" + repeated+ " " + Math.abs(oW.boneMass - w.boneMass));
-                                                    Log.v(TAG, "r5=" + repeated+ " " + Math.abs(oW.muscleMass - w.muscleMass));
-                                                    Log.v(TAG, "r6=" + repeated+ " " + oW.physiqueRating  + " " + w.physiqueRating);
-                                                    Log.v(TAG, "r7=" + repeated+ " " + Math.abs(oW.visceralFatRating - w.visceralFatRating) + " " + oW.visceralFatRating + " " + w.visceralFatRating);
-                                                    Log.v(TAG, "r8=" + repeated+ " " + oW.metabolicAge + " " + w.metabolicAge);
-                                                    Log.v(TAG, "r9=" + repeated+ " " + Math.abs(oW.basalMet - w.basalMet) + " " + oW.basalMet + " " + w.basalMet);
+                                                    Log.v(TAG, "r3=" + repeated + " " + Math.abs(oW.percentHydration - w.percentHydration));
+                                                    Log.v(TAG, "r4=" + repeated + " " + Math.abs(oW.boneMass - w.boneMass));
+                                                    Log.v(TAG, "r5=" + repeated + " " + Math.abs(oW.muscleMass - w.muscleMass));
+                                                    Log.v(TAG, "r6=" + repeated + " " + oW.physiqueRating + " " + w.physiqueRating);
+                                                    Log.v(TAG, "r7=" + repeated + " " + Math.abs(oW.visceralFatRating - w.visceralFatRating) + " " + oW.visceralFatRating + " " + w.visceralFatRating);
+                                                    Log.v(TAG, "r8=" + repeated + " " + oW.metabolicAge + " " + w.metabolicAge);
+                                                    Log.v(TAG, "r9=" + repeated + " " + Math.abs(oW.basalMet - w.basalMet) + " " + oW.basalMet + " " + w.basalMet);
                                                 }
                                             }
                                         }
@@ -528,11 +522,12 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                 }
 
                                 //Ordenar la lista
-                                if (Debug.ON) Log.v(TAG, "Total samples: " + jsonArray.length() + " adding " + tmp.size());
+                                if (Debug.ON)
+                                    Log.v(TAG, "Total samples: " + jsonArray.length() + " adding " + tmp.size());
                                 wl.addAll(tmp);
                                 Collections.sort(wl, new Weight.DateComparator());
                                 //Hacer que se muestre la nueva lista
-                                getActivity().runOnUiThread(() -> mAdapter.replaceAll(((MainActivity)getActivity()).getHistoryArraySelectedUser(), user));
+                                getActivity().runOnUiThread(() -> mAdapter.replaceAll(((MainActivity) getActivity()).getHistoryArraySelectedUser(), user));
 
                                 //Guardar el nuevo historial a disco
                                 Weight.serializeWeight(getActivity(), wl);
