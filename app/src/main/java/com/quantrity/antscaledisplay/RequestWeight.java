@@ -474,10 +474,10 @@ class RequestWeight {
                                         Runnable task3 = () -> {
                                             if (Debug.ON) Log.v(TAG, "***** scheduledFuture measurementsTimeout executed *****");
                                             //if (state == stateEnum.RECEIVING) {
-                                                if (Debug.ON) Log.v(TAG, "Measurements timeout");
-                                                if (the_weight.weight != -1)
-                                                    releaseService(null);
-                                                else releaseService(R.string.weight_process_msg_problem_timeout_measurements);
+                                            if (Debug.ON) Log.v(TAG, "Measurements timeout");
+                                            if (the_weight.weight != -1)
+                                                releaseService(null);
+                                            else releaseService(R.string.weight_process_msg_problem_timeout_measurements);
                                             //}
                                         };
                                         scheduledFuture = worker.schedule(task3, measurementsTimeout, TimeUnit.SECONDS);
@@ -828,7 +828,7 @@ class RequestWeight {
 
                         if (Debug.ON) Log.i(TAG, "resetting ANT OK");
                     } catch (Exception e) {
-                        if (Debug.ON) Log.e(TAG, "failed to reset ANT (expected exception) " + e);
+                        Log.e(TAG, "failed to reset ANT (expected exception) " + e);
                     }
 
                     //setupChannel();

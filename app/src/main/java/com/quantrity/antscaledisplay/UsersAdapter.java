@@ -46,7 +46,7 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
         final ImageView userIV;
         final ImageView gcIV;
         final ImageView emailIV;
-        final RelativeLayout ll_user;
+        //final RelativeLayout ll_user;
 
         ViewHolder(View v) {
             super(v);
@@ -56,7 +56,7 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
             userIV =  v.findViewById(R.id.userIV);
             gcIV =  v.findViewById(R.id.gcIV);
             emailIV =  v.findViewById(R.id.emailIV);
-            ll_user =  v.findViewById(R.id.ll_user);
+            //ll_user =  v.findViewById(R.id.ll_user);
 
             v.setOnCreateContextMenuListener(this);
             v.setOnClickListener(view -> usersFragment.editUser(user));

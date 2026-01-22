@@ -60,10 +60,10 @@ public class MainActivity extends AppCompatActivity
     private static final int NAV_POS_HISTORY = 3;
     private static final int NAV_POS_USERS = 4;
 
-    public static final int DIRECTORY_PICKER_RESULT = 102;
+    /*public static final int DIRECTORY_PICKER_RESULT = 102;
     public static final int FILE_PICKER_RESULT = 103;
     public static final int CSV_DIRECTORY_PICKER_RESULT = 109;
-    public static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 110;
+    public static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 110;*/
 
     private NavigationView navigationView;
     EditWeightFragment ewf;
@@ -468,12 +468,12 @@ public class MainActivity extends AppCompatActivity
         spinnerDialog.setShowKeyboard(true);
 
 
-        spinnerDialog.bindOnSpinerListener((item, position) -> {
+        spinnerDialog.bindOnSpinnerListener((item, position) -> {
             setSelectedUser(mUsersArray.get(position));
             v.setSelection(position);
-            spinnerDialog.closeSpinerDialog();
+            spinnerDialog.closeSpinnerDialog();
         });
-        spinnerDialog.showSpinerDialog();
+        spinnerDialog.showSpinnerDialog();
     }
 
     public Spinner addUsersSpinner(Menu menu, AdapterView.OnItemSelectedListener oisListener) {
@@ -736,17 +736,12 @@ public class MainActivity extends AppCompatActivity
         ConnectivityManager cm = (ConnectivityManager)activity.getSystemService(Context.CONNECTIVITY_SERVICE);
         if (cm == null) return false;
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            android.net.Network network = cm.getActiveNetwork();
-            if (network == null) return false;
-            android.net.NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
-            return capabilities != null && (capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
-                    capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
-                    capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET));
-        } else {
-            NetworkInfo netInfo = cm.getActiveNetworkInfo();
-            return netInfo != null && netInfo.isConnected();
-        }
+        android.net.Network network = cm.getActiveNetwork();
+        if (network == null) return false;
+        android.net.NetworkCapabilities capabilities = cm.getNetworkCapabilities(network);
+        return capabilities != null && (capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_WIFI) ||
+                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_CELLULAR) ||
+                capabilities.hasTransport(android.net.NetworkCapabilities.TRANSPORT_ETHERNET));
     }
 
     public static void uploadButton(MainActivity activity, Weight weight, User user) {

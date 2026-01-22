@@ -188,23 +188,23 @@ class AsyncUpload {
 
     private String export2byte(Weight weight) {
         Date date = new Date(weight.date);
-        WeightScaleMesg weightMesg = new WeightScaleMesg();
-        weightMesg.setTimestamp(new DateTime(date));
+        WeightScaleMesg weightMsg = new WeightScaleMesg();
+        weightMsg.setTimestamp(new DateTime(date));
 
-        weightMesg.setWeight((float) weight.weight);
-        if (weight.percentFat != -1) weightMesg.setPercentFat((float) weight.percentFat);
+        weightMsg.setWeight((float) weight.weight);
+        if (weight.percentFat != -1) weightMsg.setPercentFat((float) weight.percentFat);
         if (weight.percentHydration != -1)
-            weightMesg.setPercentHydration((float) weight.percentHydration);
-        if (weight.boneMass != -1) weightMesg.setBoneMass((float) weight.boneMass);
-        if (weight.muscleMass != -1) weightMesg.setMuscleMass((float) weight.muscleMass);
+            weightMsg.setPercentHydration((float) weight.percentHydration);
+        if (weight.boneMass != -1) weightMsg.setBoneMass((float) weight.boneMass);
+        if (weight.muscleMass != -1) weightMsg.setMuscleMass((float) weight.muscleMass);
         if (weight.physiqueRating != -1)
-            weightMesg.setPhysiqueRating((short) weight.physiqueRating);
+            weightMsg.setPhysiqueRating((short) weight.physiqueRating);
         if (weight.visceralFatRating != -1)
-            weightMesg.setVisceralFatRating((short) Math.round(weight.visceralFatRating));
-        if (weight.metabolicAge != -1) weightMesg.setMetabolicAge((short) weight.metabolicAge);
-        if (weight.basalMet != -1) weightMesg.setActiveMet((float) weight.basalMet);
-        else if (weight.activeMet != -1) weightMesg.setActiveMet((float) weight.activeMet);
-        if ((weight.height != -1) && (weight.weight != -1)) weightMesg.setBmi((float) (weight.weight / Math.pow((weight.height) / 100, 2)));
+            weightMsg.setVisceralFatRating((short) Math.round(weight.visceralFatRating));
+        if (weight.metabolicAge != -1) weightMsg.setMetabolicAge((short) weight.metabolicAge);
+        if (weight.basalMet != -1) weightMsg.setActiveMet((float) weight.basalMet);
+        else if (weight.activeMet != -1) weightMsg.setActiveMet((float) weight.activeMet);
+        if ((weight.height != -1) && (weight.weight != -1)) weightMsg.setBmi((float) (weight.weight / Math.pow((weight.height) / 100, 2)));
 
         FileIdMesg fileIdMesg = new FileIdMesg();
         fileIdMesg.setType(com.garmin.fit.File.WEIGHT);
@@ -217,7 +217,7 @@ class AsyncUpload {
             String filename = activityRef.get().getFilesDir() + "/weight.fit";
             encode = new FileEncoder(new File(activityRef.get().getFilesDir(), "weight.fit"), Fit.ProtocolVersion.V2_0);
             encode.write(fileIdMesg);
-            encode.write(weightMesg);
+            encode.write(weightMsg);
             encode.close();
             return filename;
         } catch (FitRuntimeException e) {
@@ -259,7 +259,7 @@ class AsyncUpload {
     }
 
     private class emailThread extends Thread {
-        String email_error = null;
+        final String email_error = null;
 
         @Override
         public void run() {

@@ -47,10 +47,10 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     private boolean needs_to_sync;
 
     private Spinner sp_type;
-    private EditText et_startdate;
-    private long startdate_millis = -1;
-    private EditText et_enddate;
-    private long enddate_millis = -1;
+    private EditText et_start_date;
+    private long start_date_millis = -1;
+    private EditText et_end_date;
+    private long end_date_millis = -1;
     private LinearLayout ll_0unitStart;
     private LinearLayout ll_1unitStart;
     private LinearLayout ll_2unitStart;
@@ -218,8 +218,8 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
             default:
         }
 
-        tmp.start_date = startdate_millis;
-        tmp.end_date = enddate_millis;
+        tmp.start_date = start_date_millis;
+        tmp.end_date = end_date_millis;
         tmp.color = cp.getColor();
 
         if (the_goal == null)
@@ -246,10 +246,10 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
 
         //sp_type.setSelection(the_goal.type.getMetricCode() - 1);
 
-        et_startdate.setText(DateUtils.formatDateTime(getActivity(), the_goal.start_date, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
-        startdate_millis = the_goal.start_date;
-        et_enddate.setText(DateUtils.formatDateTime(getActivity(), the_goal.end_date, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
-        enddate_millis = the_goal.end_date;
+        et_start_date.setText(DateUtils.formatDateTime(getActivity(), the_goal.start_date, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
+        start_date_millis = the_goal.start_date;
+        et_end_date.setText(DateUtils.formatDateTime(getActivity(), the_goal.end_date, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
+        end_date_millis = the_goal.end_date;
         cp.setColor(the_goal.color);
 
         Units units;
@@ -525,13 +525,13 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         the_goal.show_fat_mass = the_user.show_fat_mass;
         sp_type.setSelection(0);
         Calendar c = Calendar.getInstance();
-        startdate_millis = c.getTimeInMillis();
-        the_goal.start_date = startdate_millis;
+        start_date_millis = c.getTimeInMillis();
+        the_goal.start_date = start_date_millis;
         c.add(Calendar.MONTH, 3);
-        enddate_millis = c.getTimeInMillis();
-        the_goal.end_date = enddate_millis;
-        et_startdate.setText(DateUtils.formatDateTime(getActivity(), startdate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
-        et_enddate.setText(DateUtils.formatDateTime(getActivity(), enddate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
+        end_date_millis = c.getTimeInMillis();
+        the_goal.end_date = end_date_millis;
+        et_start_date.setText(DateUtils.formatDateTime(getActivity(), start_date_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
+        et_end_date.setText(DateUtils.formatDateTime(getActivity(), end_date_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
 
         if (getActivity() == null) last = null;
         else last = ((MainActivity) getActivity()).getLastHistorySelectedUser();
@@ -561,8 +561,8 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         {
             sp_type.setEnabled(false);
         }
-        et_startdate = rootView.findViewById(R.id.et_startdate);
-        et_enddate = rootView.findViewById(R.id.et_enddate);
+        et_start_date = rootView.findViewById(R.id.et_start_date);
+        et_end_date = rootView.findViewById(R.id.et_end_date);
 
         ll_0unitStart = rootView.findViewById(R.id.ll_0unitStart);
         ll_1unitStart = rootView.findViewById(R.id.ll_1unitStart);
@@ -591,10 +591,10 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
 
         this.needs_to_sync = true;
 
-        et_startdate.setOnFocusChangeListener((view, b) -> {
+        et_start_date.setOnFocusChangeListener((view, b) -> {
             if ((b) && (getActivity() != null)) {
                 Calendar c = Calendar.getInstance();
-                c.setTimeInMillis(startdate_millis);
+                c.setTimeInMillis(start_date_millis);
                 int year = c.get(Calendar.YEAR);
                 int month = c.get(Calendar.MONTH);
                 int day = c.get(Calendar.DAY_OF_MONTH);
@@ -602,18 +602,18 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
                     Calendar c1 = Calendar.getInstance();
                     c1.set(i, i2, i3, 0, 0, 0);
                     c1.set(Calendar.MILLISECOND, 0);
-                    startdate_millis = c1.getTimeInMillis();
-                    et_startdate.setText(DateUtils.formatDateTime(getActivity(), startdate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
+                    start_date_millis = c1.getTimeInMillis();
+                    et_start_date.setText(DateUtils.formatDateTime(getActivity(), start_date_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
                 }, year, month, day);
                 dpd.setTitle(R.string.edit_goal_fragment_start);
                 dpd.show();
             }
         });
 
-        et_enddate.setOnFocusChangeListener((view, b) -> {
+        et_end_date.setOnFocusChangeListener((view, b) -> {
             if ((b) && (getActivity() != null)) {
                 Calendar c = Calendar.getInstance();
-                c.setTimeInMillis(enddate_millis);
+                c.setTimeInMillis(end_date_millis);
                 int year = c.get(Calendar.YEAR);
                 int month = c.get(Calendar.MONTH);
                 int day = c.get(Calendar.DAY_OF_MONTH);
@@ -621,8 +621,8 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
                     Calendar c12 = Calendar.getInstance();
                     c12.set(i, i2, i3, 0, 0, 0);
                     c12.set(Calendar.MILLISECOND, 0);
-                    enddate_millis = c12.getTimeInMillis();
-                    et_enddate.setText(DateUtils.formatDateTime(getActivity(), enddate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
+                    end_date_millis = c12.getTimeInMillis();
+                    et_end_date.setText(DateUtils.formatDateTime(getActivity(), end_date_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
                 }, year, month, day);
                 dpd.setTitle(R.string.edit_goal_fragment_end);
                 dpd.show();

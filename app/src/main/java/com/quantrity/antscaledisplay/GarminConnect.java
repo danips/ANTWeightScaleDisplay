@@ -627,7 +627,8 @@ public class GarminConnect {
     }
 
     private class OAuth2Token {
-        String accessToken, refreshToken;
+        final String accessToken;
+        final String refreshToken;
         long expiry, refreshExpiry;
 
         OAuth2Token(String access, String refresh, long exp, long refreshExp) {
@@ -700,14 +701,17 @@ public class GarminConnect {
                 );
                 return this.oauth2Token.save();
             }
-        } catch (Exception ignored) {
-            Log.e(TAG, "[ERROR] Token Refresh failed", ignored);
+        } catch (Exception e) {
+            Log.e(TAG, "[ERROR] Token Refresh failed", e);
         }
         return false;
     }
 
     private static class HttpResponse {
-        int code; String body; String url; Map<String, List<String>> headers;
+        final int code;
+        final String body;
+        final String url;
+        final Map<String, List<String>> headers;
         HttpResponse(int c, String b, String u, Map<String, List<String>> h) {
             code = c; body = b; url = u; headers = h;
         }

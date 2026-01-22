@@ -27,7 +27,7 @@ public class SpinnerDialog {
     int style;
     boolean cancellable=false;
     boolean showKeyboard=false;
-    boolean useContainsFilter=false;
+    final boolean useContainsFilter=false;
 
 
     public SpinnerDialog(Activity activity, ArrayList<String> items, String dialogTitle) {
@@ -43,11 +43,11 @@ public class SpinnerDialog {
         this.style = style;
     }*/
 
-    void bindOnSpinerListener(OnSpinerItemClick onSpinerItemClick1) {
-        this.onSpinerItemClick = onSpinerItemClick1;
+    void bindOnSpinnerListener(OnSpinerItemClick onSpinnerItemClick1) {
+        this.onSpinerItemClick = onSpinnerItemClick1;
     }
 
-    void showSpinerDialog() {
+    void showSpinnerDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(context);
         View v = context.getLayoutInflater().inflate(R.layout.dialog_layout, null);
         TextView title = v.findViewById(R.id.spinerTitle);
@@ -74,7 +74,7 @@ public class SpinnerDialog {
                 }
             }
             onSpinerItemClick.onClick(t.getText().toString(), pos);
-            closeSpinerDialog();
+            closeSpinnerDialog();
         });
 
         searchBox.addTextChangedListener(new TextWatcher() {
@@ -103,7 +103,7 @@ public class SpinnerDialog {
         alertDialog.show();
     }
 
-    public void closeSpinerDialog() {
+    public void closeSpinnerDialog() {
         hideKeyboard();
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -120,11 +120,11 @@ public class SpinnerDialog {
         }
     }
 
-    private void showKeyboard(final EditText ettext){
-        ettext.requestFocus();
-        ettext.postDelayed(() -> {
+    private void showKeyboard(final EditText et){
+        et.requestFocus();
+        et.postDelayed(() -> {
             InputMethodManager keyboard=(InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
-            keyboard.showSoftInput(ettext,0);
+            keyboard.showSoftInput(et,0);
         }
                 ,200);
     }

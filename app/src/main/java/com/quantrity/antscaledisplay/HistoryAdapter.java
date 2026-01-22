@@ -87,7 +87,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         final ImageView percentFatIV;
         final ImageView percentHydrationIV;
         final ImageView boneMassIV;
-        final ImageView muscleMassIV;
+        //final ImageView muscleMassIV;
         final ImageView physiqueRatingIV;
         final ImageView visceralFatRatingIV;
         final ImageView metabolicAgeIV;
@@ -138,7 +138,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             percentFatIV = v.findViewById(R.id.row_weight_percentFatIV);
             percentHydrationIV = v.findViewById(R.id.row_weight_percentHydrationIV);
             boneMassIV = v.findViewById(R.id.row_weight_boneMassIV);
-            muscleMassIV = v.findViewById(R.id.row_weight_muscleMassIV);
+            //muscleMassIV = v.findViewById(R.id.row_weight_muscleMassIV);
             physiqueRatingIV = v.findViewById(R.id.row_weight_physiqueRatingIV);
             visceralFatRatingIV = v.findViewById(R.id.row_weight_visceralFatRatingIV);
             metabolicAgeIV = v.findViewById(R.id.row_weight_metabolicAgeIV);
