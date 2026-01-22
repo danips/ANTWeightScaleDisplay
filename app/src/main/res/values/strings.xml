@@ -3,6 +3,15 @@
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
+    <string name="auth_garmin_verification_cancel">Cancel</string>
+    <string name="auth_garmin_verification_hint">Enter 6-digit code</string>
+    <string name="auth_garmin_verification_message">Enter the code sent to your email/SMS:</string>
+    <string name="auth_garmin_verification_submit">Submit</string>
+    <string name="auth_garmin_verification_title">Garmin Verification</string>
+    <string name="auth_notification_permission_enable">Enable</string>
+    <string name="auth_notification_permission_message">To automatically detect the Garmin code from your email, please enable Notification Access for this app.</string>
+    <string name="auth_notification_permission_skip">Skip</string>
+    <string name="auth_notification_permission_title">Enable Auto-Verification?</string>
 	<string name="bmi_value_0">Underweight</string>
 	<string name="bmi_value_1">Normal</string>
 	<string name="bmi_value_2">Overweight</string>
@@ -59,10 +68,8 @@
 	<string name="fat_percent_value_1">Healthy</string>
 	<string name="fat_percent_value_2">Overfat</string>
 	<string name="fat_percent_value_3">Obese</string>
-	<string name="garmin_connect_invalid_password">Your Garmin Connect password is no longer valid according to Garmin\'s new policy.\n\nPlease update it.</string>
     <string name="gc_token_cleared">Cleared Garmin OAuth tokens!</string>
-    <string name="gc_token_clear_failed">Failed to clear Garmin OAuth tokens!</string>
-	<string name="graphs_fragment_measure_tag">Measurement</string>
+    <string name="graphs_fragment_measure_tag">Measurement</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Left Leg Muscle Mass</string>

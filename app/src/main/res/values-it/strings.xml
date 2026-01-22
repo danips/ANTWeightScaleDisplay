@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">Token Garmin OAuth cancellati!</string>
+    <string name="pref_clear_garmin_token">Cancella token Garmin</string>
+    <string name="pref_clear_garmin_token_summary">Cancella i token Garmin OAuth1 e OAuth2. Verranno rigenerati dopo un accesso riuscito.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">Visualizzatore bilancia ANT+</string>
+    <string name="auth_garmin_verification_cancel">Annulla</string>
+    <string name="auth_garmin_verification_hint">Inserisci codice a 6 cifre</string>
+    <string name="auth_garmin_verification_message">Inserisci il codice inviato alla tua email/SMS:</string>
+    <string name="auth_garmin_verification_submit">Invia</string>
+    <string name="auth_garmin_verification_title">Verifica Garmin</string>
+    <string name="auth_notification_permission_enable">Abilita</string>
+    <string name="auth_notification_permission_message">Per rilevare automaticamente il codice Garmin dalla tua email, abilita l\'accesso alle notifiche per questa app.</string>
+    <string name="auth_notification_permission_skip">Salta</string>
+    <string name="auth_notification_permission_title">Abilitare la verifica automatica?</string>
 	<string name="bmi_value_0">Sottopeso</string>
 	<string name="bmi_value_1">Normopeso</string>
 	<string name="bmi_value_2">Sovrappeso</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">In salute</string>
 	<string name="fat_percent_value_2">Sovrappeso</string>
 	<string name="fat_percent_value_3">Obeso</string>
-	<string name="garmin_connect_invalid_password">La tua password di Garmin Connect non è più valida in base alla nuova politica di Garmin.\n\nPer favore, aggiorna.</string>
-	<string name="graphs_fragment_measure_tag">Misurazioni</string>
+    <string name="graphs_fragment_measure_tag">Misurazioni</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Left Leg Muscle Mass</string>

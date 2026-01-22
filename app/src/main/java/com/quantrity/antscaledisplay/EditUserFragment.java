@@ -427,24 +427,9 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 the_user.garminOauth2ExpiryTimestamp = -1;
                 the_user.garminOauth2RefreshExpiryTimestamp = -1;
                 User.serializeUsers(getActivity().getApplicationContext(), users);
+                Toast.makeText(getActivity(), R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
             }
         }
-        /*SharedPreferences authPreferences = getActivity().getSharedPreferences(getActivity().getApplicationContext().getPackageName() + ".garmintokens", Context.MODE_PRIVATE);
-        SharedPreferences.Editor authPreferencesEditor = authPreferences.edit();
-        authPreferencesEditor.remove("garminOauth1Token");
-        authPreferencesEditor.remove("garminOauth1TokenSecret");
-        authPreferencesEditor.remove("garminOauth1MfaToken");
-        authPreferencesEditor.remove("garminOauth1MfaExpirationTimestamp");
-        authPreferencesEditor.remove("garminOauth2Token");
-        authPreferencesEditor.remove("garminOauth2RefreshToken");
-        authPreferencesEditor.remove("garminOauth2ExpiryTimestamp");
-        authPreferencesEditor.remove("garminOauth2RefreshExpiryTimestamp");
-        if (authPreferencesEditor.commit()) {
-            Toast.makeText(getActivity(), R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
-        }
-        else {
-            Toast.makeText(getActivity(), R.string.gc_token_clear_failed, Toast.LENGTH_SHORT).show();
-        }*/
     }
 
 

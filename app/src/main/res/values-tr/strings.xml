@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">Garmin OAuth jetonları temizlendi!</string>
+    <string name="pref_clear_garmin_token">Garmin Jetonlarını Temizle</string>
+    <string name="pref_clear_garmin_token_summary">Garmin OAuth1 ve OAuth2 jetonlarını temizle. Başarılı bir giriş yapıldığında yeniden oluşturulacaklar.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ tartı göstergesi</string>
+    <string name="auth_garmin_verification_cancel">İptal</string>
+    <string name="auth_garmin_verification_hint">6 haneli kodu girin</string>
+    <string name="auth_garmin_verification_message">E-postanıza/SMS\'inize gönderilen kodu girin:</string>
+    <string name="auth_garmin_verification_submit">Gönder</string>
+    <string name="auth_garmin_verification_title">Garmin Doğrulaması</string>
+    <string name="auth_notification_permission_enable">Etkinleştir</string>
+    <string name="auth_notification_permission_message">E-postanızdaki Garmin kodunu otomatik olarak algılamak için lütfen bu uygulama için bildirim erişimini etkinleştirin.</string>
+    <string name="auth_notification_permission_skip">Atla</string>
+    <string name="auth_notification_permission_title">Otomatik doğrulama etkinleştirilsin mi?</string>
 	<string name="bmi_value_0">Düşük kilolu</string>
 	<string name="bmi_value_1">Normal</string>
 	<string name="bmi_value_2">Aşırı kilolu</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">Sağlıklı</string>
 	<string name="fat_percent_value_2">Yağlı</string>
 	<string name="fat_percent_value_3">Obez</string>
-	<string name="garmin_connect_invalid_password">Garmin\'in yeni kurallarına göre Garmin Connect şifreniz geçersizdir. Lütfen yenileyiniz.</string>
-	<string name="graphs_fragment_measure_tag">Ölçüm</string>
+    <string name="graphs_fragment_measure_tag">Ölçüm</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Sol kol kas kütlesi</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Sol kol yağ yüzdesi</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Sol bacak kas kütlesi</string>

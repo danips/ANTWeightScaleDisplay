@@ -231,9 +231,9 @@ public class GarminConnect {
             if (!isNotificationServiceEnabled(context)) {
                 // Show info dialog, then redirect, then show MFA input
                 new AlertDialog.Builder(currentActivity)
-                        .setTitle("Enable Auto-Verification?")
-                        .setMessage("To automatically detect the Garmin code from your email, please enable Notification Access for this app.")
-                        .setPositiveButton("Enable", (dialog, which) -> {
+                        .setTitle(R.string.auth_notification_permission_title)
+                        .setMessage(R.string.auth_notification_permission_message)
+                        .setPositiveButton(R.string.auth_notification_permission_enable, (dialog, which) -> {
                             Intent intent;
                             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
                                 intent = new Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS);
@@ -244,7 +244,7 @@ public class GarminConnect {
                             }
                             currentActivity.startActivity(intent);
                         })
-                        .setNegativeButton("Skip", null)
+                        .setNegativeButton(R.string.auth_notification_permission_skip, null)
                         .setOnDismissListener(dialog -> {
                             // 2. Regardless of choice, show the input field
                             showMFAInputField(inputQueue);
@@ -262,20 +262,20 @@ public class GarminConnect {
 
     private void showMFAInputField(BlockingQueue<String> inputQueue) {
         AlertDialog.Builder builder = new AlertDialog.Builder(currentActivity);
-        builder.setTitle("Garmin Verification");
+        builder.setTitle(R.string.auth_garmin_verification_title);
         final EditText input = new EditText(currentActivity);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
-        input.setHint("Enter 6-digit code");
+        input.setHint(R.string.auth_garmin_verification_hint);
         builder.setView(input);
-        builder.setMessage("Enter the code sent to your email/SMS:");
+        builder.setMessage(R.string.auth_garmin_verification_message);
 
         final Observer<String>[] observerRef = new Observer[1];
 
         // Buttons
-        builder.setPositiveButton("Submit", (d, id) -> {
+        builder.setPositiveButton(R.string.auth_garmin_verification_submit, (d, id) -> {
             inputQueue.add(input.getText().toString());
         });
-        builder.setNegativeButton("Cancel", (d, i) -> {
+        builder.setNegativeButton(R.string.auth_garmin_verification_cancel, (d, i) -> {
             inputQueue.add("");
         });
 

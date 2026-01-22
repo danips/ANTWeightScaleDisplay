@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">Τα διακριτικά Garmin OAuth διαγράφηκαν!</string>
+    <string name="pref_clear_garmin_token">Εκκαθάριση διακριτικών Garmin</string>
+    <string name="pref_clear_garmin_token_summary">Εκκαθάριση διακριτικών Garmin OAuth1 και OAuth2. Θα δημιουργηθούν ξανά μετά από επιτυχημένη σύνδεση.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
+    <string name="auth_garmin_verification_cancel">Ακύρωση</string>
+    <string name="auth_garmin_verification_hint">Εισαγάγετε τον 6ψήφιο κωδικό</string>
+    <string name="auth_garmin_verification_message">Εισαγάγετε τον κωδικό που στάλθηκε στο email/SMS σας:</string>
+    <string name="auth_garmin_verification_submit">Υποβολή</string>
+    <string name="auth_garmin_verification_title">Επαλήθευση Garmin</string>
+    <string name="auth_notification_permission_enable">Ενεργοποίηση</string>
+    <string name="auth_notification_permission_message">Για να εντοπίζεται αυτόματα ο κωδικός Garmin από το email σας, ενεργοποιήστε την πρόσβαση ειδοποιήσεων για αυτήν την εφαρμογή.</string>
+    <string name="auth_notification_permission_skip">Παράλειψη</string>
+    <string name="auth_notification_permission_title">Ενεργοποίηση αυτόματης επαλήθευσης;</string>
 	<string name="bmi_value_0">Λιποβαρής</string>
 	<string name="bmi_value_1">Κανονικός</string>
 	<string name="bmi_value_2">Υπέρβαρος</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">Υγιής</string>
 	<string name="fat_percent_value_2">Αυξημένο λίπος</string>
 	<string name="fat_percent_value_3">Παχύσαρκος</string>
-	<string name="garmin_connect_invalid_password">Your Garmin Connect password is no longer valid according to Garmin\'s new policy.\n\nPlease update it.</string>
-	<string name="graphs_fragment_measure_tag">Μέτρηση</string>
+    <string name="graphs_fragment_measure_tag">Μέτρηση</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Left Leg Muscle Mass</string>

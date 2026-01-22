@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">S\'han esborrat els tokens de Garmin OAuth!</string>
+    <string name="pref_clear_garmin_token">Esborra els tokens de Garmin</string>
+    <string name="pref_clear_garmin_token_summary">Esborra els tokens Garmin OAuth1 i OAuth2. Es regeneraran amb un inici de sessió correcte.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">Bàscula ANT+</string>
+    <string name="auth_garmin_verification_cancel">Cancel·la</string>
+    <string name="auth_garmin_verification_hint">Introdueix el codi de 6 dígits</string>
+    <string name="auth_garmin_verification_message">Introdueix el codi enviat al teu correu/SMS:</string>
+    <string name="auth_garmin_verification_submit">Envia</string>
+    <string name="auth_garmin_verification_title">Verificació de Garmin</string>
+    <string name="auth_notification_permission_enable">Activar</string>
+    <string name="auth_notification_permission_message">Per detectar automàticament el codi Garmin del vostre correu electrònic, activeu l\'accés a les notificacions per a aquesta aplicació.</string>
+    <string name="auth_notification_permission_skip">Ometre</string>
+    <string name="auth_notification_permission_title">Activar la verificació automàtica?</string>
 	<string name="bmi_value_0">Baixpes</string>
 	<string name="bmi_value_1">Normal</string>
 	<string name="bmi_value_2">Sobrepes</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">Normal</string>
 	<string name="fat_percent_value_2">Sobrepès</string>
 	<string name="fat_percent_value_3">Obès</string>
-	<string name="garmin_connect_invalid_password">La contrasenya del teu Garmin Connect no és vàlida d\'acord amb les noves Polítiques de Garmin.</string>
-	<string name="graphs_fragment_measure_tag">Mesures</string>
+    <string name="graphs_fragment_measure_tag">Mesures</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Massa magra del braç esquerre</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Percentatge de greix al braç esquerra</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Massa magra de la cama esquerra</string>

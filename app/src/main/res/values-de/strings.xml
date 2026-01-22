@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">Garmin OAuth-Token gelöscht!</string>
+    <string name="pref_clear_garmin_token">Garmin-Token löschen</string>
+    <string name="pref_clear_garmin_token_summary">Löschen Sie die Garmin OAuth1- und OAuth2-Token. Sie werden bei erfolgreicher Anmeldung neu generiert.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Waagen Anzeige</string>
+    <string name="auth_garmin_verification_cancel">Abbrechen</string>
+    <string name="auth_garmin_verification_hint">6-stelligen Code eingeben</string>
+    <string name="auth_garmin_verification_message">Geben Sie den Code ein, der an Ihre E-Mail/SMS gesendet wurde:</string>
+    <string name="auth_garmin_verification_submit">Senden</string>
+    <string name="auth_garmin_verification_title">Garmin-Verifizierung</string>
+    <string name="auth_notification_permission_enable">Aktivieren</string>
+    <string name="auth_notification_permission_message">Um den Garmin-Code automatisch aus Ihrer E-Mail zu erkennen, aktivieren Sie bitte den Benachrichtigungszugriff für diese App.</string>
+    <string name="auth_notification_permission_skip">Überspringen</string>
+    <string name="auth_notification_permission_title">Automatische Verifizierung aktivieren?</string>
 	<string name="bmi_value_0">Untergewichtig</string>
 	<string name="bmi_value_1">Normal</string>
 	<string name="bmi_value_2">Übergewichtig</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">Gesund</string>
 	<string name="fat_percent_value_2">Übergewichtig</string>
 	<string name="fat_percent_value_3">Fettleibig</string>
-	<string name="garmin_connect_invalid_password">Garmin hat eine neue Passwort Policy mit der Dein altes Passwort nicht mehr funktioniert.\n\nBitte update dein Passwort auf der Garmin Webseite.</string>
-	<string name="graphs_fragment_measure_tag">Messung</string>
+    <string name="graphs_fragment_measure_tag">Messung</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Left Leg Muscle Mass</string>

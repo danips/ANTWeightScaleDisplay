@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">Garmin OAuth tokenek törölve!</string>
+    <string name="pref_clear_garmin_token">Garmin tokenek törlése</string>
+    <string name="pref_clear_garmin_token_summary">Garmin OAuth1 és OAuth2 tokenek törlése. Sikeres bejelentkezéskor újra létrejönnek.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
+    <string name="auth_garmin_verification_cancel">Mégse</string>
+    <string name="auth_garmin_verification_hint">Adja meg a 6 jegyű kódot</string>
+    <string name="auth_garmin_verification_message">Adja meg az e-mailben/SMS-ben kapott kódot:</string>
+    <string name="auth_garmin_verification_submit">Küldés</string>
+    <string name="auth_garmin_verification_title">Garmin ellenőrzés</string>
+    <string name="auth_notification_permission_enable">Engedélyezés</string>
+    <string name="auth_notification_permission_message">A Garmin kód automatikus észleléséhez az e-mailből, kérjük, engedélyezze az értesítési hozzáférést ehhez az alkalmazáshoz.</string>
+    <string name="auth_notification_permission_skip">Kihagyás</string>
+    <string name="auth_notification_permission_title">Automatikus ellenőrzés engedélyezése?</string>
 	<string name="bmi_value_0">Sovány</string>
 	<string name="bmi_value_1">Normál</string>
 	<string name="bmi_value_2">Túlsúlyos</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">Normál</string>
 	<string name="fat_percent_value_2">Túlsúlyos</string>
 	<string name="fat_percent_value_3">Kövér</string>
-	<string name="garmin_connect_invalid_password">A Garmin új szabályzata alapján a Garmin Connect jelszavad nem érvényes.\n\nKérlek, frissítsd!</string>
-	<string name="graphs_fragment_measure_tag">Mérés</string>
+    <string name="graphs_fragment_measure_tag">Mérés</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Bal kar izomtömeg</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Bal kar zsírszázalék</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Bal láb izomtömeg</string>

@@ -1,0 +1,194 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="ant_radio_service">ANT Radio Service</string>
+    <string name="ant_usb_service">ANT USB Service</string>
+    <string name="app_name">Affichage Pèse-personne ANT+</string>
+    <string name="auth_garmin_verification_cancel">Annuler</string>
+    <string name="auth_garmin_verification_hint">Saisir le code à 6 chiffres</string>
+    <string name="auth_garmin_verification_message">Saisissez le code envoyé par e-mail/SMS :</string>
+    <string name="auth_garmin_verification_submit">Envoyer</string>
+    <string name="auth_garmin_verification_title">Vérification Garmin</string>
+    <string name="auth_notification_permission_enable">Activer</string>
+    <string name="auth_notification_permission_message">Pour détecter automatiquement le code Garmin dans vos e-mails, veuillez autoriser l\'accès aux notifications pour cette application.</string>
+    <string name="auth_notification_permission_skip">Passer</string>
+    <string name="auth_notification_permission_title">Activer la vérification automatique ?</string>
+    <string name="bmi_value_0">Insuffisance pondérale</string>
+    <string name="bmi_value_1">Normal</string>
+    <string name="bmi_value_2">Surpoids</string>
+    <string name="bmi_value_3">Obésité</string>
+    <string name="edit_goal_fragment_color">Couleur</string>
+    <string name="edit_goal_fragment_end">Fin</string>
+    <string name="edit_goal_fragment_goal">Objectif</string>
+    <string name="edit_goal_fragment_start">Début</string>
+    <string name="edit_user_fragment_activity">Temps passé à s\'entraîner par semaine</string>
+    <string name="edit_user_fragment_activity_option_0">Pas d\'exercice</string>
+    <string name="edit_user_fragment_activity_option_1">Jusqu\'à 20 minutes</string>
+    <string name="edit_user_fragment_activity_option_2">21 à 40 minutes</string>
+    <string name="edit_user_fragment_activity_option_3">41 à 60 minutes</string>
+    <string name="edit_user_fragment_activity_option_4">1 à 5 heures</string>
+    <string name="edit_user_fragment_activity_option_5">5 à 9 heures</string>
+    <string name="edit_user_fragment_activity_option_6">Plus de 9 heures</string>
+    <string name="edit_user_fragment_advanced_settings_category">Paramètres avancés</string>
+    <string name="edit_user_fragment_athlete_mode">Mode athlète</string>
+    <string name="edit_user_fragment_automatic_upload">Envoi automatique</string>
+    <string name="edit_user_fragment_birthdate">Date de naissance</string>
+    <string name="edit_user_fragment_connect_to">Se connecter à <b><xliff:g id="name">%1$s</xliff:g></b></string>
+    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Connecté à <b><xliff:g id="name">%1$s</xliff:g></b></string>
+    <string name="edit_user_fragment_dates_in_graph">Nombre de dates dans le graphique</string>
+    <string name="edit_user_fragment_email_category">Email</string>
+    <string name="edit_user_fragment_fat_mass">Afficher la masse grasse</string>
+    <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
+    <string name="edit_user_fragment_gender">Sexe</string>
+    <string name="edit_user_fragment_gender_option_female">Femme</string>
+    <string name="edit_user_fragment_gender_option_male">Homme</string>
+    <string name="edit_user_fragment_height">Taille</string>
+    <string name="edit_user_fragment_msg_age_invalid">Âge invalide. Il doit être compris entre 1 et 127 ans.</string>
+    <string name="edit_user_fragment_msg_birthdate_missing">Date de naissance manquante</string>
+    <string name="edit_user_fragment_msg_height_invalid">Taille invalide. Elle doit être inférieure à 255 cm / 8\' 4\"</string>
+    <string name="edit_user_fragment_msg_height_missing">Taille manquante</string>
+    <string name="edit_user_fragment_msg_name_dup">Ce nom d\'utilisateur est déjà utilisé</string>
+    <string name="edit_user_fragment_msg_name_missing">Nom d\'utilisateur manquant</string>
+    <string name="edit_user_fragment_msg_user_missing">Vous devez définir au moins un utilisateur valide</string>
+    <string name="edit_user_fragment_password">Mot de passe</string>
+    <string name="edit_user_fragment_units">Unités</string>
+    <string name="edit_user_fragment_units_option_kg_cm">kg / cm</string>
+    <string name="edit_user_fragment_units_option_kg_ft">kg / ft, in</string>
+    <string name="edit_user_fragment_units_option_lb_cm">lb / cm</string>
+    <string name="edit_user_fragment_units_option_lb_ft">lb / ft, in</string>
+    <string name="edit_user_fragment_units_option_st_cm">st, lb / cm</string>
+    <string name="edit_user_fragment_units_option_st_ft">st, lb / ft, in</string>
+    <string name="edit_user_fragment_units_tag_cm">cm</string>
+    <string name="edit_user_fragment_units_tag_ft">\'</string>
+    <string name="edit_user_fragment_units_tag_in">\"</string>
+    <string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.1f</xliff:g> kg</string>
+    <string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.1f</xliff:g> lb</string>
+    <string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
+    <string name="edit_user_fragment_user">Utilisateur</string>
+    <string name="fat_percent_value_0">Trop maigre</string>
+    <string name="fat_percent_value_1">Sain</string>
+    <string name="fat_percent_value_2">Gras</string>
+    <string name="fat_percent_value_3">Obèse</string>
+    <string name="gc_token_cleared">Jetons Garmin OAuth effacés !</string>
+    <string name="graphs_fragment_measure_tag">Mesure</string>
+    <string name="graphs_fragment_measurement_left_arm_muscle_mass">Masse musculaire bras gauche</string>
+    <string name="graphs_fragment_measurement_left_arm_percent_fat">Pourcentage graisse bras gauche</string>
+    <string name="graphs_fragment_measurement_left_leg_muscle_mass">Masse musculaire jambe gauche</string>
+    <string name="graphs_fragment_measurement_left_leg_percent_fat">Pourcentage graisse jambe gauche</string>
+    <string name="graphs_fragment_measurement_right_arm_muscle_mass">Masse musculaire bras droit</string>
+    <string name="graphs_fragment_measurement_right_arm_percent_fat">Pourcentage graisse bras droit</string>
+    <string name="graphs_fragment_measurement_right_leg_muscle_mass">Masse musculaire jambe droite</string>
+    <string name="graphs_fragment_measurement_right_leg_percent_fat">Pourcentage graisse jambe droite</string>
+    <string name="graphs_fragment_measurement_trunk_muscle_mass">Masse musculaire tronc</string>
+    <string name="graphs_fragment_measurement_trunk_percent_fat">Pourcentage graisse tronc</string>
+    <string name="graphs_fragment_period_always">Toujours</string>
+    <string name="graphs_fragment_period_four_months">4 mois</string>
+    <string name="graphs_fragment_period_half_year">6 mois</string>
+    <string name="graphs_fragment_period_month">1 mois</string>
+    <string name="graphs_fragment_period_six_weeks">6 semaines</string>
+    <string name="graphs_fragment_period_tag">Période</string>
+    <string name="graphs_fragment_period_two_months">2 mois</string>
+    <string name="graphs_fragment_period_two_weeks">2 semaines</string>
+    <string name="graphs_fragment_period_two_years">2 ans</string>
+    <string name="graphs_fragment_period_week">1 semaine</string>
+    <string name="graphs_fragment_period_year">1 an</string>
+    <string name="history_fragment_action_database">Base de données</string>
+    <string name="history_fragment_action_database_backup">Sauvegarder la base de données</string>
+    <string name="history_fragment_action_database_backup_ok">Base de données sauvegardée avec succès (Fichier : <xliff:g id="name">%1$s</xliff:g>)</string>
+    <string name="history_fragment_action_database_restore">Restaurer la base de données</string>
+    <string name="history_fragment_action_database_restore_ok">Base de données restaurée avec succès</string>
+    <string name="history_fragment_action_download">Télécharger</string>
+    <string name="history_fragment_action_export">Exporter</string>
+    <string name="history_fragment_action_export_csv">CSV</string>
+    <string name="history_fragment_date">Date</string>
+    <string name="history_fragment_download">Téléchargement de <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="history_fragment_download_complete">Téléchargement terminé</string>
+    <string name="history_fragment_download_in_progress">Téléchargement en cours</string>
+    <string name="hydration_percent_value_0">Faible</string>
+    <string name="hydration_percent_value_1">Bon</string>
+    <string name="hydration_percent_value_2">Élevé</string>
+    <string name="lateral_menu_close">Fermer le menu latéral</string>
+    <string name="lateral_menu_open">Ouvrir le menu latéral</string>
+    <string name="lateral_menu_option_about">À propos</string>
+    <string name="lateral_menu_option_goals">Objectifs</string>
+    <string name="lateral_menu_option_graphs">Graphiques</string>
+    <string name="lateral_menu_option_history">Historique</string>
+    <string name="lateral_menu_option_users">Utilisateurs</string>
+    <string name="lateral_menu_option_weight">Poids</string>
+    <string name="msg_problem_ant_permission_disabled">ANT Radio Service n\'a pas la permission d\'utiliser le matériel ANT. Veuillez l\'activer pour communiquer avec votre balance.</string>
+    <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> introuvable.\nVeuillez l\'installer depuis Google Play.</string>
+    <string name="msg_problem_setting_up_billing">Problème de configuration de la facturation in-app</string>
+    <string name="msg_problem_usb_stick_not_detected">Votre appareil ne semble pas avoir de radio ANT+ intégrée, vous devez connecter une clé USB ANT+ pour communiquer avec votre balance.</string>
+    <string name="msg_problem_usb_stick_not_detected_never">Ne plus afficher</string>
+    <string name="physique_rating_1">Obésité cachée</string>
+    <string name="physique_rating_2">Obèse</string>
+    <string name="physique_rating_3">Charpenté</string>
+    <string name="physique_rating_4">Manque d\'exercice</string>
+    <string name="physique_rating_5">Standard</string>
+    <string name="physique_rating_6">Standard musclé</string>
+    <string name="physique_rating_7">Mince</string>
+    <string name="physique_rating_8">Mince et musclé</string>
+    <string name="physique_rating_9">Très musclé</string>
+    <string name="pref_clear_garmin_token">Effacer les jetons Garmin</string>
+    <string name="pref_clear_garmin_token_summary">Efface les jetons Garmin OAuth1 et OAuth2. Ils seront régénérés lors d\'une connexion réussie.</string>
+    <string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
+    <string name="string_no_decimal_value" translatable="false">-%c-</string>
+    <string name="string_no_percent_value" translatable="false">- %%</string>
+    <string name="string_no_value" translatable="false">-</string>
+    <string name="users_fragment_action_add_user">Ajouter un utilisateur</string>
+    <string name="users_fragment_user_contextmenu_delete">Supprimer</string>
+    <string name="users_fragment_user_contextmenu_edit">Modifier</string>
+    <string name="users_fragment_user_contextmenu_title">Sélectionner l\'action</string>
+    <string name="users_fragment_user_contextmenu_upload_to">Envoyer vers <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="visceral_fat_plus13">Excès</string>
+    <string name="visceral_fat_sub13">Sain</string>
+    <string name="weight_edit_empty_value_error">La valeur ne peut pas être vide</string>
+    <string name="weight_edit_fragment_edit_weight">Modifier le poids</string>
+    <string name="weight_edit_fragment_kcal_tag">kcal</string>
+    <string name="weight_edit_fragment_kg_tag">kg</string>
+    <string name="weight_edit_fragment_lb_tag">lb</string>
+    <string name="weight_edit_fragment_percent_tag">%</string>
+    <string name="weight_edit_fragment_st_tag">st</string>
+    <string name="weight_edit_fragment_years_tag">ans</string>
+    <string name="weight_fragment_action_upload">Envoyer</string>
+    <string name="weight_fragment_action_weight">Poids</string>
+    <string name="weight_fragment_amr_abbreviation">AMR</string>
+    <string name="weight_fragment_bmi_tag">IMC</string>
+    <string name="weight_fragment_bmr_abbreviation">BMR</string>
+    <string name="weight_fragment_icon_desc_activeMet">Taux métabolique actif</string>
+    <string name="weight_fragment_icon_desc_basalMet">Taux métabolique basal</string>
+    <string name="weight_fragment_icon_desc_boneMass">Masse osseuse</string>
+    <string name="weight_fragment_icon_desc_leftArm">Bras gauche</string>
+    <string name="weight_fragment_icon_desc_leftLeg">Jambe gauche</string>
+    <string name="weight_fragment_icon_desc_metabolicAge">Âge métabolique</string>
+    <string name="weight_fragment_icon_desc_muscleMass">Masse musculaire</string>
+    <string name="weight_fragment_icon_desc_percentFat">Graisse corporelle</string>
+    <string name="weight_fragment_icon_desc_percentHydration">Eau corporelle</string>
+    <string name="weight_fragment_icon_desc_physiqueRating">Évaluation physique</string>
+    <string name="weight_fragment_icon_desc_rightArm">Bras droit</string>
+    <string name="weight_fragment_icon_desc_rightLeg">Jambe droite</string>
+    <string name="weight_fragment_icon_desc_trunk">Tronc</string>
+    <string name="weight_fragment_icon_desc_visceralFat">Graisse viscérale</string>
+    <string name="weight_fragment_icon_desc_weight">Poids</string>
+    <string name="weight_fragment_kcal_tag"><xliff:g id="number">%1$.0f</xliff:g> kcal</string>
+    <string name="weight_fragment_msg_found">Demande de mesure du poids</string>
+    <string name="weight_fragment_msg_problem_no_internet_connection">Pas de connexion internet pour le moment. Réessayez plus tard.</string>
+    <string name="weight_fragment_msg_searching">Recherche de la balance ANT+</string>
+    <string name="weight_fragment_msg_thankyou_purchasing">Merci pour la mise à niveau vers premium !</string>
+    <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> mis à jour avec succès</string>
+    <string name="weight_fragment_msg_uploading">Envoi en cours</string>
+    <string name="weight_fragment_msg_uploading_encoding_failure">Il y a eu un problème lors de la génération du fichier FIT</string>
+    <string name="weight_fragment_msg_uploading_failure">Il y a eu un problème lors de l\'envoi du fichier FIT vers Garmin Connect.\nRéessayez plus tard.</string>
+    <string name="weight_fragment_msg_waiting">En attente de la mesure du poids</string>
+    <string name="weight_fragment_msg_wrong_credentials">Nom d\'utilisateur ou mot de passe Garmin Connect incorrect !</string>
+    <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+    <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> ans</string>
+    <string name="weight_process_msg_error">Erreur</string>
+    <string name="weight_process_msg_problem_bind">Impossible de se lier au service ANT</string>
+    <string name="weight_process_msg_problem_event">Un événement s\'est produit : <xliff:g id="event">%1$s</xliff:g></string>
+    <string name="weight_process_msg_problem_not_barefoot">Analyse de la composition non disponible</string>
+    <string name="weight_process_msg_problem_scale_not_ready">Balance ANT+ non prête.\nRéessayez plus tard.</string>
+    <string name="weight_process_msg_problem_timeout">Balance ANT+ introuvable</string>
+    <string name="weight_process_msg_problem_timeout_measurements">Délai d\'attente des mesures de composition corporelle dépassé</string>
+    <string name="weight_process_msg_problem_timeout_weight">Délai d\'attente de la mesure du poids dépassé</string>
+    <string name="weight_process_msg_problem_while">Problème lors de <xliff:g id="name">%1$s</xliff:g></string>
+</resources>

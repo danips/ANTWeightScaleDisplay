@@ -1,0 +1,194 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="ant_radio_service">ANT Radio Service</string>
+    <string name="ant_usb_service">ANT USB Service</string>
+    <string name="app_name">ANT+ Vågdisplay</string>
+    <string name="auth_garmin_verification_cancel">Avbryt</string>
+    <string name="auth_garmin_verification_hint">Ange 6-siffrig kod</string>
+    <string name="auth_garmin_verification_message">Ange koden som skickats till din e-post/SMS:</string>
+    <string name="auth_garmin_verification_submit">Skicka</string>
+    <string name="auth_garmin_verification_title">Garmin-verifiering</string>
+    <string name="auth_notification_permission_enable">Aktivera</string>
+    <string name="auth_notification_permission_message">För att automatiskt upptäcka Garmin-koden från din e-post, vänligen aktivera åtkomst till aviseringar för denna app.</string>
+    <string name="auth_notification_permission_skip">Hoppa över</string>
+    <string name="auth_notification_permission_title">Aktivera automatisk verifiering?</string>
+    <string name="bmi_value_0">Undervikt</string>
+    <string name="bmi_value_1">Normal</string>
+    <string name="bmi_value_2">Övervikt</string>
+    <string name="bmi_value_3">Fetma</string>
+    <string name="edit_goal_fragment_color">Färg</string>
+    <string name="edit_goal_fragment_end">Slut</string>
+    <string name="edit_goal_fragment_goal">Mål</string>
+    <string name="edit_goal_fragment_start">Start</string>
+    <string name="edit_user_fragment_activity">Tid spenderad på träning per vecka</string>
+    <string name="edit_user_fragment_activity_option_0">Ingen träning</string>
+    <string name="edit_user_fragment_activity_option_1">Upp till 20 minuter</string>
+    <string name="edit_user_fragment_activity_option_2">21 till 40 minuter</string>
+    <string name="edit_user_fragment_activity_option_3">41 till 60 minuter</string>
+    <string name="edit_user_fragment_activity_option_4">1 till 5 timmar</string>
+    <string name="edit_user_fragment_activity_option_5">5 till 9 timmar</string>
+    <string name="edit_user_fragment_activity_option_6">Över 9 timmar</string>
+    <string name="edit_user_fragment_advanced_settings_category">Avancerade inställningar</string>
+    <string name="edit_user_fragment_athlete_mode">Atletläge</string>
+    <string name="edit_user_fragment_automatic_upload">Automatisk uppladdning</string>
+    <string name="edit_user_fragment_birthdate">Födelsedatum</string>
+    <string name="edit_user_fragment_connect_to">Anslut till <b><xliff:g id="name">%1$s</xliff:g></b></string>
+    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Ansluten till <b><xliff:g id="name">%1$s</xliff:g></b></string>
+    <string name="edit_user_fragment_dates_in_graph">Antal datum i diagrammet</string>
+    <string name="edit_user_fragment_email_category">E-post</string>
+    <string name="edit_user_fragment_fat_mass">Visa fettmassa</string>
+    <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
+    <string name="edit_user_fragment_gender">Kön</string>
+    <string name="edit_user_fragment_gender_option_female">Kvinna</string>
+    <string name="edit_user_fragment_gender_option_male">Man</string>
+    <string name="edit_user_fragment_height">Längd</string>
+    <string name="edit_user_fragment_msg_age_invalid">Ogiltig ålder. Den måste vara mellan 1 och 127 år.</string>
+    <string name="edit_user_fragment_msg_birthdate_missing">Födelsedatum saknas</string>
+    <string name="edit_user_fragment_msg_height_invalid">Ogiltig längd. Den måste vara mindre än 255 cm / 8\' 4\"</string>
+    <string name="edit_user_fragment_msg_height_missing">Längd saknas</string>
+    <string name="edit_user_fragment_msg_name_dup">Användarnamnet används redan</string>
+    <string name="edit_user_fragment_msg_name_missing">Användarnamn saknas</string>
+    <string name="edit_user_fragment_msg_user_missing">Du måste ange minst en giltig användare</string>
+    <string name="edit_user_fragment_password">Lösenord</string>
+    <string name="edit_user_fragment_units">Enheter</string>
+    <string name="edit_user_fragment_units_option_kg_cm">kg / cm</string>
+    <string name="edit_user_fragment_units_option_kg_ft">kg / ft, in</string>
+    <string name="edit_user_fragment_units_option_lb_cm">lb / cm</string>
+    <string name="edit_user_fragment_units_option_lb_ft">lb / ft, in</string>
+    <string name="edit_user_fragment_units_option_st_cm">st, lb / cm</string>
+    <string name="edit_user_fragment_units_option_st_ft">st, lb / ft, in</string>
+    <string name="edit_user_fragment_units_tag_cm">cm</string>
+    <string name="edit_user_fragment_units_tag_ft">\'</string>
+    <string name="edit_user_fragment_units_tag_in">\"</string>
+    <string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.1f</xliff:g> kg</string>
+    <string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.1f</xliff:g> lb</string>
+    <string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> st <xliff:g id="number">%2$.1f</xliff:g> lb</string>
+    <string name="edit_user_fragment_user">Användare</string>
+    <string name="fat_percent_value_0">Underfett</string>
+    <string name="fat_percent_value_1">Hälsosam</string>
+    <string name="fat_percent_value_2">Överfett</string>
+    <string name="fat_percent_value_3">Fetma</string>
+    <string name="gc_token_cleared">Garmin OAuth-tokens raderade!</string>
+    <string name="graphs_fragment_measure_tag">Mätning</string>
+    <string name="graphs_fragment_measurement_left_arm_muscle_mass">Muskelmassa vänster arm</string>
+    <string name="graphs_fragment_measurement_left_arm_percent_fat">Fettprocent vänster arm</string>
+    <string name="graphs_fragment_measurement_left_leg_muscle_mass">Muskelmassa vänster ben</string>
+    <string name="graphs_fragment_measurement_left_leg_percent_fat">Fettprocent vänster ben</string>
+    <string name="graphs_fragment_measurement_right_arm_muscle_mass">Muskelmassa höger arm</string>
+    <string name="graphs_fragment_measurement_right_arm_percent_fat">Fettprocent höger arm</string>
+    <string name="graphs_fragment_measurement_right_leg_muscle_mass">Muskelmassa höger ben</string>
+    <string name="graphs_fragment_measurement_right_leg_percent_fat">Fettprocent höger ben</string>
+    <string name="graphs_fragment_measurement_trunk_muscle_mass">Muskelmassa bål</string>
+    <string name="graphs_fragment_measurement_trunk_percent_fat">Fettprocent bål</string>
+    <string name="graphs_fragment_period_always">Alltid</string>
+    <string name="graphs_fragment_period_four_months">4 månader</string>
+    <string name="graphs_fragment_period_half_year">6 månader</string>
+    <string name="graphs_fragment_period_month">1 månad</string>
+    <string name="graphs_fragment_period_six_weeks">6 veckor</string>
+    <string name="graphs_fragment_period_tag">Period</string>
+    <string name="graphs_fragment_period_two_months">2 månader</string>
+    <string name="graphs_fragment_period_two_weeks">2 veckor</string>
+    <string name="graphs_fragment_period_two_years">2 år</string>
+    <string name="graphs_fragment_period_week">1 vecka</string>
+    <string name="graphs_fragment_period_year">1 år</string>
+    <string name="history_fragment_action_database">Databas</string>
+    <string name="history_fragment_action_database_backup">Säkerhetskopiera databas</string>
+    <string name="history_fragment_action_database_backup_ok">Databasen har säkerhetskopierats (Fil: <xliff:g id="name">%1$s</xliff:g>)</string>
+    <string name="history_fragment_action_database_restore">Återställ databas</string>
+    <string name="history_fragment_action_database_restore_ok">Databasen har återställts</string>
+    <string name="history_fragment_action_download">Ladda ner</string>
+    <string name="history_fragment_action_export">Exportera</string>
+    <string name="history_fragment_action_export_csv">CSV</string>
+    <string name="history_fragment_date">Datum</string>
+    <string name="history_fragment_download">Ladda ner <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="history_fragment_download_complete">Nedladdning klar</string>
+    <string name="history_fragment_download_in_progress">Nedladdning pågår</string>
+    <string name="hydration_percent_value_0">Låg</string>
+    <string name="hydration_percent_value_1">Bra</string>
+    <string name="hydration_percent_value_2">Hög</string>
+    <string name="lateral_menu_close">Stäng sidomenyn</string>
+    <string name="lateral_menu_open">Öppna sidomenyn</string>
+    <string name="lateral_menu_option_about">Om</string>
+    <string name="lateral_menu_option_goals">Mål</string>
+    <string name="lateral_menu_option_graphs">Grafer</string>
+    <string name="lateral_menu_option_history">Historik</string>
+    <string name="lateral_menu_option_users">Användare</string>
+    <string name="lateral_menu_option_weight">Vikt</string>
+    <string name="msg_problem_ant_permission_disabled">ANT Radio Service har inte behörighet att använda ANT-hårdvara. Aktivera den för att kommunicera med din våg.</string>
+    <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> hittades inte.\nInstallera den från Google Play.</string>
+    <string name="msg_problem_setting_up_billing">Problem med att konfigurera fakturering i appen</string>
+    <string name="msg_problem_usb_stick_not_detected">Din enhet verkar inte ha en integrerad ANT+-radio, du måste ansluta en ANT+ USB-sticka för att kommunicera med din våg.</string>
+    <string name="msg_problem_usb_stick_not_detected_never">Visa aldrig igen</string>
+    <string name="physique_rating_1">Dold fetma</string>
+    <string name="physique_rating_2">Fetma</string>
+    <string name="physique_rating_3">Kraftigt byggd</string>
+    <string name="physique_rating_4">Otränad</string>
+    <string name="physique_rating_5">Standard</string>
+    <string name="physique_rating_6">Standard muskulös</string>
+    <string name="physique_rating_7">Tunn</string>
+    <string name="physique_rating_8">Tunn och muskulös</string>
+    <string name="physique_rating_9">Mycket muskulös</string>
+    <string name="pref_clear_garmin_token">Rensa Garmin-tokens</string>
+    <string name="pref_clear_garmin_token_summary">Rensa Garmin OAuth1- och OAuth2-tokens. De kommer att återskapas vid lyckad inloggning.</string>
+    <string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
+    <string name="string_no_decimal_value" translatable="false">-%c-</string>
+    <string name="string_no_percent_value" translatable="false">- %%</string>
+    <string name="string_no_value" translatable="false">-</string>
+    <string name="users_fragment_action_add_user">Lägg till användare</string>
+    <string name="users_fragment_user_contextmenu_delete">Radera</string>
+    <string name="users_fragment_user_contextmenu_edit">Redigera</string>
+    <string name="users_fragment_user_contextmenu_title">Välj åtgärd</string>
+    <string name="users_fragment_user_contextmenu_upload_to">Ladda upp till <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="visceral_fat_plus13">Överskott</string>
+    <string name="visceral_fat_sub13">Hälsosam</string>
+    <string name="weight_edit_empty_value_error">Värdet får inte vara tomt</string>
+    <string name="weight_edit_fragment_edit_weight">Redigera vikt</string>
+    <string name="weight_edit_fragment_kcal_tag">kcal</string>
+    <string name="weight_edit_fragment_kg_tag">kg</string>
+    <string name="weight_edit_fragment_lb_tag">lb</string>
+    <string name="weight_edit_fragment_percent_tag">%</string>
+    <string name="weight_edit_fragment_st_tag">st</string>
+    <string name="weight_edit_fragment_years_tag">år</string>
+    <string name="weight_fragment_action_upload">Ladda upp</string>
+    <string name="weight_fragment_action_weight">Vikt</string>
+    <string name="weight_fragment_amr_abbreviation">AMR</string>
+    <string name="weight_fragment_bmi_tag">BMI</string>
+    <string name="weight_fragment_bmr_abbreviation">BMR</string>
+    <string name="weight_fragment_icon_desc_activeMet">Aktiv metabolisk hastighet</string>
+    <string name="weight_fragment_icon_desc_basalMet">Basalomsättning</string>
+    <string name="weight_fragment_icon_desc_boneMass">Benmassa</string>
+    <string name="weight_fragment_icon_desc_leftArm">Vänster arm</string>
+    <string name="weight_fragment_icon_desc_leftLeg">Vänster ben</string>
+    <string name="weight_fragment_icon_desc_metabolicAge">Metabolisk ålder</string>
+    <string name="weight_fragment_icon_desc_muscleMass">Muskelmassa</string>
+    <string name="weight_fragment_icon_desc_percentFat">Kroppsfett</string>
+    <string name="weight_fragment_icon_desc_percentHydration">Kroppsvatten</string>
+    <string name="weight_fragment_icon_desc_physiqueRating">Fysikbedömning</string>
+    <string name="weight_fragment_icon_desc_rightArm">Höger arm</string>
+    <string name="weight_fragment_icon_desc_rightLeg">Höger ben</string>
+    <string name="weight_fragment_icon_desc_trunk">Bål</string>
+    <string name="weight_fragment_icon_desc_visceralFat">Visceralt fett</string>
+    <string name="weight_fragment_icon_desc_weight">Vikt</string>
+    <string name="weight_fragment_kcal_tag"><xliff:g id="number">%1$.0f</xliff:g> kcal</string>
+    <string name="weight_fragment_msg_found">Begär viktmätning</string>
+    <string name="weight_fragment_msg_problem_no_internet_connection">Det finns ingen internetanslutning för tillfället. Försök igen senare.</string>
+    <string name="weight_fragment_msg_searching">Söker efter ANT+ våg</string>
+    <string name="weight_fragment_msg_thankyou_purchasing">Tack för att du uppgraderade till premium!</string>
+    <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> uppdaterades</string>
+    <string name="weight_fragment_msg_uploading">Laddar upp</string>
+    <string name="weight_fragment_msg_uploading_encoding_failure">Det uppstod ett problem när FIT-filen genererades</string>
+    <string name="weight_fragment_msg_uploading_failure">Det uppstod ett problem vid uppladdning av FIT-filen till Garmin Connect.\nFörsök igen senare.</string>
+    <string name="weight_fragment_msg_waiting">Väntar på viktmätning</string>
+    <string name="weight_fragment_msg_wrong_credentials">Fel Garmin Connect-användarnamn eller lösenord!</string>
+    <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+    <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> år</string>
+    <string name="weight_process_msg_error">Fel</string>
+    <string name="weight_process_msg_problem_bind">Kunde inte binda till ANT-tjänsten</string>
+    <string name="weight_process_msg_problem_event">Händelse inträffade: <xliff:g id="event">%1$s</xliff:g></string>
+    <string name="weight_process_msg_problem_not_barefoot">Kroppskompositionsanalys ej tillgänglig</string>
+    <string name="weight_process_msg_problem_scale_not_ready">ANT+ vågen är inte redo.\nFörsök igen senare.</string>
+    <string name="weight_process_msg_problem_timeout">ANT+ våg hittades inte</string>
+    <string name="weight_process_msg_problem_timeout_measurements">Tidsgräns för kroppskompositionsmätning nåddes</string>
+    <string name="weight_process_msg_problem_timeout_weight">Tidsgräns för viktmätning nåddes</string>
+    <string name="weight_process_msg_problem_while">Problem under <xliff:g id="name">%1$s</xliff:g></string>
+</resources>

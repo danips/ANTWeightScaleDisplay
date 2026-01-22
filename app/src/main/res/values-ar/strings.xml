@@ -3,6 +3,15 @@
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">خدمة اليو اس بي ANT</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
+    <string name="auth_garmin_verification_cancel">إلغاء</string>
+    <string name="auth_garmin_verification_hint">أدخل الرمز المكون من 6 أرقام</string>
+    <string name="auth_garmin_verification_message">أدخل الرمز المرسل إلى بريدك الإلكتروني/رسالة نصية:</string>
+    <string name="auth_garmin_verification_submit">إرسال</string>
+    <string name="auth_garmin_verification_title">تحقق Garmin</string>
+    <string name="auth_notification_permission_enable">تفعيل</string>
+    <string name="auth_notification_permission_message">للكشف التلقائي عن رمز Garmin من بريدك الإلكتروني، يرجى تفعيل وصول الإشعارات لهذا التطبيق.</string>
+    <string name="auth_notification_permission_skip">تخطي</string>
+    <string name="auth_notification_permission_title">تفعيل التحقق التلقائي؟</string>
 	<string name="bmi_value_0">ضعيف</string>
 	<string name="bmi_value_1">طبيعي</string>
 	<string name="bmi_value_2">سمنة</string>
@@ -59,8 +68,8 @@
 	<string name="fat_percent_value_1">صحية</string>
 	<string name="fat_percent_value_2">دهون زائدة</string>
 	<string name="fat_percent_value_3">سمنة مفرطة</string>
-	<string name="garmin_connect_invalid_password">Your Garmin Connect password is no longer valid according to Garmin\'s new policy.\n\nPlease update it.</string>
-	<string name="graphs_fragment_measure_tag">المقاسات</string>
+    <string name="gc_token_cleared">تم مسح رموز Garmin OAuth!</string>
+    <string name="graphs_fragment_measure_tag">المقاسات</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Left Leg Muscle Mass</string>
@@ -119,6 +128,8 @@
 	<string name="physique_rating_7">ضعيف</string>
 	<string name="physique_rating_8">ضعيف ولاكن عضلي</string>
 	<string name="physique_rating_9">شديد العضلات</string>
+    <string name="pref_clear_garmin_token">مسح رموز Garmin</string>
+    <string name="pref_clear_garmin_token_summary">امسح رموز Garmin OAuth1 و OAuth2. سيتم إعادة إنشائها عند تسجيل الدخول بنجاح.</string>
 	<string name="users_fragment_action_add_user">إضافة مستخدم</string>
 	<string name="users_fragment_user_contextmenu_delete">حذف</string>
 	<string name="users_fragment_user_contextmenu_edit">تحرير</string>

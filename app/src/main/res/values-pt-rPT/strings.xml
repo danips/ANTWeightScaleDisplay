@@ -1,8 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <string name="gc_token_cleared">Tokens Garmin OAuth limpos!</string>
+    <string name="pref_clear_garmin_token">Limpar tokens Garmin</string>
+    <string name="pref_clear_garmin_token_summary">Limpar tokens Garmin OAuth1 e OAuth2. Serão regenerados após um início de sessão bem-sucedido.</string>
 	<string name="ant_radio_service">ANT Rádio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
+    <string name="auth_garmin_verification_cancel">Cancelar</string>
+    <string name="auth_garmin_verification_hint">Introduza o código de 6 dígitos</string>
+    <string name="auth_garmin_verification_message">Introduza o código enviado para o seu email/SMS:</string>
+    <string name="auth_garmin_verification_submit">Submeter</string>
+    <string name="auth_garmin_verification_title">Verificação Garmin</string>
+    <string name="auth_notification_permission_enable">Ativar</string>
+    <string name="auth_notification_permission_message">Para detetar automaticamente o código Garmin do seu email, ative o acesso às notificações para esta aplicação.</string>
+    <string name="auth_notification_permission_skip">Ignorar</string>
+    <string name="auth_notification_permission_title">Ativar verificação automática?</string>
 	<string name="bmi_value_0">Baixo peso</string>
 	<string name="bmi_value_1">Normal</string>
 	<string name="bmi_value_2">Sobrepeso</string>
@@ -59,8 +71,7 @@
 	<string name="fat_percent_value_1">Saudável</string>
 	<string name="fat_percent_value_2">Excesso</string>
 	<string name="fat_percent_value_3">Obeso</string>
-	<string name="garmin_connect_invalid_password">Your Garmin Connect password is no longer valid according to Garmin\'s new policy.\n\nPlease update it.</string>
-	<string name="graphs_fragment_measure_tag">Measurement</string>
+    <string name="graphs_fragment_measure_tag">Measurement</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
 	<string name="graphs_fragment_measurement_left_leg_muscle_mass">Left Leg Muscle Mass</string>

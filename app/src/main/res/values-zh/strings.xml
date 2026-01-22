@@ -1,0 +1,194 @@
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+
+    <string name="ant_radio_service">ANT Radio Service</string>
+    <string name="ant_usb_service">ANT USB Service</string>
+    <string name="app_name">ANT+ 体重秤显示</string>
+    <string name="auth_garmin_verification_cancel">取消</string>
+    <string name="auth_garmin_verification_hint">输入 6 位代码</string>
+    <string name="auth_garmin_verification_message">输入发送到您的电子邮件/短信的代码：</string>
+    <string name="auth_garmin_verification_submit">提交</string>
+    <string name="auth_garmin_verification_title">Garmin 验证</string>
+    <string name="auth_notification_permission_enable">启用</string>
+    <string name="auth_notification_permission_message">要从电子邮件中自动检测 Garmin 代码，请为此应用启用通知访问权限。</string>
+    <string name="auth_notification_permission_skip">跳过</string>
+    <string name="auth_notification_permission_title">启用自动验证？</string>
+    <string name="bmi_value_0">体重不足</string>
+    <string name="bmi_value_1">正常</string>
+    <string name="bmi_value_2">超重</string>
+    <string name="bmi_value_3">肥胖</string>
+    <string name="edit_goal_fragment_color">颜色</string>
+    <string name="edit_goal_fragment_end">结束</string>
+    <string name="edit_goal_fragment_goal">目标</string>
+    <string name="edit_goal_fragment_start">开始</string>
+    <string name="edit_user_fragment_activity">每周锻炼时间</string>
+    <string name="edit_user_fragment_activity_option_0">无运动</string>
+    <string name="edit_user_fragment_activity_option_1">20分钟以下</string>
+    <string name="edit_user_fragment_activity_option_2">21至40分钟</string>
+    <string name="edit_user_fragment_activity_option_3">41至60分钟</string>
+    <string name="edit_user_fragment_activity_option_4">1至5小时</string>
+    <string name="edit_user_fragment_activity_option_5">5至9小时</string>
+    <string name="edit_user_fragment_activity_option_6">9小时以上</string>
+    <string name="edit_user_fragment_advanced_settings_category">高级设置</string>
+    <string name="edit_user_fragment_athlete_mode">运动员模式</string>
+    <string name="edit_user_fragment_automatic_upload">自动上传</string>
+    <string name="edit_user_fragment_birthdate">出生日期</string>
+    <string name="edit_user_fragment_connect_to">连接到 <b><xliff:g id="name">%1$s</xliff:g></b></string>
+    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> 已连接到 <b><xliff:g id="name">%1$s</xliff:g></b></string>
+    <string name="edit_user_fragment_dates_in_graph">图表中的日期数量</string>
+    <string name="edit_user_fragment_email_category">电子邮件</string>
+    <string name="edit_user_fragment_fat_mass">显示脂肪量</string>
+    <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
+    <string name="edit_user_fragment_gender">性别</string>
+    <string name="edit_user_fragment_gender_option_female">女性</string>
+    <string name="edit_user_fragment_gender_option_male">男性</string>
+    <string name="edit_user_fragment_height">身高</string>
+    <string name="edit_user_fragment_msg_age_invalid">年龄无效。必须在1到127岁之间。</string>
+    <string name="edit_user_fragment_msg_birthdate_missing">缺少出生日期</string>
+    <string name="edit_user_fragment_msg_height_invalid">身高无效。必须小于 255 cm / 8\' 4\"</string>
+    <string name="edit_user_fragment_msg_height_missing">缺少身高</string>
+    <string name="edit_user_fragment_msg_name_dup">该用户名已被使用</string>
+    <string name="edit_user_fragment_msg_name_missing">缺少用户名</string>
+    <string name="edit_user_fragment_msg_user_missing">你需要设置至少一个有效用户</string>
+    <string name="edit_user_fragment_password">密码</string>
+    <string name="edit_user_fragment_units">单位</string>
+    <string name="edit_user_fragment_units_option_kg_cm">千克 / 厘米</string>
+    <string name="edit_user_fragment_units_option_kg_ft">千克 / 英尺, 英寸</string>
+    <string name="edit_user_fragment_units_option_lb_cm">磅 / 厘米</string>
+    <string name="edit_user_fragment_units_option_lb_ft">磅 / 英尺, 英寸</string>
+    <string name="edit_user_fragment_units_option_st_cm">英石, 磅 / 厘米</string>
+    <string name="edit_user_fragment_units_option_st_ft">英石, 磅 / 英尺, 英寸</string>
+    <string name="edit_user_fragment_units_tag_cm">厘米</string>
+    <string name="edit_user_fragment_units_tag_ft">\'</string>
+    <string name="edit_user_fragment_units_tag_in">\"</string>
+    <string name="edit_user_fragment_units_tag_kg"><xliff:g id="number">%1$.1f</xliff:g> 千克</string>
+    <string name="edit_user_fragment_units_tag_lb"><xliff:g id="number">%1$.1f</xliff:g> 磅</string>
+    <string name="edit_user_fragment_units_tag_st"><xliff:g id="number">%1$.0f</xliff:g> 英石 <xliff:g id="number">%2$.1f</xliff:g> 磅</string>
+    <string name="edit_user_fragment_user">用户</string>
+    <string name="fat_percent_value_0">脂肪不足</string>
+    <string name="fat_percent_value_1">健康</string>
+    <string name="fat_percent_value_2">脂肪过多</string>
+    <string name="fat_percent_value_3">肥胖</string>
+    <string name="gc_token_cleared">Garmin OAuth 令牌已清除！</string>
+    <string name="graphs_fragment_measure_tag">测量项</string>
+    <string name="graphs_fragment_measurement_left_arm_muscle_mass">左臂肌肉量</string>
+    <string name="graphs_fragment_measurement_left_arm_percent_fat">左臂脂肪率</string>
+    <string name="graphs_fragment_measurement_left_leg_muscle_mass">左腿肌肉量</string>
+    <string name="graphs_fragment_measurement_left_leg_percent_fat">左腿脂肪率</string>
+    <string name="graphs_fragment_measurement_right_arm_muscle_mass">右臂肌肉量</string>
+    <string name="graphs_fragment_measurement_right_arm_percent_fat">右臂脂肪率</string>
+    <string name="graphs_fragment_measurement_right_leg_muscle_mass">右腿肌肉量</string>
+    <string name="graphs_fragment_measurement_right_leg_percent_fat">右腿脂肪率</string>
+    <string name="graphs_fragment_measurement_trunk_muscle_mass">躯干肌肉量</string>
+    <string name="graphs_fragment_measurement_trunk_percent_fat">躯干脂肪率</string>
+    <string name="graphs_fragment_period_always">全部</string>
+    <string name="graphs_fragment_period_four_months">4个月</string>
+    <string name="graphs_fragment_period_half_year">半年</string>
+    <string name="graphs_fragment_period_month">1个月</string>
+    <string name="graphs_fragment_period_six_weeks">6周</string>
+    <string name="graphs_fragment_period_tag">周期</string>
+    <string name="graphs_fragment_period_two_months">2个月</string>
+    <string name="graphs_fragment_period_two_weeks">2周</string>
+    <string name="graphs_fragment_period_two_years">2年</string>
+    <string name="graphs_fragment_period_week">1周</string>
+    <string name="graphs_fragment_period_year">1年</string>
+    <string name="history_fragment_action_database">数据库</string>
+    <string name="history_fragment_action_database_backup">备份数据库</string>
+    <string name="history_fragment_action_database_backup_ok">数据库备份成功 (文件 : <xliff:g id="name">%1$s</xliff:g>)</string>
+    <string name="history_fragment_action_database_restore">恢复数据库</string>
+    <string name="history_fragment_action_database_restore_ok">数据库恢复成功</string>
+    <string name="history_fragment_action_download">下载</string>
+    <string name="history_fragment_action_export">导出</string>
+    <string name="history_fragment_action_export_csv">CSV</string>
+    <string name="history_fragment_date">日期</string>
+    <string name="history_fragment_download">下载 <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="history_fragment_download_complete">下载完成</string>
+    <string name="history_fragment_download_in_progress">下载进行中</string>
+    <string name="hydration_percent_value_0">低</string>
+    <string name="hydration_percent_value_1">好</string>
+    <string name="hydration_percent_value_2">高</string>
+    <string name="lateral_menu_close">关闭侧边菜单</string>
+    <string name="lateral_menu_open">打开侧边菜单</string>
+    <string name="lateral_menu_option_about">关于</string>
+    <string name="lateral_menu_option_goals">目标</string>
+    <string name="lateral_menu_option_graphs">图表</string>
+    <string name="lateral_menu_option_history">历史记录</string>
+    <string name="lateral_menu_option_users">用户</string>
+    <string name="lateral_menu_option_weight">体重</string>
+    <string name="msg_problem_ant_permission_disabled">ANT Radio Service 没有使用 ANT 硬件的权限。请启用权限以连接您的体重秤。</string>
+    <string name="msg_problem_service_not_found">未找到 <b><xliff:g id="name">%1$s</xliff:g></b>。\n请从 Google Play 安装。</string>
+    <string name="msg_problem_setting_up_billing">设置应用内购买时出现问题</string>
+    <string name="msg_problem_usb_stick_not_detected">您的设备似乎没有内置 ANT+ 无线模块，您需要连接 ANT+ USB 接收器才能与体重秤通信。</string>
+    <string name="msg_problem_usb_stick_not_detected_never">不再显示</string>
+    <string name="physique_rating_1">隐性肥胖</string>
+    <string name="physique_rating_2">肥胖</string>
+    <string name="physique_rating_3">结实</string>
+    <string name="physique_rating_4">缺乏运动</string>
+    <string name="physique_rating_5">标准</string>
+    <string name="physique_rating_6">标准肌肉型</string>
+    <string name="physique_rating_7">消瘦</string>
+    <string name="physique_rating_8">消瘦肌肉型</string>
+    <string name="physique_rating_9">非常肌肉型</string>
+    <string name="pref_clear_garmin_token">清除 Garmin 令牌</string>
+    <string name="pref_clear_garmin_token_summary">清除 Garmin OAuth1 和 OAuth2 令牌。成功登录后将重新生成它们。</string>
+    <string name="string_no_decimal_percent_value" translatable="false">-%c- %%</string>
+    <string name="string_no_decimal_value" translatable="false">-%c-</string>
+    <string name="string_no_percent_value" translatable="false">- %%</string>
+    <string name="string_no_value" translatable="false">-</string>
+    <string name="users_fragment_action_add_user">添加用户</string>
+    <string name="users_fragment_user_contextmenu_delete">删除</string>
+    <string name="users_fragment_user_contextmenu_edit">编辑</string>
+    <string name="users_fragment_user_contextmenu_title">选择操作</string>
+    <string name="users_fragment_user_contextmenu_upload_to">上传至 <xliff:g id="name">%1$s</xliff:g></string>
+    <string name="visceral_fat_plus13">过量</string>
+    <string name="visceral_fat_sub13">健康</string>
+    <string name="weight_edit_empty_value_error">数值不能为空</string>
+    <string name="weight_edit_fragment_edit_weight">编辑体重</string>
+    <string name="weight_edit_fragment_kcal_tag">千卡</string>
+    <string name="weight_edit_fragment_kg_tag">千克</string>
+    <string name="weight_edit_fragment_lb_tag">磅</string>
+    <string name="weight_edit_fragment_percent_tag">%</string>
+    <string name="weight_edit_fragment_st_tag">英石</string>
+    <string name="weight_edit_fragment_years_tag">岁</string>
+    <string name="weight_fragment_action_upload">上传</string>
+    <string name="weight_fragment_action_weight">体重</string>
+    <string name="weight_fragment_amr_abbreviation">AMR</string>
+    <string name="weight_fragment_bmi_tag">BMI</string>
+    <string name="weight_fragment_bmr_abbreviation">BMR</string>
+    <string name="weight_fragment_icon_desc_activeMet">活动代谢率</string>
+    <string name="weight_fragment_icon_desc_basalMet">基础代谢率</string>
+    <string name="weight_fragment_icon_desc_boneMass">骨量</string>
+    <string name="weight_fragment_icon_desc_leftArm">左臂</string>
+    <string name="weight_fragment_icon_desc_leftLeg">左腿</string>
+    <string name="weight_fragment_icon_desc_metabolicAge">代谢年龄</string>
+    <string name="weight_fragment_icon_desc_muscleMass">肌肉量</string>
+    <string name="weight_fragment_icon_desc_percentFat">体脂</string>
+    <string name="weight_fragment_icon_desc_percentHydration">体水分</string>
+    <string name="weight_fragment_icon_desc_physiqueRating">体型判定</string>
+    <string name="weight_fragment_icon_desc_rightArm">右臂</string>
+    <string name="weight_fragment_icon_desc_rightLeg">右腿</string>
+    <string name="weight_fragment_icon_desc_trunk">躯干</string>
+    <string name="weight_fragment_icon_desc_visceralFat">内脏脂肪</string>
+    <string name="weight_fragment_icon_desc_weight">体重</string>
+    <string name="weight_fragment_kcal_tag"><xliff:g id="number">%1$.0f</xliff:g> 千卡</string>
+    <string name="weight_fragment_msg_found">请求体重测量</string>
+    <string name="weight_fragment_msg_problem_no_internet_connection">当前没有网络连接。请稍后再试。</string>
+    <string name="weight_fragment_msg_searching">正在搜索 ANT+ 体重秤</string>
+    <string name="weight_fragment_msg_thankyou_purchasing">感谢升级至高级版！</string>
+    <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> 更新成功</string>
+    <string name="weight_fragment_msg_uploading">正在上传</string>
+    <string name="weight_fragment_msg_uploading_encoding_failure">生成 FIT 文件时出现问题</string>
+    <string name="weight_fragment_msg_uploading_failure">上传 FIT 文件至 Garmin Connect 时出现问题。\n请稍后再试。</string>
+    <string name="weight_fragment_msg_waiting">等待体重测量</string>
+    <string name="weight_fragment_msg_wrong_credentials">Garmin Connect 用户名或密码错误！</string>
+    <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
+    <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> 岁</string>
+    <string name="weight_process_msg_error">错误</string>
+    <string name="weight_process_msg_problem_bind">无法绑定 ANT 服务</string>
+    <string name="weight_process_msg_problem_event">发生事件: <xliff:g id="event">%1$s</xliff:g></string>
+    <string name="weight_process_msg_problem_not_barefoot">无法进行身体成分分析</string>
+    <string name="weight_process_msg_problem_scale_not_ready">ANT+ 体重秤未就绪。\n请稍后再试。</string>
+    <string name="weight_process_msg_problem_timeout">未找到 ANT+ 体重秤</string>
+    <string name="weight_process_msg_problem_timeout_measurements">身体成分测量超时</string>
+    <string name="weight_process_msg_problem_timeout_weight">体重测量超时</string>
+    <string name="weight_process_msg_problem_while"><xliff:g id="name">%1$s</xliff:g> 时出现问题</string>
+</resources>
