@@ -35,38 +35,9 @@
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">match_parent</item>
     </style>
-
-    <style name="TableRowFirst" parent="FillWrap">
-        <item name="android:orientation">horizontal</item>
-    </style>
-    <style name="TableRow" parent="FillWrap">
-        <item name="android:orientation">horizontal</item>
-        <item name="android:layout_marginTop">16dp</item>
-    </style>
-    <style name="ImageViewMini" parent="WrapWrap">
-        <item name="android:visibility">invisible</item>
-    </style>
-    <style name="ImageView" parent="WrapWrap">
-        <item name="android:background">@drawable/rounded_blue</item>
-    </style>
-    <style name="ImageViewDisabled" parent="WrapWrap">
-        <item name="android:background">@drawable/rounded_grey</item>
-    </style>
-    <style name="LinearLayout" parent="FillFill">
-        <item name="android:orientation">vertical</item>
-        <item name="android:gravity">center_vertical</item>
-    </style>
     <style name="CellTextViewLarge" parent="FillWrap">
         <item name="android:paddingLeft">12dp</item>
         <item name="android:textAppearance">?android:textAppearanceLarge</item>
-    </style>
-    <style name="CellTextViewMedium" parent="FillWrap">
-        <item name="android:paddingLeft">12dp</item>
-        <item name="android:textAppearance">?android:textAppearanceMedium</item>
-    </style>
-    <style name="CellTextViewSmall" parent="FillWrap">
-        <item name="android:paddingLeft">12dp</item>
-        <item name="android:textAppearance">?android:textAppearanceSmall</item>
     </style>
     <style name="EditWeightIV" parent="WrapWrap">
         <item name="android:background">@drawable/rounded_blue</item>
