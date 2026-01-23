@@ -79,10 +79,6 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         }
     };
 
-    public GraphsFragment() {
-        // Empty constructor required for fragment subclasses
-    }
-
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
@@ -811,13 +807,13 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         private final boolean pounds;
 
         // Added standard constructor for tools
-        public MyMarkerView(Context context) {
+        /*public MyMarkerView(Context context) {
             super(context, R.layout.custom_marker_view);
             tvContent = findViewById(R.id.tvContent);
             this.measureFormat = "%.1f";
             this.stones = false;
             this.pounds = false;
-        }
+        }*/
 
         public MyMarkerView(Context context, int layoutResource, String measureFormat, boolean stones, boolean pounds) {
             super(context, layoutResource);

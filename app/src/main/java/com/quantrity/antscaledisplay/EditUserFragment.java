@@ -83,8 +83,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             }
     );
 
-    public EditUserFragment() {}
-
     private static void hideSoftKeyboard(Activity activity) {
         InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
         if ((activity.getCurrentFocus() != null) && (inputMethodManager != null)) inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
@@ -123,7 +121,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         User tmp = new User();
 
         if (et_name.getText().length() == 0) {
-            //Rellenar nombre
             showMessage(R.string.edit_user_fragment_msg_name_missing);
             return null;
         }
@@ -141,14 +138,12 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         tmp.name = et_name.getText().toString().trim().replaceAll("[\n\r]", "");
         tmp.isMale = (rg_gender.getCheckedRadioButtonId() == R.id.rb_male);
         if (birthdate_millis == -1) {
-            //Corregir edad
             showMessage(R.string.edit_user_fragment_msg_birthdate_missing);
             return null;
         }
         tmp.birthdate = birthdate_millis;
         tmp.age = User.calcAgeNow(birthdate_millis);
         if ((tmp.age < 1) || (tmp.age > 127)) {
-            //Corregir edad
             showMessage(R.string.edit_user_fragment_msg_age_invalid);
             return null;
         }

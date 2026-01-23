@@ -74,8 +74,6 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
     User the_user;
     boolean edit;
 
-    public EditWeightFragment() { }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

@@ -102,10 +102,6 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             }
     );
 
-    public HistoryFragment() {
-        // Empty constructor required for fragment subclasses
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

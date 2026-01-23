@@ -21,10 +21,6 @@ public class GoalsFragment extends Fragment implements MenuProvider {
 
     private GoalAdapter mAdapter;
 
-    public GoalsFragment() {
-        // Empty constructor required for fragment subclasses
-    }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

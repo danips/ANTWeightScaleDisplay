@@ -32,8 +32,6 @@ public class WeightFragment extends Fragment implements MenuProvider {
     User userToUpload = null;
     private Spinner usersSpinner;
 
-    public WeightFragment() { }
-
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

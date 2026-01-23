@@ -70,9 +70,9 @@ public class User {
         deserializeFromObj(obj);
     }
 
-    public User(String serializedObj) throws JSONException {
+    /*public User(String serializedObj) throws JSONException {
         deserialize(serializedObj);
-    }
+    }*/
 
     static String usersFilePath(Context context) {
         return context.getFilesDir() + "/users";

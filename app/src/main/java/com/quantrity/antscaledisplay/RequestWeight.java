@@ -19,6 +19,7 @@ import android.util.Log;
 
 import com.dsi.ant.IAnt_6;
 
+import java.util.Objects;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -107,6 +108,7 @@ class RequestWeight {
 
             if ((antAction != null) && antAction.equals("com.dsi.ant.intent.action.ANT_RX_MESSAGE_ACTION")) {
                 byte[] antMessage = intent.getByteArrayExtra("com.dsi.ant.intent.ANT_MESSAGE");
+                assert antMessage != null;
                 int len = antMessage[0];
                 if (len != antMessage.length - 2 || antMessage.length <= 2) {
                     if (Debug.ON) Log.e(TAG, "Invalid message: " + messageToString(antMessage));
@@ -752,12 +754,13 @@ class RequestWeight {
                     PackageInfo pi = sContext.getApplicationContext().getPackageManager().getPackageInfo("com.dsi.ant.service.socket", PackageManager.GET_PERMISSIONS);
                     final String[] requestedPermissions = pi.requestedPermissions;
                     boolean enabled = false;
-                    for (int i = 0, len = requestedPermissions.length; i < len; i++) {
-                        if (requestedPermissions[i].startsWith("com.dsi.ant.permission.ANT") &&
-                                ((pi.requestedPermissionsFlags[i] & PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0))
-                        {
-                            enabled = true;
-                            break;
+                    for (int i = 0, len = Objects.requireNonNull(requestedPermissions).length; i < len; i++) {
+                        if (requestedPermissions[i].startsWith("com.dsi.ant.permission.ANT")) {
+                            assert pi.requestedPermissionsFlags != null;
+                            if ((pi.requestedPermissionsFlags[i] & PackageInfo.REQUESTED_PERMISSION_GRANTED) != 0) {
+                                enabled = true;
+                                break;
+                            }
                         }
                     }
                     if (!enabled)

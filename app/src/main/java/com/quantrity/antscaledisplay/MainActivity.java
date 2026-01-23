@@ -12,9 +12,7 @@ import android.content.pm.ResolveInfo;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -698,11 +696,9 @@ public class MainActivity extends AppCompatActivity
     /***
      * Android L (lollipop, API 21) introduced a new problem when trying to invoke implicit intent,
      * "java.lang.IllegalArgumentException: Service Intent must be explicit"
-     *
      * If you are using an implicit intent, and know only 1 target would answer this intent,
      * This method will help you turn the implicit intent into the explicit form.
-     *
-     * Inspired from SO answer: http://stackoverflow.com/a/26318757/1446466
+     * Inspired from SO answer: <a href="http://stackoverflow.com/a/26318757/1446466">...</a>
      * @param context -
      * @param implicitIntent - The original implicit intent
      * @return Explicit Intent created from the implicit original intent
