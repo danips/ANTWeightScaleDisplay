@@ -34,7 +34,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:paddingLeft="12dp"
+                android:layout_marginStart="12dp"
                 app:layout_constraintStart_toEndOf="@+id/row_weight_dateTV"
                 app:layout_constraintTop_toTopOf="parent"
                 android:textColor="?android:attr/textColorSecondary"/>
@@ -45,7 +45,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:paddingLeft="12dp"
+                android:layout_marginStart="12dp"
                 android:textStyle="bold"
                 android:textColor="@android:color/holo_blue_dark"
                 app:layout_constraintStart_toEndOf="@+id/row_weight_timeTV"
@@ -57,7 +57,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
-                android:paddingLeft="12dp"
+                android:layout_marginStart="12dp"
                 app:layout_constraintStart_toEndOf="@+id/row_weight_weightTV"
                 app:layout_constraintTop_toTopOf="parent"
                 android:layout_marginEnd="16dp"/>

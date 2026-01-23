@@ -264,8 +264,7 @@
             android:drawablePadding="10dip"
             android:drawableStart="@drawable/ic_gmail"
             android:hint="@string/edit_user_fragment_email_category"
-            android:inputType="textEmailAddress"
-            android:drawableLeft="@drawable/ic_gmail"/>
+            android:inputType="textEmailAddress"/>
     </TableRow>
 
     <TableRow>
