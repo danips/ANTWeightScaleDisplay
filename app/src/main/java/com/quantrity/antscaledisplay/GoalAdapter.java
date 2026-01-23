@@ -365,13 +365,13 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
                 lbs = Math.abs(totalProgress * 2.20462262);
                 divisor = (float)Math.floor(lbs / 14);
                 remainder = lbs % 14;
-                holder.totalProgressTV.setText(sign + String.format(Locale.getDefault(), mContext.getResources().getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder));
+                holder.totalProgressTV.setText(mContext.getString(R.string.format_signed_value, sign, String.format(Locale.getDefault(), mContext.getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder)));
                 sign = (onTrackProgress > 0) ? "+" : "-";
                 lbs = Math.abs(onTrackProgress * 2.20462262);
                 divisor = (float)Math.floor(lbs / 14);
                 remainder = lbs % 14;
                 if ((now <= item.end_date) && (now >= item.start_date)) {
-                    holder.onTrackProgressTV.setText(sign + String.format(Locale.getDefault(),mContext.getResources().getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder));
+                    holder.onTrackProgressTV.setText(mContext.getString(R.string.format_signed_value, sign, String.format(Locale.getDefault(), mContext.getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder)));
                 }
             } else {
                 holder.totalProgressTV.setText(String.format(mContext.getResources().getString(R.string.edit_user_fragment_units_tag_kg), totalProgress));
@@ -382,25 +382,28 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
                 holder.endValueTV.setText(String.format(mContext.getResources().getString(R.string.edit_user_fragment_units_tag_kg), item.end_value));
             }
         }
+        String sign = "";
         if (totalProgress <= 0)
         {
             holder.totalProgressTV.setTextColor(downColor);
-            holder.totalProgressTV.setText("Σ " + holder.totalProgressTV.getText());
         }
         else
         {
             holder.totalProgressTV.setTextColor(upColor);
-            holder.totalProgressTV.setText("Σ +" + holder.totalProgressTV.getText());
+            sign = "+";
         }
+        holder.totalProgressTV.setText(mContext.getString(R.string.format_total_sigma, sign, holder.totalProgressTV.getText().toString()));
+
         if (holder.onTrackProgressTV.getText().length() != 0) {
             if (onTrackProgress <= 0) {
                 holder.onTrackProgressTV.setTextColor(downColor);
-                holder.onTrackProgressTV.setText("Δ " + holder.onTrackProgressTV.getText());
+                sign = "";
             } else {
                 holder.onTrackProgressTV.setTextColor(upColor);
-                holder.onTrackProgressTV.setText("Δ +" + holder.onTrackProgressTV.getText());
+                sign = "+";
             }
         }
+        holder.onTrackProgressTV.setText(mContext.getString(R.string.format_delta, sign, holder.onTrackProgressTV.getText().toString()));
     }
 
     // Return the size of your dataset (invoked by the layout manager)

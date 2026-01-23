@@ -68,6 +68,9 @@
 	<string name="fat_percent_value_1">Healthy</string>
 	<string name="fat_percent_value_2">Overfat</string>
 	<string name="fat_percent_value_3">Obese</string>
+    <string name="format_signed_value" translatable="false">%1$s%2$s</string>
+    <string name="format_delta" translatable="false">Δ %1$s%2$s</string>
+    <string name="format_total_sigma" translatable="false">Σ %1$s%2$s</string>
     <string name="gc_token_cleared">Cleared Garmin OAuth tokens!</string>
     <string name="graphs_fragment_measure_tag">Measurement</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
