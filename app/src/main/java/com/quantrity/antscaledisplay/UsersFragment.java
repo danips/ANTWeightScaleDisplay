@@ -287,16 +287,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
                         }
                     } else {
                         // check for and create parent directories if they don't exist
-                        File parentDir = unzipFile.getParentFile();
-                        if (null != parentDir) {
-                            if (!parentDir.isDirectory()) {
-                                boolean ignored = parentDir.mkdirs();
-                            }
-                        }
-
-                        // unzip the file
-                        FileOutputStream out = new FileOutputStream(unzipFile, false);
-                        BufferedOutputStream fout = new BufferedOutputStream(out, BUFFER_SIZE);
+                        BufferedOutputStream fout = getBufferedOutputStream(unzipFile);
                         try {
                             while ((size = zin.read(buffer, 0, BUFFER_SIZE)) != -1) {
                                 fout.write(buffer, 0, size);
@@ -317,5 +308,20 @@ public class UsersFragment extends Fragment implements MenuProvider {
             Log.v(TAG, "Unzip exception " + e.getMessage());
         }
         return ok;
+    }
+
+    @NonNull
+    private static BufferedOutputStream getBufferedOutputStream(File unzipFile) throws FileNotFoundException {
+        File parentDir = unzipFile.getParentFile();
+        if (null != parentDir) {
+            if (!parentDir.isDirectory()) {
+                boolean ignored = parentDir.mkdirs();
+            }
+        }
+
+        // unzip the file
+        FileOutputStream out = new FileOutputStream(unzipFile, false);
+        BufferedOutputStream fout = new BufferedOutputStream(out, BUFFER_SIZE);
+        return fout;
     }
 }

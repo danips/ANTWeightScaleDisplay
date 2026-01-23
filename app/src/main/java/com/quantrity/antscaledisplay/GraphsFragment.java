@@ -626,7 +626,32 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
                             {
                                 continue;
                             }
-                            LineDataSet goal = getLineDataSet(g);
+                            Entry g1 = new Entry(g.start_date, (float) g.start_value);
+                            Entry g2;
+                            /*double time = (g.start_date + 0.1 * window * 1000 * 60 * 60 * 24);
+                            Log.v(TAG, "XXXX " + time + " " + window + " " + g.start_date);
+                            Log.v(TAG, "XXXX " + (0.1 * window * 1000 * 60 * 60 * 24));
+                            Log.v(TAG, time + " " + g.end_date);
+                            if (time < g.end_date) {
+                                double val = (time - g.start_date) / (g.end_date - g.start_date);
+                                val *= (g.end_value - g.start_value);
+                                val += g.start_value;
+                                //double val = (((time - g.start_value) * (g.end_value - g.start_value) / (g.end_date - g.start_value)) + g.start_date);
+                                //double val = (((time - g.start_value) * (g.end_value - g.start_value) / (g.end_date - g.start_value)) + g.start_date);
+                                g2 = new Entry((float) time, (float) val);
+                            }
+                            else {*/
+                            g2 = new Entry(g.end_date, (float) g.end_value);
+                            //}
+                            ArrayList<Entry> oGoal = new ArrayList<>();
+                            oGoal.add(g1);
+                            oGoal.add(g2);
+                            LineDataSet goal = new LineDataSet(oGoal, null);
+                            goal.setColor(g.color);
+                            goal.setLineWidth(1f);
+                            goal.enableDashedLine(8f, 5f, 0f);
+                            goal.setDrawCircles(false);
+                            goal.setDrawValues(false);
                             dataSets.add(goal);
                         }
                     }
@@ -656,37 +681,6 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         mChart.moveViewToX(oData.get(oData.size() - 1).getX());
 
         mChart.setOnChartGestureListener(this);
-    }
-
-    @NonNull
-    private LineDataSet getLineDataSet(Goal g) {
-        Entry g1 = new Entry(g.start_date, (float) g.start_value);
-        Entry g2;
-        /*double time = (g.start_date + 0.1 * window * 1000 * 60 * 60 * 24);
-        Log.v(TAG, "XXXX " + time + " " + window + " " + g.start_date);
-        Log.v(TAG, "XXXX " + (0.1 * window * 1000 * 60 * 60 * 24));
-        Log.v(TAG, time + " " + g.end_date);
-        if (time < g.end_date) {
-            double val = (time - g.start_date) / (g.end_date - g.start_date);
-            val *= (g.end_value - g.start_value);
-            val += g.start_value;
-            //double val = (((time - g.start_value) * (g.end_value - g.start_value) / (g.end_date - g.start_value)) + g.start_date);
-            //double val = (((time - g.start_value) * (g.end_value - g.start_value) / (g.end_date - g.start_value)) + g.start_date);
-            g2 = new Entry((float) time, (float) val);
-        }
-        else {*/
-        g2 = new Entry(g.end_date, (float) g.end_value);
-        //}
-        ArrayList<Entry> oGoal = new ArrayList<>();
-        oGoal.add(g1);
-        oGoal.add(g2);
-        LineDataSet goal = new LineDataSet(oGoal, null);
-        goal.setColor(g.color);
-        goal.setLineWidth(1f);
-        goal.enableDashedLine(8f, 5f, 0f);
-        goal.setDrawCircles(false);
-        goal.setDrawValues(false);
-        return goal;
     }
 
     private void addAverage(float end, float span, ArrayList<Entry> oData)

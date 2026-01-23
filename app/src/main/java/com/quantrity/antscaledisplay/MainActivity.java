@@ -580,8 +580,9 @@ public class MainActivity extends AppCompatActivity
                 pos = NAV_POS_GOALS;
                 fragment = new GoalsFragment();
             }
+        } else {
+            return false;
         }
-
         // update selected item and title, then close the drawer
         if (fragment != null) {
             getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commit();
