@@ -13,6 +13,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
 import androidx.lifecycle.Observer;
 
 import org.json.JSONObject;
@@ -22,6 +23,7 @@ import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.CookieHandler;
@@ -348,16 +350,7 @@ public class GarminConnect {
         String twoHyphens = "--";
 
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(UPLOAD_URL).openConnection();
-            conn.setDoInput(true);
-            conn.setDoOutput(true);
-            conn.setUseCaches(false);
-            conn.setRequestMethod("POST");
-
-            conn.setRequestProperty("Authorization", "Bearer " + oauth2Token.accessToken);
-            conn.setRequestProperty("User-Agent", USER_AGENT);
-            conn.setRequestProperty("NK", "NT");
-            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+            HttpURLConnection conn = getHttpURLConnection(boundary);
 
             try (DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
                 dos.writeBytes(twoHyphens + boundary + lineEnd);
@@ -398,6 +391,21 @@ public class GarminConnect {
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
+    }
+
+    @NonNull
+    private HttpURLConnection getHttpURLConnection(String boundary) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(UPLOAD_URL).openConnection();
+        conn.setDoInput(true);
+        conn.setDoOutput(true);
+        conn.setUseCaches(false);
+        conn.setRequestMethod("POST");
+
+        conn.setRequestProperty("Authorization", "Bearer " + oauth2Token.accessToken);
+        conn.setRequestProperty("User-Agent", USER_AGENT);
+        conn.setRequestProperty("NK", "NT");
+        conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+        return conn;
     }
 
     public boolean downloadHistory(StringBuilder result) {
