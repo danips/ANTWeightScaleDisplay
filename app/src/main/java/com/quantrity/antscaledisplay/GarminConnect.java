@@ -687,16 +687,7 @@ public class GarminConnect {
         }
 
         try {
-            HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
-            conn.setRequestMethod("POST");
-            conn.setDoOutput(true);
-            conn.setRequestProperty("User-Agent", USER_AGENT);
-            conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-
-            String data = "grant_type=refresh_token&refresh_token=" + ref;
-            try(DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
-                dos.writeBytes(data);
-            }
+            HttpURLConnection conn = getUrlConnection(ref);
 
             if (conn.getResponseCode() == 200) {
                 String body = readStream(conn.getInputStream());
@@ -713,6 +704,21 @@ public class GarminConnect {
             Log.e(TAG, "[ERROR] Token Refresh failed", e);
         }
         return false;
+    }
+
+    @NonNull
+    private HttpURLConnection getUrlConnection(String ref) throws IOException {
+        HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
+        conn.setRequestMethod("POST");
+        conn.setDoOutput(true);
+        conn.setRequestProperty("User-Agent", USER_AGENT);
+        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+
+        String data = "grant_type=refresh_token&refresh_token=" + ref;
+        try(DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
+            dos.writeBytes(data);
+        }
+        return conn;
     }
 
     private static class HttpResponse {
