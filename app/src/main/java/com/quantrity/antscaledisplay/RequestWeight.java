@@ -909,7 +909,6 @@ class RequestWeight {
 
         if (reason != null) {
             if (sFragment.getActivity() != null) {
-                //handler.post(new Runnable() {
                 sFragment.getActivity().runOnUiThread(() -> {
                     AlertDialog.Builder builder = new AlertDialog.Builder(sContext);
                     builder.setMessage(reason).
@@ -925,7 +924,6 @@ class RequestWeight {
                             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
                             sContext.startActivity(intent);
                             dialog.cancel();
-                            //finish();
                         }).setCancelable(false);
                     }
                     else
@@ -937,16 +935,26 @@ class RequestWeight {
             }
         }
 
-        if (the_weight.weight != -1) {
+        // FIX: Only save if there was no error (reason == null)
+        if (reason == null && the_weight.weight != -1) {
             //Weight OK, save to history
             the_weight.uuid = the_user.uuid;
             the_weight.age = the_user.age;
             the_weight.isMale = the_user.isMale;
             the_weight.height = the_user.height_cm;
             ((MainActivity)sContext).saveWeight(the_weight);
+        } else {
+            // FIX: If failed, ensure the_weight is invalid/reset so UI doesn't show partial data
+            the_weight = new Weight();
         }
 
-        sFragment.userToUpload = the_user;
+        // FIX: Only trigger upload if successful (reason == null)
+        if (reason == null) {
+            sFragment.userToUpload = the_user;
+        } else {
+            sFragment.userToUpload = null;
+        }
+
         sFragment.updateUi();
 
         if(Debug.ON) Log.d(TAG, "releaseService() unbound.");
