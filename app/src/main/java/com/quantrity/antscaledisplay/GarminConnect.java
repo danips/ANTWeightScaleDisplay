@@ -78,14 +78,24 @@ public class GarminConnect {
     private final CookieManager cookieManager;
 
     public GarminConnect(User user, ArrayList<User> users, Activity activity) {
+        this(user, users, activity.getApplicationContext(), activity);
+    }
+
+    GarminConnect(User user, ArrayList<User> users, Context context) {
+        this(user, users, context.getApplicationContext(), null);
+    }
+
+    private GarminConnect(User user, ArrayList<User> users, Context context, Activity activity) {
         this.user = user;
         this.users = users;
         this.currentActivity = activity;
-        this.context = activity.getApplicationContext();
+        this.context = context;
 
         this.cookieManager = new CookieManager();
         this.cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ALL);
-        CookieHandler.setDefault(this.cookieManager);
+        // The refresh Worker does not use SSO cookies. Avoid replacing the process-wide cookie
+        // handler from a background job while an interactive sign-in may be in progress.
+        if (activity != null) CookieHandler.setDefault(this.cookieManager);
         Log.d(TAG, "[DEBUG] GarminConnect initialized for user: " + (user != null ? user.name : "null"));
     }
 
@@ -96,9 +106,14 @@ public class GarminConnect {
         String password = user.gc_pass.trim().replaceAll("[\n\r]", "");
 
         try {
-            // Check User object directly for valid tokens
-            if (loadOauth2() || tryRefresh()) {
-                Log.d(TAG, "[DEBUG] Valid token found/refreshed in User object.");
+            // Check User object directly for valid tokens.
+            if (loadOauth2()) {
+                GarminTokenRefreshScheduler.schedule(context, user);
+                Log.d(TAG, "[DEBUG] Valid token found in User object.");
+                return true;
+            }
+            if (tryRefresh()) {
+                Log.d(TAG, "[DEBUG] Token refreshed in User object.");
                 return true;
             }
 
@@ -212,7 +227,7 @@ public class GarminConnect {
             Log.d(TAG, "[DEBUG] Starting OAuth2 Exchange...");
             if (performOAuth2Exchange(consumer)) {
                 Log.d(TAG, "[DEBUG] Signin Success! Saving tokens to User.");
-                return oauth2Token.save();
+                return oauth2Token.save(false);
             } else {
                 Log.e(TAG, "[ERROR] OAuth2 Exchange Failed.");
             }
@@ -647,8 +662,8 @@ public class GarminConnect {
             this.refreshExpiry = now + refreshExp;
         }
 
-        // UPDATED: Save directly to user object and serialize
-        boolean save() {
+        // Save directly to the user object and persist before reporting success.
+        boolean save(boolean persistTokensOnly) {
             if (user != null) {
                 user.garminOauth2Token = accessToken;
                 user.garminOauth2RefreshToken = refreshToken;
@@ -656,8 +671,13 @@ public class GarminConnect {
                 user.garminOauth2RefreshExpiryTimestamp = refreshExpiry;
 
                 Log.d(TAG, "[DEBUG] Saving tokens to User object: " + user.name);
-                User.serializeUsers(context, users);
-                return true;
+                boolean saved = persistTokensOnly
+                        ? User.persistGarminTokensSynchronously(context, user)
+                        : User.serializeUsersSynchronously(context, users);
+                if (saved && !persistTokensOnly) {
+                    GarminTokenRefreshScheduler.schedule(context, user);
+                }
+                return saved;
             }
             return false;
         }
@@ -674,22 +694,41 @@ public class GarminConnect {
         return false;
     }
 
-    // UPDATED: Load directly from User object
+    // Load directly from User object.
     private boolean tryRefresh() {
-        if (user == null || user.garminOauth2RefreshToken == null) return false;
+        return refreshToken(false) == TokenRefreshResult.SUCCESS;
+    }
+
+    enum TokenRefreshResult {
+        SUCCESS,
+        RETRY,
+        INVALID
+    }
+
+    TokenRefreshResult refreshTokenInBackground() {
+        return refreshToken(true);
+    }
+
+    private TokenRefreshResult refreshToken(boolean persistTokensOnly) {
+        if (user == null || user.garminOauth2RefreshToken == null
+                || user.garminOauth2RefreshToken.isEmpty()) {
+            return TokenRefreshResult.INVALID;
+        }
 
         String ref = user.garminOauth2RefreshToken;
         long refExp = user.garminOauth2RefreshExpiryTimestamp;
 
         if (refExp < (System.currentTimeMillis()/1000)) {
-            Log.d(TAG, "[DEBUG] Refresh token expired.");
-            return false;
+            // The expiry is sometimes a local fallback. Let the server be authoritative.
+            Log.d(TAG, "[DEBUG] Refresh token is locally expired; attempting refresh anyway.");
         }
 
+        HttpURLConnection conn = null;
         try {
-            HttpURLConnection conn = getUrlConnection(ref);
+            conn = getUrlConnection(ref);
+            int responseCode = conn.getResponseCode();
 
-            if (conn.getResponseCode() == 200) {
+            if (responseCode == 200) {
                 String body = readStream(conn.getInputStream());
                 JSONObject json = new JSONObject(body);
                 this.oauth2Token = new OAuth2Token(
@@ -698,12 +737,23 @@ public class GarminConnect {
                         json.optLong("expires_in", 3600),
                         json.optLong("refresh_token_expires_in", 86400)
                 );
-                return this.oauth2Token.save();
+                return this.oauth2Token.save(persistTokensOnly)
+                        ? TokenRefreshResult.SUCCESS
+                        : TokenRefreshResult.RETRY;
             }
+            String errorBody = readStream(conn.getErrorStream());
+            Log.e(TAG, "[ERROR] Token refresh failed. Code: " + responseCode
+                    + ", Body: " + errorBody);
+            if (responseCode == 408 || responseCode == 429 || responseCode >= 500) {
+                return TokenRefreshResult.RETRY;
+            }
+            return TokenRefreshResult.INVALID;
         } catch (Exception e) {
             Log.e(TAG, "[ERROR] Token Refresh failed", e);
+            return TokenRefreshResult.RETRY;
+        } finally {
+            if (conn != null) conn.disconnect();
         }
-        return false;
     }
 
     @NonNull
@@ -711,10 +761,13 @@ public class GarminConnect {
         HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
         conn.setRequestMethod("POST");
         conn.setDoOutput(true);
+        conn.setConnectTimeout(30_000);
+        conn.setReadTimeout(30_000);
         conn.setRequestProperty("User-Agent", USER_AGENT);
         conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 
-        String data = "grant_type=refresh_token&refresh_token=" + ref;
+        String data = "grant_type=refresh_token&refresh_token="
+                + URLEncoder.encode(ref, StandardCharsets.UTF_8.name());
         try(DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
             dos.writeBytes(data);
         }

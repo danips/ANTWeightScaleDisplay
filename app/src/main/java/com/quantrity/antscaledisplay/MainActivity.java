@@ -78,6 +78,7 @@ public class MainActivity extends AppCompatActivity
     private void loadDB() {
         //Read existing users
         User.deserializeUsers(getApplicationContext(), mUsersArray);
+        GarminTokenRefreshScheduler.scheduleAll(getApplicationContext(), mUsersArray);
 
         //First time open users tab and request data
         if (mUsersArray.isEmpty()) {
@@ -282,6 +283,7 @@ public class MainActivity extends AppCompatActivity
             if (Debug.ON) Log.v(TAG, "closeEditUserFragment " + mUsersArray.contains(user) + " " + mUsersArray.size());
             if (!mUsersArray.contains(user)) mUsersArray.add(0, user);
             User.serializeUsers(this, mUsersArray);
+            GarminTokenRefreshScheduler.schedule(this, user);
             selectedUser = user;
         }
 
@@ -505,6 +507,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void deleteHistoryAndUser(User user) {
+        GarminTokenRefreshScheduler.cancel(this, user);
         SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
         String selected_user = settings.getString("selected_user", null);
         if ((selected_user == null) || selected_user.equals(user.name) || (selected_user.isEmpty())) {

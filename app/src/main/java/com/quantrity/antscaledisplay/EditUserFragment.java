@@ -420,6 +420,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 the_user.garminOauth2RefreshToken = "";
                 the_user.garminOauth2ExpiryTimestamp = -1;
                 the_user.garminOauth2RefreshExpiryTimestamp = -1;
+                GarminTokenRefreshScheduler.cancel(getActivity(), the_user);
                 User.serializeUsers(getActivity().getApplicationContext(), users);
                 Toast.makeText(getActivity(), R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
             }

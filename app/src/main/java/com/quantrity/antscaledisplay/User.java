@@ -28,6 +28,7 @@ import java.util.Locale;
 
 public class User {
     private final static String TAG = "User";
+    private static final Object USERS_FILE_LOCK = new Object();
 
     public enum MassUnit implements Serializable {
         KG, LB, ST;
@@ -207,56 +208,106 @@ public class User {
     }
 
     static void deserializeUsers(Context context, ArrayList<User> usersArray) {
+        synchronized (USERS_FILE_LOCK) {
+            deserializeUsersLocked(context, usersArray);
+        }
+    }
+
+    static void serializeUsers(final Context context, final ArrayList<User> output) {
+        serializeUsersSynchronously(context, output);
+    }
+
+    static boolean serializeUsersSynchronously(Context context, List<User> output) {
+        synchronized (USERS_FILE_LOCK) {
+            return serializeUsersLocked(context, output);
+        }
+    }
+
+    /**
+     * Persist only refreshed Garmin token fields into the latest user file. A Worker may spend
+     * time on the network, so rewriting the list it originally loaded could otherwise overwrite
+     * profile edits made while the refresh request was running.
+     */
+    static boolean persistGarminTokensSynchronously(Context context, User tokenSource) {
+        synchronized (USERS_FILE_LOCK) {
+            ArrayList<User> latestUsers = new ArrayList<>();
+            deserializeUsersLocked(context, latestUsers);
+
+            User target = null;
+            for (User candidate : latestUsers) {
+                if (tokenSource.uuid.equals(candidate.uuid)) {
+                    target = candidate;
+                    break;
+                }
+            }
+            if (target == null) return false;
+
+            target.garminOauth2Token = tokenSource.garminOauth2Token;
+            target.garminOauth2RefreshToken = tokenSource.garminOauth2RefreshToken;
+            target.garminOauth2ExpiryTimestamp = tokenSource.garminOauth2ExpiryTimestamp;
+            target.garminOauth2RefreshExpiryTimestamp = tokenSource.garminOauth2RefreshExpiryTimestamp;
+            return serializeUsersLocked(context, latestUsers);
+        }
+    }
+
+    private static void deserializeUsersLocked(Context context, ArrayList<User> usersArray) {
         String serializedArray = loadJSONFromFile(usersFilePath(context));
         if (serializedArray == null) return;
 
         try {
             deserializeArray(serializedArray, usersArray);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Could not deserialize users", e);
         }
     }
 
-    static void serializeUsers(final Context context, final ArrayList<User> output) {
-        new Thread(() -> {
-            if (Debug.ON) Log.v(TAG, "writing " + output.size() + " users to " + usersFilePath(context) + " output=" + output);
-            final Collator collator = Collator.getInstance();
-            Collections.sort(output, (o1, o2) -> collator.compare(o1.name, o2.name));
-            JSONArray jsonArray = new JSONArray();
-            Iterator<User> tmp = output.iterator();
-            try {
-                while (tmp.hasNext()) jsonArray.put(tmp.next().serializeToObj());
-            } catch (Exception e) {
-                e.printStackTrace();
-                return;
-            }
-            try {
-                String finalname = usersFilePath(context);
-                String tmpname = finalname + ".tmp";
-                FileWriter file = new FileWriter(tmpname);
-                file.write(jsonArray.toString());
-                file.flush();
-                file.close();
+    private static boolean serializeUsersLocked(Context context, List<User> output) {
+        ArrayList<User> sortedOutput = new ArrayList<>(output);
+        if (Debug.ON) Log.v(TAG, "writing " + sortedOutput.size() + " users to " + usersFilePath(context));
+        final Collator collator = Collator.getInstance();
+        Collections.sort(sortedOutput, (o1, o2) -> collator.compare(o1.name, o2.name));
 
-                File filefinal = new File(finalname);
-                File filedelete = new File(finalname + ".del");
-                if ((filefinal.exists()) && !filefinal.renameTo(filedelete)) {
-                    if (Debug.ON) Log.v(TAG, filefinal + " could not be renamed to " + filedelete);
-                } else {
-                    File filetmp = new File(tmpname);
-                    File filefinal2 = new File(finalname);
-                    if (!filetmp.renameTo(filefinal2)) {
-                        if (Debug.ON) Log.v(TAG, filetmp + " could not be renamed to " + filefinal2);
-                    } else {
-                        if (!filedelete.delete()) {
-                            if (Debug.ON) Log.v(TAG, filedelete + " could not be deleted");
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        JSONArray jsonArray = new JSONArray();
+        try {
+            for (User user : sortedOutput) jsonArray.put(user.serializeToObj());
+        } catch (Exception e) {
+            Log.e(TAG, "Could not serialize users", e);
+            return false;
+        }
+
+        String finalName = usersFilePath(context);
+        String temporaryName = finalName + ".tmp";
+        File finalFile = new File(finalName);
+        File deletedFile = new File(finalName + ".del");
+        File temporaryFile = new File(temporaryName);
+
+        try (FileWriter file = new FileWriter(temporaryFile)) {
+            file.write(jsonArray.toString());
+            file.flush();
+        } catch (Exception e) {
+            Log.e(TAG, "Could not write users temporary file", e);
+            return false;
+        }
+
+        if (deletedFile.exists() && !deletedFile.delete()) {
+            Log.e(TAG, "Could not delete stale users backup " + deletedFile);
+            return false;
+        }
+        if (finalFile.exists() && !finalFile.renameTo(deletedFile)) {
+            Log.e(TAG, "Could not back up users file " + finalFile);
+            return false;
+        }
+        if (!temporaryFile.renameTo(finalFile)) {
+            Log.e(TAG, "Could not replace users file " + finalFile);
+            if (deletedFile.exists() && !deletedFile.renameTo(finalFile)) {
+                Log.e(TAG, "Could not restore users file " + finalFile);
             }
-        }).start();
+            return false;
+        }
+        if (deletedFile.exists() && !deletedFile.delete()) {
+            Log.w(TAG, "Could not delete users backup " + deletedFile);
+        }
+        return true;
     }
 
     @NonNull
