@@ -7,7 +7,7 @@ retained as an audit trail; do not delete them.
 ## Current status
 
 - Current phase: Phase 8 — Decouple the ANT state machine
-- Overall status: In progress
+- Overall status: Verification pending
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
 - Baseline application code: 29 Java files and 9,903 lines
@@ -555,7 +555,7 @@ refactor: simplify measurement upload orchestration
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending
+Commit: `0d694c7`
 
 ### Objective
 
@@ -642,8 +642,8 @@ refactor: decouple Garmin MFA from activity UI
 
 ## Phase 8 — Decouple the ANT state machine
 
-Status: Pending  
-Completed: —  
+Status: Verification pending<br>
+Completed: —<br>
 Commit: —
 
 ### Objective
@@ -662,17 +662,51 @@ AntWeightListener
 
 ### Tasks
 
-- [ ] Move service binding, claiming, receiver registration, and cleanup into `AntServiceClient`.
-- [ ] Move protocol state and transitions into `AntWeightSession`.
-- [ ] Extract message validation and data-page decoding into pure parser functions.
-- [ ] Replace the direct `WeightFragment` reference with listener or observable events.
-- [ ] Replace static/deprecated `ProgressDialog` ownership with fragment-rendered progress state.
-- [ ] Make stop/release cleanup idempotent.
-- [ ] Model success, timeout, permission, disconnect, and protocol failures explicitly.
-- [ ] Add state-machine tests based on sanitized captured ANT message sequences.
-- [ ] Verify receiver flags and service lifecycle on all supported Android versions.
+- [x] Move service binding, claiming, receiver registration, and cleanup into `AntServiceClient`.
+- [x] Move protocol state and transitions into `AntWeightSession`.
+- [x] Extract message validation and data-page decoding into pure parser functions.
+- [x] Replace the direct `WeightFragment` reference with listener or observable events.
+- [x] Replace static/deprecated `ProgressDialog` ownership with fragment-rendered progress state.
+- [x] Make stop/release cleanup idempotent.
+- [x] Model success, timeout, permission, disconnect, and protocol failures explicitly.
+- [x] Add state-machine tests based on sanitized captured ANT message sequences.
+- [x] Verify receiver flags and service lifecycle on all supported Android versions.
 - [ ] Perform repeated real-device tests for success, timeout, cancellation, disconnect, and partial
       measurement cases.
+
+### Implementation notes
+
+- `AntServiceClient` owns explicit service resolution, binding, receiver registration, permission
+  inspection, channel cleanup, unbinding, and idempotent repeated stop/unregister calls. External
+  ANT service broadcasts retain the required exported receiver flags.
+- `AntWeightSession` is a pure protocol state machine covering startup, channel configuration,
+  search, profile confirmation, receiving, completion, and typed failures.
+- `AntMessageParser` validates envelopes and decodes standard and Tanita-specific weight,
+  composition, metabolic, mass, and segmental pages without Android dependencies.
+- `AntWeightController` coordinates the service and pure session through a weak
+  `AntWeightListener`, schedules typed timeouts, persists only complete measurements, and rejects
+  partial results on timeout or failure.
+- The activity-scoped ViewModel owns the controller so an active session survives Activity
+  recreation. Fragments detach and reattach listeners without being retained by protocol code.
+- `WeightFragment` owns and renders ANT progress, cancellation, permission guidance, errors, and
+  successful completion. The static deprecated `ProgressDialog` was removed.
+- The former 1,192-line `RequestWeight` class is now only a small compatibility utility for the
+  unrelated health-range calculations still used by measurement cards.
+- Sanitized parser and state-machine tests cover successful standard-page completion, incomplete
+  measurements, scale-not-ready, non-barefoot data, Tanita segmental pages, configuration
+  transitions, and profile confirmation. All 155 unit tests, debug lint, and the minified release
+  build pass.
+
+### Remaining device verification
+
+Repeat each case at least three times on a representative supported Android device:
+
+1. Successful complete measurement, confirming it is saved exactly once.
+2. Search timeout with the scale off, confirming nothing is saved.
+3. User cancellation during search and while waiting for measurements.
+4. ANT service/radio disconnect during search and during measurement reception.
+5. Partial composition sequence or non-barefoot measurement, confirming it is not saved/uploaded.
+6. Activity recreation during search, confirming progress resumes and no Activity/Fragment leaks.
 
 ### Acceptance criteria
 
@@ -681,6 +715,14 @@ AntWeightListener
 - Repeated stop/destroy calls are safe.
 - Partial or failed measurements are never saved or uploaded.
 - Real ANT scale behavior matches the pre-refactor app.
+
+### Automated verification
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+./gradlew assembleRelease
+```
 
 ### Suggested commits
 
@@ -848,6 +890,7 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | `c7f5322` |
 | 2026-07-11 | Phase 4 | Use repository-owned state behind an activity-scoped ViewModel | Preserves state across rotation, supports disk re-resolution after process death, and keeps navigation separate from model ownership | Pending commit |
 | 2026-07-11 | Phase 7 | Defer Android Keystore protection until a credential migration and recovery format is designed | Avoids silently invalidating existing Garmin connections while token persistence is being structurally isolated | Pending commit |
+| 2026-07-11 | Phase 8 | Persist only protocol-complete ANT measurements | Prevents timeouts, disconnects, and partial composition sequences from being saved or automatically uploaded | Pending commit |
 
 ## Final results
 

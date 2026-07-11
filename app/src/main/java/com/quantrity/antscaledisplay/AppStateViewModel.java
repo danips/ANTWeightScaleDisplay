@@ -11,6 +11,7 @@ import java.util.concurrent.Future;
 
 public final class AppStateViewModel extends AndroidViewModel {
     private final AppRepository repository;
+    private AntWeightController antWeightController;
 
     public AppStateViewModel(@NonNull Application application) {
         super(application);
@@ -95,5 +96,23 @@ public final class AppStateViewModel extends AndroidViewModel {
 
     RepositoryResult<Void> deleteUser(User user) {
         return repository.deleteUser(user);
+    }
+
+    AntWeightController antWeightController() { return antWeightController; }
+
+    AntWeightController newAntWeightController(AntWeightListener listener) {
+        if (antWeightController != null && antWeightController.isRunning()) {
+            antWeightController.cancel();
+        }
+        antWeightController = new AntWeightController(getApplication(), listener);
+        return antWeightController;
+    }
+
+    @Override
+    protected void onCleared() {
+        if (antWeightController != null && antWeightController.isRunning()) {
+            antWeightController.cancel();
+        }
+        super.onCleared();
     }
 }

@@ -1,6 +1,10 @@
 package com.quantrity.antscaledisplay;
 
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,7 +29,7 @@ import com.quantrity.antscaledisplay.databinding.ItemSegmentBinding;
 import java.util.ArrayList;
 import java.util.Locale;
 
-public class WeightFragment extends Fragment implements MenuProvider {
+public class WeightFragment extends Fragment implements MenuProvider, AntWeightListener {
     //private static final String TAG = "WeightFragment";
 
     private FragmentWeightBinding binding;
@@ -33,6 +37,7 @@ public class WeightFragment extends Fragment implements MenuProvider {
     User userToUpload = null;
     private Spinner usersSpinner;
     private AppStateViewModel state;
+    private AlertDialog antProgressDialog;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
@@ -59,9 +64,9 @@ public class WeightFragment extends Fragment implements MenuProvider {
         binding.fab.setOnClickListener(view -> {
             MainActivity ma = (MainActivity)getActivity();
             if (ma != null) {
-                RequestWeight rw = ma.getRequestWeight();
+                AntWeightController rw = ma.getRequestWeight();
                 if (rw != null) {
-                    ma.openEditWeightFragment(rw.the_weight, rw.the_user, true);
+                    ma.openEditWeightFragment(rw.weight, rw.user, true);
                 } else {
                     ma.openEditWeightFragment(null, null, false);
                 }
@@ -74,6 +79,11 @@ public class WeightFragment extends Fragment implements MenuProvider {
 
     @Override
     public void onDestroyView() {
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity != null && activity.getRequestWeight() != null) {
+            activity.getRequestWeight().detachListener(this);
+        }
+        dismissAntProgress();
         super.onDestroyView();
         binding = null;
     }
@@ -81,6 +91,12 @@ public class WeightFragment extends Fragment implements MenuProvider {
     @Override
     public void onResume() {
         super.onResume();
+        MainActivity activity = (MainActivity) getActivity();
+        if (activity != null && activity.getRequestWeight() != null) {
+            AntWeightController controller = activity.getRequestWeight();
+            controller.attachListener(this);
+            if (controller.isRunning()) onAntProgress(controller.progress());
+        }
         updateUi();
     }
 
@@ -88,7 +104,7 @@ public class WeightFragment extends Fragment implements MenuProvider {
         if (getActivity() == null || binding == null) return;
 
         final MainActivity mainActivity = (MainActivity) getActivity();
-        final RequestWeight rw = mainActivity.getRequestWeight();
+        final AntWeightController rw = mainActivity.getRequestWeight();
 
         mainActivity.runOnUiThread(() -> {
             if (getActivity() == null || binding == null) return;
@@ -97,9 +113,9 @@ public class WeightFragment extends Fragment implements MenuProvider {
             User displayUser = state.selectedUser();
 
             // 1. Live Data or 2. History
-            if (rw != null && rw.the_weight != null && rw.the_weight.weight != -1 && rw.the_user != null) {
-                displayWeight = rw.the_weight;
-                displayUser = rw.the_user;
+            if (rw != null && rw.weight != null && rw.weight.weight != -1 && rw.user != null) {
+                displayWeight = rw.weight;
+                displayUser = rw.user;
             } else if (displayUser != null) {
                 ArrayList<Weight> history = state.weights();
                 if (history != null && !history.isEmpty()) {
@@ -263,8 +279,7 @@ public class WeightFragment extends Fragment implements MenuProvider {
 
             if ((rw != null) && (displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
                 if ((userToUpload != null) && (!enableUploadButton) && (displayUser.autoupload)) {
-                    //MainActivity.uploadButton(mainActivity, rw != null ? rw.the_weight : displayWeight, userToUpload);
-                    MainActivity.uploadButton(mainActivity, rw.the_weight, userToUpload);
+                    MainActivity.uploadButton(mainActivity, rw.weight, userToUpload);
                 }
                 enableUploadButton = true;
                 userToUpload = displayUser;
@@ -456,9 +471,9 @@ public class WeightFragment extends Fragment implements MenuProvider {
                 return true;
             }
             if (getActivity() != null) {
-                RequestWeight rw = ((MainActivity) getActivity()).newRequestWeight(this);
+                AntWeightController rw = ((MainActivity) getActivity()).newRequestWeight(this);
                 rw.setProfile(user);
-                rw.initService();
+                rw.start();
                 enableUploadButton = false;
                 userToUpload = null;
                 getActivity().invalidateOptionsMenu();
@@ -467,7 +482,7 @@ public class WeightFragment extends Fragment implements MenuProvider {
         } else if (itemId == R.id.action_weight_upload) {
             if (getActivity() != null) {
                 if (((MainActivity)getActivity()).getRequestWeight() != null) {
-                    MainActivity.uploadButton((MainActivity)getActivity(), ((MainActivity)getActivity()).getRequestWeight().the_weight, userToUpload);
+                    MainActivity.uploadButton((MainActivity)getActivity(), ((MainActivity)getActivity()).getRequestWeight().weight, userToUpload);
                 }
             }
             enableUploadButton = false;
@@ -475,5 +490,90 @@ public class WeightFragment extends Fragment implements MenuProvider {
             return true;
         }
         return false;
+    }
+
+    @Override
+    public void onAntProgress(AntWeightSession.Progress progress) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            if (!isAdded()) return;
+            int message = progress == AntWeightSession.Progress.FOUND
+                    ? R.string.weight_fragment_msg_found
+                    : progress == AntWeightSession.Progress.WAITING
+                    ? R.string.weight_fragment_msg_waiting
+                    : R.string.weight_fragment_msg_searching;
+            if (antProgressDialog == null) {
+                antProgressDialog = new AlertDialog.Builder(requireContext())
+                        .setMessage(message)
+                        .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
+                            MainActivity activity = (MainActivity) getActivity();
+                            if (activity != null && activity.getRequestWeight() != null) {
+                                activity.getRequestWeight().cancel();
+                            }
+                        })
+                        .setCancelable(false)
+                        .create();
+                antProgressDialog.show();
+            } else {
+                antProgressDialog.setMessage(getString(message));
+            }
+        });
+    }
+
+    @Override
+    public void onAntSuccess(Weight weight, User user) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            dismissAntProgress();
+            userToUpload = user;
+            updateUi();
+        });
+    }
+
+    @Override
+    public void onAntFailure(AntWeightSession.Failure failure, String detail) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            dismissAntProgress();
+            userToUpload = null;
+            enableUploadButton = false;
+            updateUi();
+            if (failure == AntWeightSession.Failure.CANCELLED) return;
+            int message = failureMessage(failure);
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext())
+                    .setTitle(R.string.weight_process_msg_error)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .setMessage(detail == null ? getString(message)
+                            : getString(R.string.weight_process_msg_problem_while, detail));
+            if (failure == AntWeightSession.Failure.PERMISSION) {
+                builder.setPositiveButton(android.R.string.yes, (dialog, which) -> {
+                    Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                            Uri.parse("package:com.dsi.ant.service.socket"));
+                    intent.addCategory(Intent.CATEGORY_DEFAULT);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }).setCancelable(false);
+            } else {
+                builder.setPositiveButton(android.R.string.ok, null);
+            }
+            builder.show();
+        });
+    }
+
+    private int failureMessage(AntWeightSession.Failure failure) {
+        switch (failure) {
+            case BIND: return R.string.weight_process_msg_problem_bind;
+            case PERMISSION: return R.string.msg_problem_ant_permission_disabled;
+            case WEIGHT_TIMEOUT: return R.string.weight_process_msg_problem_timeout_weight;
+            case MEASUREMENT_TIMEOUT: return R.string.weight_process_msg_problem_timeout_measurements;
+            case SCALE_NOT_READY: return R.string.weight_process_msg_problem_scale_not_ready;
+            case NOT_BAREFOOT: return R.string.weight_process_msg_problem_not_barefoot;
+            default: return R.string.weight_process_msg_problem_timeout;
+        }
+    }
+
+    private void dismissAntProgress() {
+        if (antProgressDialog != null) antProgressDialog.dismiss();
+        antProgressDialog = null;
     }
 }

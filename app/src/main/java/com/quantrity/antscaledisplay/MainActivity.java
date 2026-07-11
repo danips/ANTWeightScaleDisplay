@@ -3,12 +3,10 @@ package com.quantrity.antscaledisplay;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
@@ -44,7 +42,6 @@ import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
@@ -58,8 +55,6 @@ public class MainActivity extends AppCompatActivity
 
     private NavigationView navigationView;
     private AppStateViewModel state;
-
-    private RequestWeight rw = null;
 
     private void loadDB() {
         RepositoryResult<Void> result = state.reload();
@@ -230,10 +225,10 @@ public class MainActivity extends AppCompatActivity
         selectItem(getString(R.string.lateral_menu_option_goals));
     }
 
-    public RequestWeight getRequestWeight() { return rw; }
+    public AntWeightController getRequestWeight() { return state.antWeightController(); }
 
-    public RequestWeight newRequestWeight(WeightFragment fragment) {
-        return (rw = new RequestWeight(fragment));
+    public AntWeightController newRequestWeight(WeightFragment fragment) {
+        return state.newAntWeightController(fragment);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -459,9 +454,10 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
+        AntWeightController rw = getRequestWeight();
         if (rw != null) {
             if (Debug.ON) Log.v(TAG, "onPause unregisterForAntIntents");
-            rw.unregisterForAntIntents();
+            rw.unregisterReceivers();
         }
     }
 
@@ -469,45 +465,11 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
+        AntWeightController rw = getRequestWeight();
         if (rw != null) {
-            if (Debug.ON) Log.v(TAG, "onResume registerForAntIntents " + rw.state);
-            rw.registerForAntIntents();
+            if (Debug.ON) Log.v(TAG, "onResume registerForAntIntents " + rw.state());
+            rw.registerReceivers();
         }
-    }
-
-    /***
-     * Android L (lollipop, API 21) introduced a new problem when trying to invoke implicit intent,
-     * "java.lang.IllegalArgumentException: Service Intent must be explicit"
-     * If you are using an implicit intent, and know only 1 target would answer this intent,
-     * This method will help you turn the implicit intent into the explicit form.
-     * Inspired from SO answer: <a href="http://stackoverflow.com/a/26318757/1446466">...</a>
-     * @param context -
-     * @param implicitIntent - The original implicit intent
-     * @return Explicit Intent created from the implicit original intent
-     */
-    public static Intent createExplicitFromImplicitIntent(Context context, Intent implicitIntent) {
-        // Retrieve all services that can match the given intent
-        PackageManager pm = context.getPackageManager();
-        List<ResolveInfo> resolveInfo = pm.queryIntentServices(implicitIntent, 0);
-
-        // Make sure only one match was found
-        if (resolveInfo.size() != 1) {
-            return null;
-        }
-
-        // Get component info and create ComponentName
-        ResolveInfo serviceInfo = resolveInfo.get(0);
-        String packageName = serviceInfo.serviceInfo.packageName;
-        String className = serviceInfo.serviceInfo.name;
-        ComponentName component = new ComponentName(packageName, className);
-
-        // Create a new intent. Use the old one for extras and such reuse
-        Intent explicitIntent = new Intent(implicitIntent);
-
-        // Set the component to be explicit
-        explicitIntent.setComponent(component);
-
-        return explicitIntent;
     }
 
     public static boolean isOnline(MainActivity activity) {
