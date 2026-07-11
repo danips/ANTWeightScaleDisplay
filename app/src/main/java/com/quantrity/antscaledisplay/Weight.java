@@ -5,15 +5,11 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
@@ -54,10 +50,6 @@ public class Weight implements Cloneable {
         deserializeFromObj(obj);
     }
 
-    static String historyFilePath(Context context) {
-        return context.getFilesDir() + "/history";
-    }
-
     private void deserializeFromObj(JSONObject obj) throws JSONException {
         this.date = obj.getLong("date");
         this.uuid = obj.getString("uuid");
@@ -93,7 +85,7 @@ public class Weight implements Cloneable {
         }
     }
 
-    private JSONObject serializeToObj() throws JSONException {
+    JSONObject serializeToObj() throws JSONException {
         JSONObject serializedObj = new JSONObject();
 
         serializedObj.put("date", this.date);
@@ -127,63 +119,14 @@ public class Weight implements Cloneable {
         return serializedObj;
     }
 
-    private static void deserializeArray(String serializedArray, ArrayList<Weight> historyArray) throws JSONException {
-        JSONArray jsonObjs = new JSONArray(serializedArray);
-        for (int i=0; i<jsonObjs.length(); i++) {
-            JSONObject weight = jsonObjs.getJSONObject(i);
-            historyArray.add(new Weight(weight));
-        }
-    }
-
     static void deserializeHistory(Context context, ArrayList<Weight> historyArray) {
-        String serializedArray = User.loadJSONFromFile(historyFilePath(context));
-        if (serializedArray == null) return;
-
-        try {
-            deserializeArray(serializedArray, historyArray);
-        } catch (Exception e) {
-            Log.e(TAG, "Unable to deserialize weight history", e);
-        }
+        RepositoryResult<List<Weight>> result = AppRepository.get(context).loadWeights();
+        if (result.isSuccess()) historyArray.addAll(result.value);
+        else Log.e(TAG, result.message, result.error);
     }
 
     static void serializeWeight(final Context context, final List<Weight> output) {
-        new Thread(() -> {
-            if (Debug.ON) Log.v(TAG, "writing " + output.size() + " weights to " + historyFilePath(context) + " output=" + output);
-            JSONArray jsonArray = new JSONArray();
-            Iterator<Weight> tmp = output.iterator();
-            try {
-                while (tmp.hasNext()) jsonArray.put(tmp.next().serializeToObj());
-            } catch (Exception e) {
-                Log.e(TAG, "Unable to serialize weight history", e);
-                return;
-            }
-            try {
-                String finalname = historyFilePath(context);
-                String tmpname = finalname + ".tmp";
-                FileWriter file = new FileWriter(tmpname);
-                file.write(jsonArray.toString());
-                file.flush();
-                file.close();
-
-                File filefinal = new File(finalname);
-                File filedelete = new File(finalname + ".del");
-                if ((filefinal.exists()) && !filefinal.renameTo(filedelete)) {
-                    if (Debug.ON) Log.v(TAG, filefinal + " could not be renamed to " + filedelete);
-                } else {
-                    File filetmp = new File(tmpname);
-                    File filefinal2 = new File(finalname);
-                    if (!filetmp.renameTo(filefinal2)) {
-                        if (Debug.ON) Log.v(TAG, filetmp + " could not be renamed to " + filefinal2);
-                    } else {
-                        if (!filedelete.delete()) {
-                            if (Debug.ON) Log.v(TAG, filedelete + " could not be deleted");
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                Log.e(TAG, "Unable to save weight history", e);
-            }
-        }).start();
+        AppRepository.get(context).saveWeights(output);
     }
 
     static class DateComparator implements Comparator<Weight> {

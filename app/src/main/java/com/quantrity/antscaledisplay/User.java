@@ -6,29 +6,20 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.InputStreamReader;
 import java.io.Serializable;
-import java.text.Collator;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
 public class User {
     private final static String TAG = "User";
-    private static final Object USERS_FILE_LOCK = new Object();
 
     public enum MassUnit implements Serializable {
         KG, LB, ST;
@@ -67,10 +58,6 @@ public class User {
 
     public User(JSONObject obj) throws JSONException {
         deserializeFromObj(obj);
-    }
-
-    static String usersFilePath(Context context) {
-        return context.getFilesDir() + "/users";
     }
 
     static int calcAgeNow(long time_in_millis) {
@@ -131,7 +118,7 @@ public class User {
         this.show_fat_mass = (obj.has("show_fat_mass")) && obj.getBoolean("show_fat_mass");
     }
 
-    private JSONObject serializeToObj() throws JSONException {
+    JSONObject serializeToObj() throws JSONException {
         JSONObject serializedObj = new JSONObject();
 
         serializedObj.put("uuid", this.uuid);
@@ -164,38 +151,10 @@ public class User {
         return serializedObj;
     }
 
-    static String loadJSONFromFile(String path) {
-        String json = null;
-        try {
-            File f = new File(path);
-            FileInputStream fin = new FileInputStream(f);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(fin));
-            StringBuilder sb = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-            reader.close();
-            json = sb.toString();
-        } catch (Exception e) {
-            Log.e(TAG, "Unable to read user data", e);
-        }
-        return json;
-    }
-
-    private static void deserializeArray(String serializedArray, ArrayList<User> usersArray) throws JSONException {
-        JSONArray jsonObjs = new JSONArray(serializedArray);
-        for (int i = 0; i < jsonObjs.length(); i++) {
-            JSONObject user = jsonObjs.getJSONObject(i);
-            usersArray.add(new User(user));
-        }
-    }
-
     static void deserializeUsers(Context context, ArrayList<User> usersArray) {
-        synchronized (USERS_FILE_LOCK) {
-            deserializeUsersLocked(context, usersArray);
-        }
+        RepositoryResult<List<User>> result = AppRepository.get(context).loadUsers();
+        if (result.isSuccess()) usersArray.addAll(result.value);
+        else Log.e(TAG, result.message, result.error);
     }
 
     static void serializeUsers(final Context context, final ArrayList<User> output) {
@@ -203,9 +162,9 @@ public class User {
     }
 
     static boolean serializeUsersSynchronously(Context context, List<User> output) {
-        synchronized (USERS_FILE_LOCK) {
-            return serializeUsersLocked(context, output);
-        }
+        RepositoryResult<Void> result = AppRepository.get(context).saveUsersSynchronously(output);
+        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+        return result.isSuccess();
     }
 
     /**
@@ -214,99 +173,14 @@ public class User {
      * profile edits made while the refresh request was running.
      */
     static boolean persistGarminTokensSynchronously(Context context, User tokenSource) {
-        synchronized (USERS_FILE_LOCK) {
-            ArrayList<User> latestUsers = new ArrayList<>();
-            deserializeUsersLocked(context, latestUsers);
-
-            User target = null;
-            for (User candidate : latestUsers) {
-                if (tokenSource.uuid.equals(candidate.uuid)) {
-                    target = candidate;
-                    break;
-                }
-            }
-            if (target == null) return false;
-
-            target.garminOauth2Token = tokenSource.garminOauth2Token;
-            target.garminOauth2ExpiryTimestamp = tokenSource.garminOauth2ExpiryTimestamp;
-            return serializeUsersLocked(context, latestUsers);
-        }
+        RepositoryResult<Void> result = AppRepository.get(context).updateGarminTokensSynchronously(tokenSource);
+        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+        return result.isSuccess();
     }
 
     static void reloadGarminTokens(Context context, User target) {
-        if (target == null || target.uuid == null) return;
-
-        synchronized (USERS_FILE_LOCK) {
-            ArrayList<User> latestUsers = new ArrayList<>();
-            deserializeUsersLocked(context, latestUsers);
-            for (User latest : latestUsers) {
-                if (target.uuid.equals(latest.uuid)) {
-                    target.garminOauth2Token = latest.garminOauth2Token;
-                    target.garminOauth2ExpiryTimestamp = latest.garminOauth2ExpiryTimestamp;
-                    return;
-                }
-            }
-        }
-    }
-
-    private static void deserializeUsersLocked(Context context, ArrayList<User> usersArray) {
-        String serializedArray = loadJSONFromFile(usersFilePath(context));
-        if (serializedArray == null) return;
-
-        try {
-            deserializeArray(serializedArray, usersArray);
-        } catch (Exception e) {
-            Log.e(TAG, "Could not deserialize users", e);
-        }
-    }
-
-    private static boolean serializeUsersLocked(Context context, List<User> output) {
-        ArrayList<User> sortedOutput = new ArrayList<>(output);
-        if (Debug.ON) Log.v(TAG, "writing " + sortedOutput.size() + " users to " + usersFilePath(context));
-        final Collator collator = Collator.getInstance();
-        Collections.sort(sortedOutput, (o1, o2) -> collator.compare(o1.name, o2.name));
-
-        JSONArray jsonArray = new JSONArray();
-        try {
-            for (User user : sortedOutput) jsonArray.put(user.serializeToObj());
-        } catch (Exception e) {
-            Log.e(TAG, "Could not serialize users", e);
-            return false;
-        }
-
-        String finalName = usersFilePath(context);
-        String temporaryName = finalName + ".tmp";
-        File finalFile = new File(finalName);
-        File deletedFile = new File(finalName + ".del");
-        File temporaryFile = new File(temporaryName);
-
-        try (FileWriter file = new FileWriter(temporaryFile)) {
-            file.write(jsonArray.toString());
-            file.flush();
-        } catch (Exception e) {
-            Log.e(TAG, "Could not write users temporary file", e);
-            return false;
-        }
-
-        if (deletedFile.exists() && !deletedFile.delete()) {
-            Log.e(TAG, "Could not delete stale users backup " + deletedFile);
-            return false;
-        }
-        if (finalFile.exists() && !finalFile.renameTo(deletedFile)) {
-            Log.e(TAG, "Could not back up users file " + finalFile);
-            return false;
-        }
-        if (!temporaryFile.renameTo(finalFile)) {
-            Log.e(TAG, "Could not replace users file " + finalFile);
-            if (deletedFile.exists() && !deletedFile.renameTo(finalFile)) {
-                Log.e(TAG, "Could not restore users file " + finalFile);
-            }
-            return false;
-        }
-        if (deletedFile.exists() && !deletedFile.delete()) {
-            Log.w(TAG, "Could not delete users backup " + deletedFile);
-        }
-        return true;
+        RepositoryResult<Void> result = AppRepository.get(context).reloadGarminTokens(target);
+        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
     }
 
     @NonNull

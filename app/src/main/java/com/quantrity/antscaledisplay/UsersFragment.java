@@ -187,14 +187,11 @@ public class UsersFragment extends Fragment implements MenuProvider {
         out.setLevel(Deflater.BEST_COMPRESSION);
         try {
             byte[] buffer = new byte[BUFFER_SIZE];
-            String[] files = {
-                    User.usersFilePath(getActivity()), Weight.historyFilePath(getActivity()), Goal.goalsFilePath(getActivity())
-            };
-            for (String file : files) {
+            for (File file : AppRepository.get(getActivity()).dataFiles()) {
                 FileInputStream fi = new FileInputStream(file);
                 origin = new BufferedInputStream(fi, BUFFER_SIZE);
                 try {
-                    ZipEntry entry = new ZipEntry(file.substring(file.lastIndexOf("/") + 1));
+                    ZipEntry entry = new ZipEntry(file.getName());
                     out.putNextEntry(entry);
                     int count;
                     while ((count = origin.read(buffer, 0, BUFFER_SIZE)) != -1) {

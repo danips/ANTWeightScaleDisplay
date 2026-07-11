@@ -84,8 +84,7 @@ public class MainActivity extends AppCompatActivity
                 selectedUser = mUsersArray.get(0);
             }
             else {
-                SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
-                String selected_user = settings.getString("selected_user", null);
+                String selected_user = AppRepository.get(this).getSelectedUserName();
                 final Collator collator = Collator.getInstance();
                 Collections.sort(mUsersArray, (o1, o2) -> collator.compare(o1.name, o2.name));
                 if ((selected_user == null) || selected_user.isEmpty()) {
@@ -427,10 +426,7 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void setSelectedUser(User user) {
         selectedUser = user;
-        SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = settings.edit();
-        editor.putString("selected_user", user.name);
-        editor.apply();
+        AppRepository.get(this).setSelectedUserName(user.name);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -502,12 +498,9 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void deleteHistoryAndUser(User user) {
         GarminTokenRefreshScheduler.cancel(this, user);
-        SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
-        String selected_user = settings.getString("selected_user", null);
+        String selected_user = AppRepository.get(this).getSelectedUserName();
         if ((selected_user == null) || selected_user.equals(user.name) || (selected_user.isEmpty())) {
-            SharedPreferences.Editor editor = settings.edit();
-            editor.remove("selected_user");
-            editor.apply();
+            AppRepository.get(this).clearSelectedUser();
             selectedUser = null;
         }
 

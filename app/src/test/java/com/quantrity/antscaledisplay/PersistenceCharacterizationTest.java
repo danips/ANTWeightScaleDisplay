@@ -5,10 +5,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Test;
 
-import java.lang.reflect.Method;
+import java.util.Collections;
 
 public class PersistenceCharacterizationTest {
     @Test
@@ -16,7 +15,7 @@ public class PersistenceCharacterizationTest {
         JSONArray fixture = new JSONArray(FixtureLoader.load("users.json"));
 
         User current = new User(fixture.getJSONObject(0));
-        User currentReloaded = new User(serialize(current));
+        User currentReloaded = roundTrip(current);
         assertEquals("user-current-001", currentReloaded.uuid);
         assertEquals(User.MassUnit.KG, currentReloaded.mass_unit);
         assertEquals(168, currentReloaded.height_cm);
@@ -31,7 +30,7 @@ public class PersistenceCharacterizationTest {
         assertTrue(legacy.autoupload);
         assertFalse(legacy.show_fat_mass);
 
-        User legacyReloaded = new User(serialize(legacy));
+        User legacyReloaded = roundTrip(legacy);
         assertEquals("user-legacy-002", legacyReloaded.uuid);
         assertEquals(User.MassUnit.LB, legacyReloaded.mass_unit);
         assertEquals(5, legacyReloaded.height_ft);
@@ -44,7 +43,7 @@ public class PersistenceCharacterizationTest {
         JSONArray fixture = new JSONArray(FixtureLoader.load("history.json"));
 
         Weight current = new Weight(fixture.getJSONObject(0));
-        Weight currentReloaded = new Weight(serialize(current));
+        Weight currentReloaded = roundTrip(current);
         assertTrue(current.equals(currentReloaded));
         assertEquals(25.1, currentReloaded.trunkPercentFat, 0.0001);
         assertEquals(45.1, currentReloaded.muscleMass, 0.0001);
@@ -53,7 +52,7 @@ public class PersistenceCharacterizationTest {
         assertEquals(1750.0, legacy.basalMet, 0.0001);
         assertEquals(-1.0, legacy.activeMet, 0.0001);
 
-        Weight legacyReloaded = new Weight(serialize(legacy));
+        Weight legacyReloaded = roundTrip(legacy);
         assertTrue(legacy.equals(legacyReloaded));
     }
 
@@ -62,7 +61,7 @@ public class PersistenceCharacterizationTest {
         JSONArray fixture = new JSONArray(FixtureLoader.load("goals.json"));
         for (int i = 0; i < fixture.length(); i++) {
             Goal original = new Goal(fixture.getJSONObject(i));
-            Goal reloaded = new Goal(serialize(original));
+            Goal reloaded = roundTrip(original);
             assertEquals(original.uuid, reloaded.uuid);
             assertEquals(original.start_date, reloaded.start_date);
             assertEquals(original.end_date, reloaded.end_date);
@@ -74,9 +73,18 @@ public class PersistenceCharacterizationTest {
         }
     }
 
-    private static JSONObject serialize(Object value) throws Exception {
-        Method method = value.getClass().getDeclaredMethod("serializeToObj");
-        method.setAccessible(true);
-        return (JSONObject) method.invoke(value);
+    private static User roundTrip(User user) {
+        UserJsonCodec codec = new UserJsonCodec();
+        return codec.decode(codec.encode(Collections.singletonList(user)).value).value.get(0);
+    }
+
+    private static Weight roundTrip(Weight weight) {
+        WeightJsonCodec codec = new WeightJsonCodec();
+        return codec.decode(codec.encode(Collections.singletonList(weight)).value).value.get(0);
+    }
+
+    private static Goal roundTrip(Goal goal) {
+        GoalJsonCodec codec = new GoalJsonCodec();
+        return codec.decode(codec.encode(Collections.singletonList(goal)).value).value.get(0);
     }
 }

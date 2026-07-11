@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 3 — Centralize file persistence
+- Current phase: Phase 4 — Move application state out of `MainActivity`
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -37,7 +37,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 - [x] Phase 0 — Establish a safety baseline
 - [x] Phase 1 — Fix lint and remove dead code
 - [x] Phase 2 — Package or isolate the Garmin FIT SDK
-- [ ] Phase 3 — Centralize file persistence
+- [x] Phase 3 — Centralize file persistence
 - [ ] Phase 4 — Move application state out of `MainActivity`
 - [ ] Phase 5 — Make metric handling data-driven
 - [ ] Phase 6 — Simplify upload orchestration
@@ -189,7 +189,7 @@ refactor: remove dead resources and resolve lint errors
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending commit
+Commit: `851a9c9`
 
 ### Objective
 
@@ -253,9 +253,9 @@ build: replace vendored Garmin FIT sources with packaged SDK
 
 ## Phase 3 — Centralize file persistence
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending commit
 
 ### Objective
 
@@ -275,20 +275,40 @@ GoalJsonCodec
 
 ### Tasks
 
-- [ ] Implement `AtomicJsonFile` for read, temporary write, atomic replacement, backup, rollback, and
+- [x] Implement `AtomicJsonFile` for read, temporary write, atomic replacement, backup, rollback, and
       stale temporary/backup recovery.
-- [ ] Make codecs responsible only for converting models to and from JSON.
-- [ ] Preserve current file names and every supported JSON key.
-- [ ] Preserve current legacy-field migration behavior.
-- [ ] Introduce one repository-owned executor for serialized disk writes.
-- [ ] Stop creating an independent thread for every weight or goal save.
-- [ ] Ensure sorting works on copies instead of mutating caller-owned lists unexpectedly.
-- [ ] Return explicit success/failure results instead of only logging exceptions.
-- [ ] Add repository operations for users, measurements, goals, and selected-user persistence.
-- [ ] Keep Garmin access-token updates atomic and limited to token fields so background work cannot
+- [x] Make codecs responsible only for converting models to and from JSON.
+- [x] Preserve current file names and every supported JSON key.
+- [x] Preserve current legacy-field migration behavior.
+- [x] Introduce one repository-owned executor for serialized disk writes.
+- [x] Stop creating an independent thread for every weight or goal save.
+- [x] Ensure sorting works on copies instead of mutating caller-owned lists unexpectedly.
+- [x] Return explicit success/failure results instead of only logging exceptions.
+- [x] Add repository operations for users, measurements, goals, and selected-user persistence.
+- [x] Keep Garmin access-token updates atomic and limited to token fields so background work cannot
       overwrite concurrent profile edits.
-- [ ] Add concurrency tests for profile edits occurring during Garmin renewal.
-- [ ] Add recovery tests for interrupted writes and stale `.tmp`/`.del` files.
+- [x] Add concurrency tests for profile edits occurring during Garmin renewal.
+- [x] Add recovery tests for interrupted writes and stale `.tmp`/`.del` files.
+
+### Completion notes
+
+- Added `AtomicJsonFile` as the only component responsible for UTF-8 reads, synchronized replacement,
+  file-descriptor flushing, rollback, and recovery of stale or interrupted `.tmp`/`.del` states.
+- Added dedicated user, weight, and goal codecs. Existing filenames, JSON keys, optional fields, and
+  legacy user/measurement conversions remain unchanged.
+- Added `AppRepository` with one serialized write executor, explicit operation results, and operations
+  for users, measurements, goals, selected-user preferences, and backup file discovery.
+- Existing model persistence methods now act as compatibility adapters, keeping UI call sites stable.
+  Weight and goal saves no longer create an independent thread for every operation.
+- User and goal sorting operates on snapshots. Saving goals no longer reorders the caller's list.
+- Garmin access-token renewal reloads and patches the latest user record. Full profile saves preserve
+  newer token timestamps, preventing either concurrent operation from overwriting unrelated fields.
+- Added direct codec characterization, malformed-data, atomic recovery, caller-mutation, and
+  concurrent profile/token tests. All 32 unit tests pass.
+- `lintDebug` passes with 0 errors and 50 warnings. The full minified release build passes, and the
+  unsigned release APK is 2,284,276 bytes.
+- A physical restore of a pre-refactor backup was not performed locally; fixture-based repository
+  tests cover the same `users`, `history`, and `goals` formats without migration.
 
 ### Acceptance criteria
 
@@ -725,7 +745,8 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 0 | Use reflection only in persistence characterization tests | Captures current private serializer behavior without changing production persistence APIs before Phase 3 | `ea29454` |
 | 2026-07-11 | Phase 1 | Suppress lint only on the two generated FIT sources scheduled for removal | Avoids modifying generated third-party code while keeping all application lint errors visible | `5230bf5` |
 | 2026-07-11 | Phase 1 | Use the English jump-to label as the documented translation fallback | Avoids inventing unreviewed translations while resolving the fatal missing-translation check | `5230bf5` |
-| 2026-07-11 | Phase 2 | Use Garmin's official Maven artifact at the exact vendored profile version | Removes generated source while preserving byte-level FIT output and obtaining the SDK from its publisher | Pending commit |
+| 2026-07-11 | Phase 2 | Use Garmin's official Maven artifact at the exact vendored profile version | Removes generated source while preserving byte-level FIT output and obtaining the SDK from its publisher | `851a9c9` |
+| 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | Pending commit |
 
 ## Final results
 
