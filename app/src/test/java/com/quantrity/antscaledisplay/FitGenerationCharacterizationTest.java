@@ -3,13 +3,7 @@ package com.quantrity.antscaledisplay;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import com.garmin.fit.DateTime;
 import com.garmin.fit.Decode;
-import com.garmin.fit.FileEncoder;
-import com.garmin.fit.FileIdMesg;
-import com.garmin.fit.Fit;
-import com.garmin.fit.Manufacturer;
-import com.garmin.fit.WeightScaleMesg;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -19,7 +13,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
-import java.util.Date;
 
 public class FitGenerationCharacterizationTest {
     @Rule
@@ -29,25 +22,16 @@ public class FitGenerationCharacterizationTest {
     public void generatedWeightFileIsValidFit() throws Exception {
         File output = temporaryFolder.newFile("weight.fit");
 
-        FileIdMesg fileId = new FileIdMesg();
-        fileId.setType(com.garmin.fit.File.WEIGHT);
-        fileId.setManufacturer(Manufacturer.TANITA);
-        fileId.setProduct(1);
-        fileId.setSerialNumber(1L);
+        Weight weight = new Weight();
+        weight.date = 1_783_728_000_000L;
+        weight.height = Math.sqrt(64.2 / 22.75) * 100;
+        weight.weight = 64.2;
+        weight.percentFat = 26.3;
+        weight.percentHydration = 52.4;
+        weight.boneMass = 2.4;
+        weight.muscleMass = 45.1;
 
-        WeightScaleMesg weight = new WeightScaleMesg();
-        weight.setTimestamp(new DateTime(new Date(1_783_728_000_000L)));
-        weight.setWeight(64.2f);
-        weight.setPercentFat(26.3f);
-        weight.setPercentHydration(52.4f);
-        weight.setBoneMass(2.4f);
-        weight.setMuscleMass(45.1f);
-        weight.setBmi(22.75f);
-
-        FileEncoder encoder = new FileEncoder(output, Fit.ProtocolVersion.V2_0);
-        encoder.write(fileId);
-        encoder.write(weight);
-        encoder.close();
+        new FitFileFactory().create(output, weight);
 
         assertTrue(output.length() > 14);
         try (FileInputStream input = new FileInputStream(output)) {

@@ -530,7 +530,7 @@ public class MainActivity extends AppCompatActivity
         }
 
         AsyncUpload au = new AsyncUpload(activity, weight, user, true, true);
-        au.execute(activity.getCacheDir() + "/weight.fit");
+        au.execute();
     }
 
     public static double parseNumber(EditText et) {

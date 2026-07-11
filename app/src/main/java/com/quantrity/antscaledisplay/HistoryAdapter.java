@@ -180,7 +180,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_garmin_connect_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
                         AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, true, false);
-                        au.execute(mContext.getCacheDir() + "/weight.fit");
+                        au.execute();
                         return true;
                     });
                 }
@@ -188,7 +188,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_email_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
                         AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, false, true);
-                        au.execute(mContext.getCacheDir() + "/weight.fit");
+                        au.execute();
                         return true;
                     });
                 }

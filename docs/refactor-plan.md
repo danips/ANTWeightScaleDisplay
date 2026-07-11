@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 6 — Simplify upload orchestration
+- Current phase: Phase 7 — Split Garmin responsibilities
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -40,7 +40,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 - [x] Phase 3 — Centralize file persistence
 - [x] Phase 4 — Move application state out of `MainActivity`
 - [x] Phase 5 — Make metric handling data-driven
-- [ ] Phase 6 — Simplify upload orchestration
+- [x] Phase 6 — Simplify upload orchestration
 - [ ] Phase 7 — Split Garmin responsibilities
 - [ ] Phase 8 — Decouple the ANT state machine
 - [ ] Phase 9 — Apply View Binding consistently
@@ -479,9 +479,9 @@ refactor: render graphs and goals from metric metadata
 
 ## Phase 6 — Simplify upload orchestration
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending
 
 ### Objective
 
@@ -499,17 +499,34 @@ UploadResult
 
 ### Tasks
 
-- [ ] Move FIT file construction into `FitFileFactory`.
-- [ ] Move email subject/body construction into `MeasurementTextFormatter`.
-- [ ] Use one executor instead of starting Garmin/email threads and immediately joining them.
-- [ ] Return structured success/failure results rather than mutable fields on thread subclasses.
-- [ ] Launch the email chooser on the main thread.
-- [ ] Keep dialogs and progress rendering in the UI layer.
-- [ ] Track the submitted task so cancellation can interrupt or ignore completion safely.
-- [ ] Shut down executors when work finishes.
-- [ ] Avoid retaining `MainActivity` longer than the interactive workflow requires.
-- [ ] Keep interactive MFA-driven uploads in the foreground; do not move them to WorkManager.
-- [ ] Keep background token renewal in WorkManager.
+- [x] Move FIT file construction into `FitFileFactory`.
+- [x] Move email subject/body construction into `MeasurementTextFormatter`.
+- [x] Use one executor instead of starting Garmin/email threads and immediately joining them.
+- [x] Return structured success/failure results rather than mutable fields on thread subclasses.
+- [x] Launch the email chooser on the main thread.
+- [x] Keep dialogs and progress rendering in the UI layer.
+- [x] Track the submitted task so cancellation can interrupt or ignore completion safely.
+- [x] Shut down executors when work finishes.
+- [x] Avoid retaining `MainActivity` longer than the interactive workflow requires.
+- [x] Keep interactive MFA-driven uploads in the foreground; do not move them to WorkManager.
+- [x] Keep background token renewal in WorkManager.
+
+### Completion notes
+
+- `FitFileFactory` now owns deterministic FIT construction and is exercised by the existing
+  integrity and byte-digest characterization test.
+- `MeasurementTextFormatter` creates the localized email subject and body through an injectable
+  string provider, allowing formatting and unit behavior to be tested without an Activity.
+- `UploadCoordinator` performs Garmin upload and email preparation sequentially on the one executor
+  owned by `AsyncUpload`, returning an immutable `UploadResult`.
+- `AsyncUpload` keeps only a weak Activity reference, owns progress UI, tracks its submitted
+  `Future`, handles interruption, shuts down its executor, and opens the email chooser on the main
+  thread.
+- Interactive Garmin authentication and MFA remain in the foreground workflow. WorkManager-based
+  token renewal was not changed.
+- All 140 unit tests, debug lint, and the full minified release build pass.
+- A live Garmin upload and email-chooser launch were not performed locally; cover both with the
+  existing manual smoke-test checklist before release.
 
 ### Acceptance criteria
 
@@ -517,6 +534,14 @@ UploadResult
 - FIT and email formatting can be tested without an Activity.
 - Cancellation and lifecycle behavior are explicit.
 - Garmin upload and email sharing behave as before.
+
+### Verification
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+./gradlew assembleRelease
+```
 
 ### Suggested commit
 
