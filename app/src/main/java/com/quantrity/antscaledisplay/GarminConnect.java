@@ -41,6 +41,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.TimeZone;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.regex.Matcher;
@@ -112,7 +113,7 @@ public class GarminConnect {
                 Log.d(TAG, "[DEBUG] Valid token found in User object.");
                 return true;
             }
-            if (tryRefresh()) {
+            if (tryRenewAccessToken()) {
                 Log.d(TAG, "[DEBUG] Token refreshed in User object.");
                 return true;
             }
@@ -221,11 +222,23 @@ public class GarminConnect {
             Uri uri = Uri.parse("https://dummy?" + oauth1TokenStr);
             String o1Token = uri.getQueryParameter("oauth_token");
             String o1Secret = uri.getQueryParameter("oauth_token_secret");
+            if (o1Token == null || o1Secret == null) {
+                Log.e(TAG, "[ERROR] OAuth1 response did not contain token credentials.");
+                return false;
+            }
+
+            // OAuth2 tokens in this legacy Garmin flow are renewed by signing another exchange
+            // with these longer-lived OAuth1 credentials. Persist them before the first exchange.
+            user.garminOauth1Token = o1Token;
+            user.garminOauth1TokenSecret = o1Secret;
+            user.garminOauth1MfaToken = uri.getQueryParameter("mfa_token");
+            user.garminOauth1MfaExpirationTimestamp = parseMfaExpirationTimestamp(
+                    uri.getQueryParameter("mfa_expiration_timestamp"));
 
             consumer.setTokenWithSecret(o1Token, o1Secret);
 
             Log.d(TAG, "[DEBUG] Starting OAuth2 Exchange...");
-            if (performOAuth2Exchange(consumer)) {
+            if (performOAuth2Exchange(consumer) == TokenRenewalResult.SUCCESS) {
                 Log.d(TAG, "[DEBUG] Signin Success! Saving tokens to User.");
                 return oauth2Token.save(false);
             } else {
@@ -355,7 +368,7 @@ public class GarminConnect {
         // 2. Check if Access Token is expired (or close to it)
         if (oauth2Token.expiry < (System.currentTimeMillis() / 1000) + 60) {
             Log.d(TAG, "Access token expired. Attempting refresh...");
-            if (!tryRefresh()) {
+            if (!tryRenewAccessToken()) {
                 return "Session expired. Please login again.";
             }
         }
@@ -434,7 +447,7 @@ public class GarminConnect {
 
         // AUTO-REFRESH CHECK
         if (oauth2Token.expiry < (System.currentTimeMillis() / 1000) + 60) {
-            if (!tryRefresh()) {
+            if (!tryRenewAccessToken()) {
                 Log.e(TAG, "[ERROR] downloadHistory: Refresh failed.");
                 return false;
             }
@@ -481,16 +494,20 @@ public class GarminConnect {
         return null;
     }
 
-    private boolean performOAuth2Exchange(OAuthConsumer consumer) {
+    private TokenRenewalResult performOAuth2Exchange(OAuthConsumer consumer) {
+        HttpURLConnection conn = null;
         try {
-            VirtualRequest virtualRequest = new VirtualRequest(OAUTH2_URL, "POST");
+            String body = getOAuth2ExchangeBody();
+            VirtualRequest virtualRequest = new VirtualRequest(
+                    OAUTH2_URL, "POST", body, "application/x-www-form-urlencoded");
             consumer.sign(virtualRequest);
 
-            HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
+            conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
             conn.setRequestMethod("POST");
+            conn.setConnectTimeout(30_000);
+            conn.setReadTimeout(30_000);
             conn.setRequestProperty("User-Agent", USER_AGENT);
             conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-            conn.setRequestProperty("Content-Length", "0");
 
             String authHeader = virtualRequest.getHeaders().get("Authorization");
             if (authHeader != null) {
@@ -498,27 +515,45 @@ public class GarminConnect {
             }
 
             conn.setDoOutput(true);
+            byte[] bodyBytes = body.getBytes(StandardCharsets.UTF_8);
+            conn.setFixedLengthStreamingMode(bodyBytes.length);
+            try (DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
+                dos.write(bodyBytes);
+            }
 
             int code = conn.getResponseCode();
             if (code == 200) {
-                String body = readStream(conn.getInputStream());
-                JSONObject json = new JSONObject(body);
+                String responseBody = readStream(conn.getInputStream());
+                JSONObject json = new JSONObject(responseBody);
                 this.oauth2Token = new OAuth2Token(
                         json.getString("access_token"),
-                        json.getString("refresh_token"),
-                        json.optLong("expires_in", 3600),
-                        json.optLong("refresh_token_expires_in", 86400)
+                        json.optLong("expires_in", 3600)
                 );
-                return true;
+                return TokenRenewalResult.SUCCESS;
             } else {
                 Log.e(TAG, "[ERROR] OAuth2 Failed. Code: " + code);
                 String err = readStream(conn.getErrorStream());
                 Log.e(TAG, "OAuth2 Error Body: " + err);
+                if (code == 408 || code == 429 || code >= 500) {
+                    return TokenRenewalResult.RETRY;
+                }
+                return TokenRenewalResult.INVALID;
             }
         } catch (Exception e) {
             Log.e(TAG, "[ERROR] OAuth2 Exception", e);
+            return TokenRenewalResult.RETRY;
+        } finally {
+            if (conn != null) conn.disconnect();
         }
-        return false;
+    }
+
+    private String getOAuth2ExchangeBody() throws Exception {
+        if (user == null || user.garminOauth1MfaToken == null
+                || user.garminOauth1MfaToken.isEmpty()) {
+            return "";
+        }
+        return "mfa_token=" + URLEncoder.encode(
+                user.garminOauth1MfaToken, StandardCharsets.UTF_8.name());
     }
 
     // --- Virtual Request Helper ---
@@ -526,11 +561,16 @@ public class GarminConnect {
         private String url;
         private final String method;
         private final Map<String, String> headers;
+        private final byte[] payload;
+        private final String contentType;
 
-        public VirtualRequest(String url, String method) {
+        public VirtualRequest(String url, String method, String payload, String contentType) {
             this.url = url;
             this.method = method;
             this.headers = new HashMap<>();
+            this.payload = payload.getBytes(StandardCharsets.UTF_8);
+            this.contentType = contentType;
+            if (contentType != null) headers.put("Content-Type", contentType);
         }
 
         @Override public String getMethod() { return method; }
@@ -539,8 +579,8 @@ public class GarminConnect {
         @Override public void setHeader(String name, String value) { headers.put(name, value); }
         @Override public String getHeader(String name) { return headers.get(name); }
         @Override public Map<String, String> getAllHeaders() { return headers; }
-        @Override public InputStream getMessagePayload() { return new ByteArrayInputStream(new byte[0]); }
-        @Override public String getContentType() { return null; }
+        @Override public InputStream getMessagePayload() { return new ByteArrayInputStream(payload); }
+        @Override public String getContentType() { return contentType; }
         @Override public Object unwrap() { return null; }
 
         public Map<String, String> getHeaders() { return headers; }
@@ -651,24 +691,19 @@ public class GarminConnect {
 
     private class OAuth2Token {
         final String accessToken;
-        final String refreshToken;
-        long expiry, refreshExpiry;
+        long expiry;
 
-        OAuth2Token(String access, String refresh, long exp, long refreshExp) {
+        OAuth2Token(String access, long exp) {
             long now = System.currentTimeMillis() / 1000;
             this.accessToken = access;
-            this.refreshToken = refresh;
             this.expiry = now + exp;
-            this.refreshExpiry = now + refreshExp;
         }
 
         // Save directly to the user object and persist before reporting success.
         boolean save(boolean persistTokensOnly) {
             if (user != null) {
                 user.garminOauth2Token = accessToken;
-                user.garminOauth2RefreshToken = refreshToken;
                 user.garminOauth2ExpiryTimestamp = expiry;
-                user.garminOauth2RefreshExpiryTimestamp = refreshExpiry;
 
                 Log.d(TAG, "[DEBUG] Saving tokens to User object: " + user.name);
                 boolean saved = persistTokensOnly
@@ -686,92 +721,84 @@ public class GarminConnect {
     // UPDATED: Load directly from User object
     private boolean loadOauth2() {
         if (user != null && user.garminOauth2Token != null && user.garminOauth2ExpiryTimestamp > (System.currentTimeMillis()/1000)) {
-            this.oauth2Token = new OAuth2Token(user.garminOauth2Token, user.garminOauth2RefreshToken, 0, 0);
+            this.oauth2Token = new OAuth2Token(user.garminOauth2Token, 0);
             this.oauth2Token.expiry = user.garminOauth2ExpiryTimestamp;
-            this.oauth2Token.refreshExpiry = user.garminOauth2RefreshExpiryTimestamp;
             return true;
         }
         return false;
     }
 
     // Load directly from User object.
-    private boolean tryRefresh() {
-        return refreshToken(false) == TokenRefreshResult.SUCCESS;
+    private boolean tryRenewAccessToken() {
+        return renewAccessToken(false) == TokenRenewalResult.SUCCESS;
     }
 
-    enum TokenRefreshResult {
+    enum TokenRenewalResult {
         SUCCESS,
         RETRY,
         INVALID
     }
 
-    TokenRefreshResult refreshTokenInBackground() {
-        return refreshToken(true);
+    TokenRenewalResult renewAccessTokenInBackground() {
+        return renewAccessToken(true);
     }
 
-    private TokenRefreshResult refreshToken(boolean persistTokensOnly) {
-        if (user == null || user.garminOauth2RefreshToken == null
-                || user.garminOauth2RefreshToken.isEmpty()) {
-            return TokenRefreshResult.INVALID;
+    private TokenRenewalResult renewAccessToken(boolean persistTokensOnly) {
+        if (!hasOAuth1Credentials()) {
+            Log.d(TAG, "[DEBUG] No saved OAuth1 credentials; interactive login is required once.");
+            return TokenRenewalResult.INVALID;
         }
 
-        String ref = user.garminOauth2RefreshToken;
-        long refExp = user.garminOauth2RefreshExpiryTimestamp;
-
-        if (refExp < (System.currentTimeMillis()/1000)) {
-            // The expiry is sometimes a local fallback. Let the server be authoritative.
-            Log.d(TAG, "[DEBUG] Refresh token is locally expired; attempting refresh anyway.");
-        }
-
-        HttpURLConnection conn = null;
         try {
-            conn = getUrlConnection(ref);
-            int responseCode = conn.getResponseCode();
+            OAuthConsumer consumer = new DefaultOAuthConsumer(
+                    OAUTH1_CONSUMER_KEY, OAUTH1_CONSUMER_SECRET);
+            consumer.setMessageSigner(new HmacSha1MessageSigner());
+            consumer.setTokenWithSecret(
+                    user.garminOauth1Token, user.garminOauth1TokenSecret);
 
-            if (responseCode == 200) {
-                String body = readStream(conn.getInputStream());
-                JSONObject json = new JSONObject(body);
-                this.oauth2Token = new OAuth2Token(
-                        json.getString("access_token"),
-                        json.getString("refresh_token"),
-                        json.optLong("expires_in", 3600),
-                        json.optLong("refresh_token_expires_in", 86400)
-                );
-                return this.oauth2Token.save(persistTokensOnly)
-                        ? TokenRefreshResult.SUCCESS
-                        : TokenRefreshResult.RETRY;
-            }
-            String errorBody = readStream(conn.getErrorStream());
-            Log.e(TAG, "[ERROR] Token refresh failed. Code: " + responseCode
-                    + ", Body: " + errorBody);
-            if (responseCode == 408 || responseCode == 429 || responseCode >= 500) {
-                return TokenRefreshResult.RETRY;
-            }
-            return TokenRefreshResult.INVALID;
+            TokenRenewalResult exchangeResult = performOAuth2Exchange(consumer);
+            if (exchangeResult != TokenRenewalResult.SUCCESS) return exchangeResult;
+            return this.oauth2Token.save(persistTokensOnly)
+                    ? TokenRenewalResult.SUCCESS
+                    : TokenRenewalResult.RETRY;
         } catch (Exception e) {
             Log.e(TAG, "[ERROR] Token Refresh failed", e);
-            return TokenRefreshResult.RETRY;
-        } finally {
-            if (conn != null) conn.disconnect();
+            return TokenRenewalResult.RETRY;
         }
     }
 
-    @NonNull
-    private HttpURLConnection getUrlConnection(String ref) throws IOException {
-        HttpURLConnection conn = (HttpURLConnection) new URL(OAUTH2_URL).openConnection();
-        conn.setRequestMethod("POST");
-        conn.setDoOutput(true);
-        conn.setConnectTimeout(30_000);
-        conn.setReadTimeout(30_000);
-        conn.setRequestProperty("User-Agent", USER_AGENT);
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
+    private boolean hasOAuth1Credentials() {
+        return user != null
+                && user.garminOauth1Token != null
+                && !user.garminOauth1Token.isEmpty()
+                && user.garminOauth1TokenSecret != null
+                && !user.garminOauth1TokenSecret.isEmpty();
+    }
 
-        String data = "grant_type=refresh_token&refresh_token="
-                + URLEncoder.encode(ref, StandardCharsets.UTF_8.name());
-        try(DataOutputStream dos = new DataOutputStream(conn.getOutputStream())) {
-            dos.writeBytes(data);
+    static long parseMfaExpirationTimestamp(String value) {
+        if (value == null || value.isEmpty()) return -1;
+        try {
+            long numericValue = Long.parseLong(value);
+            return numericValue > 10_000_000_000L ? numericValue / 1000 : numericValue;
+        } catch (NumberFormatException ignored) {
+            // Garmin has also returned ISO-8601 timestamps for this field.
         }
-        return conn;
+
+        String[] patterns = {
+                "yyyy-MM-dd'T'HH:mm:ss.SSSX",
+                "yyyy-MM-dd'T'HH:mm:ssX",
+                "yyyy-MM-dd HH:mm:ss.SSS"
+        };
+        for (String pattern : patterns) {
+            try {
+                SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.US);
+                format.setTimeZone(TimeZone.getTimeZone("UTC"));
+                return Objects.requireNonNull(format.parse(value)).getTime() / 1000;
+            } catch (Exception ignored) {
+                // Try the next supported representation.
+            }
+        }
+        return -1;
     }
 
     private static class HttpResponse {

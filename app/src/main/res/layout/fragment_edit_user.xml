@@ -238,6 +238,17 @@
     </TableRow>
     <TableRow>
         <TextView
+            android:id="@+id/garmin_token_information"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:textAppearance="?android:textAppearanceSmall"
+            android:textIsSelectable="true" />
+    </TableRow>
+    <TableRow>
+        <TextView
             android:id="@+id/garmin_token_clear_desc"
             android:textAppearance="?android:textAppearanceMedium"
             android:layout_width="wrap_content"

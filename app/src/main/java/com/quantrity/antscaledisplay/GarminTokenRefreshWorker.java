@@ -28,24 +28,23 @@ public class GarminTokenRefreshWorker extends Worker {
         ArrayList<User> users = new ArrayList<>();
         User.deserializeUsers(getApplicationContext(), users);
         User user = findUser(users, userUuid);
-        if (user == null || user.garminOauth2RefreshToken == null
-                || user.garminOauth2RefreshToken.isEmpty()) {
+        if (!GarminTokenRefreshScheduler.hasRenewalCredentials(user)) {
             // The user or their Garmin connection was removed while this job was pending.
             return Result.success();
         }
 
         GarminConnect garminConnect = new GarminConnect(user, users, getApplicationContext());
-        GarminConnect.TokenRefreshResult refreshResult = garminConnect.refreshTokenInBackground();
-        if (refreshResult == GarminConnect.TokenRefreshResult.SUCCESS) {
+        GarminConnect.TokenRenewalResult renewalResult = garminConnect.renewAccessTokenInBackground();
+        if (renewalResult == GarminConnect.TokenRenewalResult.SUCCESS) {
             GarminTokenRefreshScheduler.scheduleAfterCurrentWorker(getApplicationContext(), user);
             return Result.success();
         }
-        if (refreshResult == GarminConnect.TokenRefreshResult.RETRY) {
+        if (renewalResult == GarminConnect.TokenRenewalResult.RETRY) {
             Log.w(TAG, "Temporary Garmin token refresh failure for user " + userUuid);
             return Result.retry();
         }
 
-        Log.w(TAG, "Garmin refresh token was rejected for user " + userUuid);
+        Log.w(TAG, "Garmin renewal credentials were rejected for user " + userUuid);
         return Result.failure();
     }
 

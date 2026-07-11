@@ -60,9 +60,7 @@ public class User {
     String garminOauth1MfaToken;
     long garminOauth1MfaExpirationTimestamp;
     String garminOauth2Token;
-    String garminOauth2RefreshToken;
     long garminOauth2ExpiryTimestamp;
-    long garminOauth2RefreshExpiryTimestamp;
     String email_to;
 
     public User() {}
@@ -135,9 +133,7 @@ public class User {
         if (obj.has("garminOauth1MfaToken")) this.garminOauth1MfaToken = obj.getString("garminOauth1MfaToken");
         if (obj.has("garminOauth1MfaExpirationTimestamp")) this.garminOauth1MfaExpirationTimestamp = obj.getLong("garminOauth1MfaExpirationTimestamp");
         if (obj.has("garminOauth2Token")) this.garminOauth2Token = obj.getString("garminOauth2Token");
-        if (obj.has("garminOauth2RefreshToken")) this.garminOauth2RefreshToken = obj.getString("garminOauth2RefreshToken");
         if (obj.has("garminOauth2ExpiryTimestamp")) this.garminOauth2ExpiryTimestamp = obj.getLong("garminOauth2ExpiryTimestamp");
-        if (obj.has("garminOauth2RefreshExpiryTimestamp")) this.garminOauth2RefreshExpiryTimestamp = obj.getLong("garminOauth2RefreshExpiryTimestamp");
         if (obj.has("email_to")) this.email_to = obj.getString("email_to");
 
         this.autoupload = !obj.has("autoupload") || obj.getBoolean("autoupload");
@@ -167,9 +163,7 @@ public class User {
         serializedObj.put("garminOauth1MfaToken",this.garminOauth1MfaToken);
         serializedObj.put("garminOauth1MfaExpirationTimestamp",this.garminOauth1MfaExpirationTimestamp);
         serializedObj.put("garminOauth2Token",this.garminOauth2Token);
-        serializedObj.put("garminOauth2RefreshToken",this.garminOauth2RefreshToken);
         serializedObj.put("garminOauth2ExpiryTimestamp",this.garminOauth2ExpiryTimestamp);
-        serializedObj.put("garminOauth2RefreshExpiryTimestamp",this.garminOauth2RefreshExpiryTimestamp);
         serializedObj.put("gc_pass", this.gc_pass);
         serializedObj.put("email_to", this.email_to);
 
@@ -224,7 +218,7 @@ public class User {
     }
 
     /**
-     * Persist only refreshed Garmin token fields into the latest user file. A Worker may spend
+     * Persist only renewed Garmin access-token fields into the latest user file. A Worker may spend
      * time on the network, so rewriting the list it originally loaded could otherwise overwrite
      * profile edits made while the refresh request was running.
      */
@@ -243,10 +237,24 @@ public class User {
             if (target == null) return false;
 
             target.garminOauth2Token = tokenSource.garminOauth2Token;
-            target.garminOauth2RefreshToken = tokenSource.garminOauth2RefreshToken;
             target.garminOauth2ExpiryTimestamp = tokenSource.garminOauth2ExpiryTimestamp;
-            target.garminOauth2RefreshExpiryTimestamp = tokenSource.garminOauth2RefreshExpiryTimestamp;
             return serializeUsersLocked(context, latestUsers);
+        }
+    }
+
+    static void reloadGarminTokens(Context context, User target) {
+        if (target == null || target.uuid == null) return;
+
+        synchronized (USERS_FILE_LOCK) {
+            ArrayList<User> latestUsers = new ArrayList<>();
+            deserializeUsersLocked(context, latestUsers);
+            for (User latest : latestUsers) {
+                if (target.uuid.equals(latest.uuid)) {
+                    target.garminOauth2Token = latest.garminOauth2Token;
+                    target.garminOauth2ExpiryTimestamp = latest.garminOauth2ExpiryTimestamp;
+                    return;
+                }
+            }
         }
     }
 

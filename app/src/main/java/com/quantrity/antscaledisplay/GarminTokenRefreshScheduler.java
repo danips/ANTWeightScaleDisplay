@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 final class GarminTokenRefreshScheduler {
     private static final String UNIQUE_WORK_PREFIX = "garmin-token-refresh-";
-    private static final long REFRESH_SAFETY_WINDOW_MILLIS = TimeUnit.HOURS.toMillis(6);
+    private static final long ACCESS_REFRESH_LEAD_TIME_MILLIS = TimeUnit.HOURS.toMillis(6);
 
     private GarminTokenRefreshScheduler() {}
 
@@ -41,7 +41,7 @@ final class GarminTokenRefreshScheduler {
     }
 
     private static void enqueue(Context context, User user, ExistingWorkPolicy policy) {
-        if (!hasRefreshToken(user)) {
+        if (!hasRenewalCredentials(user)) {
             cancel(context, user);
             return;
         }
@@ -56,7 +56,7 @@ final class GarminTokenRefreshScheduler {
                 .setInputData(input)
                 .setConstraints(constraints)
                 .setInitialDelay(calculateDelayMillis(
-                        System.currentTimeMillis(), user.garminOauth2RefreshExpiryTimestamp),
+                        System.currentTimeMillis(), user.garminOauth2ExpiryTimestamp),
                         TimeUnit.MILLISECONDS)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
                 .build();
@@ -65,21 +65,23 @@ final class GarminTokenRefreshScheduler {
                 .enqueueUniqueWork(uniqueWorkName(user.uuid), policy, request);
     }
 
-    static long calculateDelayMillis(long nowMillis, long refreshExpirySeconds) {
-        long refreshAtMillis = TimeUnit.SECONDS.toMillis(refreshExpirySeconds)
-                - REFRESH_SAFETY_WINDOW_MILLIS;
+    static long calculateDelayMillis(long nowMillis, long accessExpirySeconds) {
+        long refreshAtMillis = TimeUnit.SECONDS.toMillis(accessExpirySeconds)
+                - ACCESS_REFRESH_LEAD_TIME_MILLIS;
         return Math.max(0, refreshAtMillis - nowMillis);
     }
 
-    private static boolean hasRefreshToken(User user) {
+    static boolean hasRenewalCredentials(User user) {
         return user != null
                 && user.uuid != null
-                && user.garminOauth2RefreshToken != null
-                && !user.garminOauth2RefreshToken.isEmpty();
+                && user.garminOauth1Token != null
+                && !user.garminOauth1Token.isEmpty()
+                && user.garminOauth1TokenSecret != null
+                && !user.garminOauth1TokenSecret.isEmpty();
     }
 
     @NonNull
-    private static String uniqueWorkName(String userUuid) {
+    static String uniqueWorkName(String userUuid) {
         return UNIQUE_WORK_PREFIX + userUuid;
     }
 }
