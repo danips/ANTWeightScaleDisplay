@@ -35,9 +35,6 @@
 	<string name="edit_user_fragment_athlete_mode">Атлетический режим</string>
 	<string name="edit_user_fragment_automatic_upload">Автоматическая загрузка</string>
 	<string name="edit_user_fragment_birthdate">Дата рождения</string>
-	<string name="edit_user_fragment_connect_to">Подключиться к <b>%1$s</b></string>
-	<string name="edit_user_fragment_connected_to">✔ Подключено к <b>%1$s</b></string>
-	<string name="edit_user_fragment_dates_in_graph">Количество дат в графике</string>
 	<string name="edit_user_fragment_email_category">Электронная почта</string>
 	<string name="edit_user_fragment_fat_mass">Показать жировой массы</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +100,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Дата</string>
 	<string name="history_fragment_download">%1$s загружен</string>
-	<string name="history_fragment_download_complete">Загрузка завершена</string>
 	<string name="history_fragment_download_in_progress">Идет загрузка</string>
-	<string name="hydration_percent_value_0">Низкий</string>
-	<string name="hydration_percent_value_1">Хорошо</string>
-	<string name="hydration_percent_value_2">Высокий</string>
 	<string name="lateral_menu_close">Закрыть меню</string>
 	<string name="lateral_menu_open">Открыть меню</string>
-	<string name="lateral_menu_option_about">Об авторе</string>
 	<string name="lateral_menu_option_goals">Цели</string>
 	<string name="lateral_menu_option_graphs">Графики</string>
 	<string name="lateral_menu_option_history">История</string>
@@ -118,7 +110,6 @@
 	<string name="lateral_menu_option_weight">Вес</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b>%1$s</b> не найден.\nУстановите его пожалуйста через Google Play.</string>
-	<string name="msg_problem_setting_up_billing">Проблема с биллингом в приложении</string>
 	<string name="msg_problem_usb_stick_not_detected">Your device does not seem to have an integrated ANT+ radio, you need to connect an ANT+ USB stick to communicate with your weight scale.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">Скрытое ожирение</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">лет</string>
 	<string name="weight_fragment_action_upload">Отправить</string>
 	<string name="weight_fragment_action_weight">Вес</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">ИМТ</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">Ежедневное потребление калорий</string>
 	<string name="weight_fragment_icon_desc_basalMet">Интенсивность основного обмена (BMR)</string>
 	<string name="weight_fragment_icon_desc_boneMass">Масса костей</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">Начать измерение веса</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">Отсутствует подключение к Интернет. Попробуйте позже.</string>
 	<string name="weight_fragment_msg_searching">Поиск ANT+ весов</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Спасибо за обновление до Premium версии!</string>
 	<string name="weight_fragment_msg_updating_success">%1$s успешно обновлено</string>
 	<string name="weight_fragment_msg_uploading">Загрузка</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Возникла проблема при создании FIT файла</string>
-	<string name="weight_fragment_msg_uploading_failure">Возникла проблема при загрузке FIT файла в Garmin Connect. Попробуйте позже.</string>
 	<string name="weight_fragment_msg_waiting">Ожидание результата измерения</string>
 	<string name="weight_fragment_msg_wrong_credentials">Неверное имя пользователя или пароль Garmin Connect !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>

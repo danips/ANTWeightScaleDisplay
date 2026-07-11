@@ -32,9 +32,6 @@
     <string name="edit_user_fragment_athlete_mode">Atletläge</string>
     <string name="edit_user_fragment_automatic_upload">Automatisk uppladdning</string>
     <string name="edit_user_fragment_birthdate">Födelsedatum</string>
-    <string name="edit_user_fragment_connect_to">Anslut till <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Ansluten till <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_dates_in_graph">Antal datum i diagrammet</string>
     <string name="edit_user_fragment_email_category">E-post</string>
     <string name="edit_user_fragment_fat_mass">Visa fettmassa</string>
     <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
     <string name="history_fragment_action_export_csv">CSV</string>
     <string name="history_fragment_date">Datum</string>
     <string name="history_fragment_download">Ladda ner <xliff:g id="name">%1$s</xliff:g></string>
-    <string name="history_fragment_download_complete">Nedladdning klar</string>
     <string name="history_fragment_download_in_progress">Nedladdning pågår</string>
-    <string name="hydration_percent_value_0">Låg</string>
-    <string name="hydration_percent_value_1">Bra</string>
-    <string name="hydration_percent_value_2">Hög</string>
     <string name="lateral_menu_close">Stäng sidomenyn</string>
     <string name="lateral_menu_open">Öppna sidomenyn</string>
-    <string name="lateral_menu_option_about">Om</string>
     <string name="lateral_menu_option_goals">Mål</string>
     <string name="lateral_menu_option_graphs">Grafer</string>
     <string name="lateral_menu_option_history">Historik</string>
@@ -116,7 +108,6 @@
     <string name="lateral_menu_option_weight">Vikt</string>
     <string name="msg_problem_ant_permission_disabled">ANT Radio Service har inte behörighet att använda ANT-hårdvara. Aktivera den för att kommunicera med din våg.</string>
     <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> hittades inte.\nInstallera den från Google Play.</string>
-    <string name="msg_problem_setting_up_billing">Problem med att konfigurera fakturering i appen</string>
     <string name="msg_problem_usb_stick_not_detected">Din enhet verkar inte ha en integrerad ANT+-radio, du måste ansluta en ANT+ USB-sticka för att kommunicera med din våg.</string>
     <string name="msg_problem_usb_stick_not_detected_never">Visa aldrig igen</string>
     <string name="physique_rating_1">Dold fetma</string>
@@ -147,9 +138,7 @@
     <string name="weight_edit_fragment_years_tag">år</string>
     <string name="weight_fragment_action_upload">Ladda upp</string>
     <string name="weight_fragment_action_weight">Vikt</string>
-    <string name="weight_fragment_amr_abbreviation">AMR</string>
     <string name="weight_fragment_bmi_tag">BMI</string>
-    <string name="weight_fragment_bmr_abbreviation">BMR</string>
     <string name="weight_fragment_icon_desc_activeMet">Aktiv metabolisk hastighet</string>
     <string name="weight_fragment_icon_desc_basalMet">Basalomsättning</string>
     <string name="weight_fragment_icon_desc_boneMass">Benmassa</string>
@@ -169,11 +158,9 @@
     <string name="weight_fragment_msg_found">Begär viktmätning</string>
     <string name="weight_fragment_msg_problem_no_internet_connection">Det finns ingen internetanslutning för tillfället. Försök igen senare.</string>
     <string name="weight_fragment_msg_searching">Söker efter ANT+ våg</string>
-    <string name="weight_fragment_msg_thankyou_purchasing">Tack för att du uppgraderade till premium!</string>
     <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> uppdaterades</string>
     <string name="weight_fragment_msg_uploading">Laddar upp</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">Det uppstod ett problem när FIT-filen genererades</string>
-    <string name="weight_fragment_msg_uploading_failure">Det uppstod ett problem vid uppladdning av FIT-filen till Garmin Connect.\nFörsök igen senare.</string>
     <string name="weight_fragment_msg_waiting">Väntar på viktmätning</string>
     <string name="weight_fragment_msg_wrong_credentials">Fel Garmin Connect-användarnamn eller lösenord!</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

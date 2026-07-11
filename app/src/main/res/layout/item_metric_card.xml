@@ -43,6 +43,7 @@
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 android:padding="10dp"
+                android:importantForAccessibility="no"
                 tools:src="@drawable/ic_metabolic"
                 tools:background="@drawable/rounded_blue"/>
 
@@ -76,6 +77,7 @@
                 android:id="@+id/metricTrend"
                 android:layout_width="16dp"
                 android:layout_height="16dp"
+                android:importantForAccessibility="no"
                 tools:src="@drawable/ic_equal" />
 
         </LinearLayout>

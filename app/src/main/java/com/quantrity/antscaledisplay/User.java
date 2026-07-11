@@ -69,10 +69,6 @@ public class User {
         deserializeFromObj(obj);
     }
 
-    /*public User(String serializedObj) throws JSONException {
-        deserialize(serializedObj);
-    }*/
-
     static String usersFilePath(Context context) {
         return context.getFilesDir() + "/users";
     }
@@ -89,11 +85,6 @@ public class User {
         int age = when.get(Calendar.YEAR) - dob.get(Calendar.YEAR);
         if (when.get(Calendar.DAY_OF_YEAR) < dob.get(Calendar.DAY_OF_YEAR)) age--;
         return age;
-    }
-
-    private void deserialize(String serializedObj) throws JSONException {
-        JSONObject obj = new JSONObject(serializedObj);
-        deserializeFromObj(obj);
     }
 
     private void deserializeFromObj(JSONObject obj) throws JSONException {
@@ -188,7 +179,7 @@ public class User {
             reader.close();
             json = sb.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to read user data", e);
         }
         return json;
     }
@@ -432,7 +423,7 @@ public class User {
         try {
             number = format.parse(et.getText().toString());
         } catch (ParseException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to parse the user value", e);
             return -1;
         }
         assert number != null;

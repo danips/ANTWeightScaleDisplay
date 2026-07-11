@@ -142,7 +142,7 @@ public class Weight implements Cloneable {
         try {
             deserializeArray(serializedArray, historyArray);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to deserialize weight history", e);
         }
     }
 
@@ -154,7 +154,7 @@ public class Weight implements Cloneable {
             try {
                 while (tmp.hasNext()) jsonArray.put(tmp.next().serializeToObj());
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to serialize weight history", e);
                 return;
             }
             try {
@@ -181,7 +181,7 @@ public class Weight implements Cloneable {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to save weight history", e);
             }
         }).start();
     }

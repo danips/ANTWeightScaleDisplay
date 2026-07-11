@@ -32,9 +32,6 @@
     <string name="edit_user_fragment_athlete_mode">运动员模式</string>
     <string name="edit_user_fragment_automatic_upload">自动上传</string>
     <string name="edit_user_fragment_birthdate">出生日期</string>
-    <string name="edit_user_fragment_connect_to">连接到 <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> 已连接到 <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_dates_in_graph">图表中的日期数量</string>
     <string name="edit_user_fragment_email_category">电子邮件</string>
     <string name="edit_user_fragment_fat_mass">显示脂肪量</string>
     <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
     <string name="history_fragment_action_export_csv">CSV</string>
     <string name="history_fragment_date">日期</string>
     <string name="history_fragment_download">下载 <xliff:g id="name">%1$s</xliff:g></string>
-    <string name="history_fragment_download_complete">下载完成</string>
     <string name="history_fragment_download_in_progress">下载进行中</string>
-    <string name="hydration_percent_value_0">低</string>
-    <string name="hydration_percent_value_1">好</string>
-    <string name="hydration_percent_value_2">高</string>
     <string name="lateral_menu_close">关闭侧边菜单</string>
     <string name="lateral_menu_open">打开侧边菜单</string>
-    <string name="lateral_menu_option_about">关于</string>
     <string name="lateral_menu_option_goals">目标</string>
     <string name="lateral_menu_option_graphs">图表</string>
     <string name="lateral_menu_option_history">历史记录</string>
@@ -116,7 +108,6 @@
     <string name="lateral_menu_option_weight">体重</string>
     <string name="msg_problem_ant_permission_disabled">ANT Radio Service 没有使用 ANT 硬件的权限。请启用权限以连接您的体重秤。</string>
     <string name="msg_problem_service_not_found">未找到 <b><xliff:g id="name">%1$s</xliff:g></b>。\n请从 Google Play 安装。</string>
-    <string name="msg_problem_setting_up_billing">设置应用内购买时出现问题</string>
     <string name="msg_problem_usb_stick_not_detected">您的设备似乎没有内置 ANT+ 无线模块，您需要连接 ANT+ USB 接收器才能与体重秤通信。</string>
     <string name="msg_problem_usb_stick_not_detected_never">不再显示</string>
     <string name="physique_rating_1">隐性肥胖</string>
@@ -147,9 +138,7 @@
     <string name="weight_edit_fragment_years_tag">岁</string>
     <string name="weight_fragment_action_upload">上传</string>
     <string name="weight_fragment_action_weight">体重</string>
-    <string name="weight_fragment_amr_abbreviation">AMR</string>
     <string name="weight_fragment_bmi_tag">BMI</string>
-    <string name="weight_fragment_bmr_abbreviation">BMR</string>
     <string name="weight_fragment_icon_desc_activeMet">活动代谢率</string>
     <string name="weight_fragment_icon_desc_basalMet">基础代谢率</string>
     <string name="weight_fragment_icon_desc_boneMass">骨量</string>
@@ -169,11 +158,9 @@
     <string name="weight_fragment_msg_found">请求体重测量</string>
     <string name="weight_fragment_msg_problem_no_internet_connection">当前没有网络连接。请稍后再试。</string>
     <string name="weight_fragment_msg_searching">正在搜索 ANT+ 体重秤</string>
-    <string name="weight_fragment_msg_thankyou_purchasing">感谢升级至高级版！</string>
     <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> 更新成功</string>
     <string name="weight_fragment_msg_uploading">正在上传</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">生成 FIT 文件时出现问题</string>
-    <string name="weight_fragment_msg_uploading_failure">上传 FIT 文件至 Garmin Connect 时出现问题。\n请稍后再试。</string>
     <string name="weight_fragment_msg_waiting">等待体重测量</string>
     <string name="weight_fragment_msg_wrong_credentials">Garmin Connect 用户名或密码错误！</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

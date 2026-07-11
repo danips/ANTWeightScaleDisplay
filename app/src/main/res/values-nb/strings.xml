@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2"
+    xmlns:tools="http://schemas.android.com/tools">
     <string name="gc_token_cleared">Garmin OAuth-tokens slettet!</string>
     <string name="pref_clear_garmin_token">Slett Garmin-tokens</string>
-    <string name="pref_clear_garmin_token_summary">Slett Garmin OAuth1- og OAuth2-tokens. De vil bli regenerert ved vellykket innlogging.</string>
+    <string name="pref_clear_garmin_token_summary" tools:ignore="Typos">Slett Garmin OAuth1- og OAuth2-tokens. De vil bli regenerert ved vellykket innlogging.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>
@@ -35,9 +36,6 @@
 	<string name="edit_user_fragment_athlete_mode">Atletmodus</string>
 	<string name="edit_user_fragment_automatic_upload">Automatisk opplasting</string>
 	<string name="edit_user_fragment_birthdate">Fødselsdato</string>
-	<string name="edit_user_fragment_connect_to">Koble til <b>%1$s</b></string>
-	<string name="edit_user_fragment_connected_to">✔ Koblet til <b>%1$s</b></string>
-	<string name="edit_user_fragment_dates_in_graph">Antall datoene i grafen</string>
 	<string name="edit_user_fragment_email_category">E-post</string>
 	<string name="edit_user_fragment_fat_mass">Vis fettmasse</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +101,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Dato</string>
 	<string name="history_fragment_download">%1$s lastet ned</string>
-	<string name="history_fragment_download_complete">Nedlasting fullført</string>
 	<string name="history_fragment_download_in_progress">Nedlasting pågår</string>
-	<string name="hydration_percent_value_0">Lav</string>
-	<string name="hydration_percent_value_1">Godt</string>
-	<string name="hydration_percent_value_2">Høy</string>
 	<string name="lateral_menu_close">Lukk sidemenyen</string>
 	<string name="lateral_menu_open">Åpne sidemenyen</string>
-	<string name="lateral_menu_option_about">Om</string>
 	<string name="lateral_menu_option_goals">Mål</string>
 	<string name="lateral_menu_option_graphs">Grafer</string>
 	<string name="lateral_menu_option_history">Historikk</string>
@@ -118,7 +111,6 @@
 	<string name="lateral_menu_option_weight">Vekt</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b>%1$s</b> ikke funnet.\nVennligst installer den fra Google Play.</string>
-	<string name="msg_problem_setting_up_billing">Problem å sette opp in-app fakturering</string>
 	<string name="msg_problem_usb_stick_not_detected">Your device does not seem to have an integrated ANT+ radio, you need to connect an ANT+ USB stick to communicate with your weight scale.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">Ekstremt Overvektig</string>
@@ -147,9 +139,7 @@
 	<string name="weight_edit_fragment_years_tag">år</string>
 	<string name="weight_fragment_action_upload">Last opp</string>
 	<string name="weight_fragment_action_weight">Vekt</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">Aktiv metabolsk rate</string>
 	<string name="weight_fragment_icon_desc_basalMet">Basal metabolsk rate</string>
 	<string name="weight_fragment_icon_desc_boneMass">Beinmineralmasse</string>
@@ -169,11 +159,9 @@
 	<string name="weight_fragment_msg_found">Ber om vektmåling</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">Det er ingen Internett-tilkobling for øyeblikket. Prøv igjen senere.</string>
 	<string name="weight_fragment_msg_searching">Søker etter ANT+ vekt</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Takk for at du oppgraderer til premium!</string>
 	<string name="weight_fragment_msg_updating_success">%1$s oppdatert</string>
 	<string name="weight_fragment_msg_uploading">Laster opp</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Det har vært et problem med å generere FIT-filen</string>
-	<string name="weight_fragment_msg_uploading_failure">Det har vært et problem med å laste opp FIT filen til Garmin Connect.\nPrøv igjen senere.</string>
 	<string name="weight_fragment_msg_waiting">Venter på vektmåling</string>
 	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>

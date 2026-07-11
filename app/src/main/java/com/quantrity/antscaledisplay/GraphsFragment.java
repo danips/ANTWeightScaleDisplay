@@ -1,5 +1,6 @@
 package com.quantrity.antscaledisplay;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -236,9 +237,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
 
     private void setIcon(int itemid) {
         int resid = R.drawable.ic_weight;
-        /*if (itemid == R.id.graph_weight) {
-            resid = R.drawable.ic_weight;
-        } else*/ if (itemid == R.id.graph_bmi) {
+        if (itemid == R.id.graph_bmi) {
             resid = R.drawable.ic_bmi;
         } else if (itemid == R.id.graph_metabolicAge || itemid == R.id.graph_activeMet || itemid == R.id.graph_basalMet) {
             resid = R.drawable.ic_metabolic;
@@ -624,21 +623,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
                             }
                             Entry g1 = new Entry(g.start_date, (float) g.start_value);
                             Entry g2;
-                            /*double time = (g.start_date + 0.1 * window * 1000 * 60 * 60 * 24);
-                            Log.v(TAG, "XXXX " + time + " " + window + " " + g.start_date);
-                            Log.v(TAG, "XXXX " + (0.1 * window * 1000 * 60 * 60 * 24));
-                            Log.v(TAG, time + " " + g.end_date);
-                            if (time < g.end_date) {
-                                double val = (time - g.start_date) / (g.end_date - g.start_date);
-                                val *= (g.end_value - g.start_value);
-                                val += g.start_value;
-                                //double val = (((time - g.start_value) * (g.end_value - g.start_value) / (g.end_date - g.start_value)) + g.start_date);
-                                //double val = (((time - g.start_value) * (g.end_value - g.start_value) / (g.end_date - g.start_value)) + g.start_date);
-                                g2 = new Entry((float) time, (float) val);
-                            }
-                            else {*/
                             g2 = new Entry(g.end_date, (float) g.end_value);
-                            //}
                             ArrayList<Entry> oGoal = new ArrayList<>();
                             oGoal.add(g1);
                             oGoal.add(g2);
@@ -799,21 +784,13 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         }
     }
 
+    @SuppressLint("ViewConstructor")
     public static class MyMarkerView extends MarkerView {
 
         private final TextView tvContent;
         private final String measureFormat;
         private final boolean stones;
         private final boolean pounds;
-
-        // Added standard constructor for tools
-        /*public MyMarkerView(Context context) {
-            super(context, R.layout.custom_marker_view);
-            tvContent = findViewById(R.id.tvContent);
-            this.measureFormat = "%.1f";
-            this.stones = false;
-            this.pounds = false;
-        }*/
 
         public MyMarkerView(Context context, int layoutResource, String measureFormat, boolean stones, boolean pounds) {
             super(context, layoutResource);

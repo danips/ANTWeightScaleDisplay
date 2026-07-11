@@ -94,7 +94,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                     }
                                 }
                             } catch (FileNotFoundException e) {
-                                e.printStackTrace();
+                                Log.e(TAG, "Unable to open the CSV export destination", e);
                             }
                         }
                     }
@@ -333,7 +333,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             try {
                 if (fCsv != null) fCsv.close();
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to close the CSV export", e);
             }
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() ->
@@ -536,7 +536,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                         }
                         //gc.close();
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Unable to upload the selected history entries", e);
                         result.append("Exception: ").append(e);
                     }
                     if (!success) {

@@ -514,7 +514,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 assert number != null;
                 the_weight.percentHydration = number.doubleValue();
             } catch (ParseException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to parse hydration percentage", e);
                 the_weight.percentHydration = -1;
             }
         }
@@ -554,7 +554,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 assert number != null;
                 the_weight.visceralFatRating = number.doubleValue();
             } catch (ParseException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to parse visceral fat rating", e);
                 the_weight.visceralFatRating = -1;
             }
         }

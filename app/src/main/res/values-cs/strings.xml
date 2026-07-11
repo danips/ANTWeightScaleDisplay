@@ -35,9 +35,6 @@
 	<string name="edit_user_fragment_athlete_mode">Mód atleta</string>
 	<string name="edit_user_fragment_automatic_upload">Automatické nahrávání</string>
 	<string name="edit_user_fragment_birthdate">Datum narození</string>
-	<string name="edit_user_fragment_connect_to">Připojit <b>%1$s</b></string>
-	<string name="edit_user_fragment_connected_to">✔ Připojeno k <b>%1$s</b></string>
-	<string name="edit_user_fragment_dates_in_graph">Počet dat v grafu</string>
 	<string name="edit_user_fragment_email_category">Email</string>
 	<string name="edit_user_fragment_fat_mass">Zobrazit obsah tuku</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +100,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Datum</string>
 	<string name="history_fragment_download">%1$s stahování</string>
-	<string name="history_fragment_download_complete">Stažení bylo kompletně dokončeno</string>
 	<string name="history_fragment_download_in_progress">Probíhá stahování</string>
-	<string name="hydration_percent_value_0">Nízká</string>
-	<string name="hydration_percent_value_1">V pořádku</string>
-	<string name="hydration_percent_value_2">Vysoká</string>
 	<string name="lateral_menu_close">Ukončit nabídku</string>
 	<string name="lateral_menu_open">Otevřít nabídku</string>
-	<string name="lateral_menu_option_about">O programu</string>
 	<string name="lateral_menu_option_goals">Cíle</string>
 	<string name="lateral_menu_option_graphs">Grafy</string>
 	<string name="lateral_menu_option_history">Historie</string>
@@ -118,7 +110,6 @@
 	<string name="lateral_menu_option_weight">Váha</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b>%1$s</b> nenalezena\nProsím nainstalovat z Google Play.</string>
-	<string name="msg_problem_setting_up_billing">Problém v zaplacení aplikace</string>
 	<string name="msg_problem_usb_stick_not_detected">Your device does not seem to have an integrated ANT+ radio, you need to connect an ANT+ USB stick to communicate with your weight scale.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">Skrytá obezita</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">roků</string>
 	<string name="weight_fragment_action_upload">Nahrát</string>
 	<string name="weight_fragment_action_weight">Váha</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">Aktivní metabolická hodnota</string>
 	<string name="weight_fragment_icon_desc_basalMet">Bazální metabolismus</string>
 	<string name="weight_fragment_icon_desc_boneMass">Kostní hmota</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">Příjem měření z váhy</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">V tuto chvíli není připojení na internet k dispozici. Opakujte později.</string>
 	<string name="weight_fragment_msg_searching">Vyhledávání váhy přes ANT+</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Děkujeme vám za použití verze premium</string>
 	<string name="weight_fragment_msg_updating_success">%1$s bylo aktualizovano</string>
 	<string name="weight_fragment_msg_uploading">Nahrát</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Nastal problém s generováním FIT souboru</string>
-	<string name="weight_fragment_msg_uploading_failure">Nastal problém s náhradním FIT souboru do Garmin Connect. Zkuste to znovu.</string>
 	<string name="weight_fragment_msg_waiting">Čekejte na odezvu váhy</string>
 	<string name="weight_fragment_msg_wrong_credentials">Chybné jméno nebo heslo pro Garmin Connect !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>

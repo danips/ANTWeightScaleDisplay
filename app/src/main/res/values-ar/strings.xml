@@ -32,9 +32,6 @@
 	<string name="edit_user_fragment_athlete_mode">طور الرياضي</string>
 	<string name="edit_user_fragment_automatic_upload">رفع تلقائي</string>
 	<string name="edit_user_fragment_birthdate">تاريخ الميلاد</string>
-	<string name="edit_user_fragment_connect_to">إتصل ب <b><xliff:g id="name">%1$s</xliff:g></b></string>
-	<string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> تم الإتصال ب <b><xliff:g id="name">%1$s</xliff:g></b></string>
-	<string name="edit_user_fragment_dates_in_graph">عدد التواريخ في الرسم البياني</string>
 	<string name="edit_user_fragment_email_category">الإيميل</string>
 	<string name="edit_user_fragment_fat_mass">أظهر وزن الدهون</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">التاريخ</string>
 	<string name="history_fragment_download">تنزيل <xliff:g id="name">%1$s</xliff:g></string>
-	<string name="history_fragment_download_complete">إكتمال التنزيل</string>
 	<string name="history_fragment_download_in_progress">جاري التنزيل</string>
-	<string name="hydration_percent_value_0">منخفض</string>
-	<string name="hydration_percent_value_1">جيد</string>
-	<string name="hydration_percent_value_2">طول</string>
 	<string name="lateral_menu_close">إغلاق القائمة الجانبية</string>
 	<string name="lateral_menu_open">فتح القائمة الجانبية</string>
-	<string name="lateral_menu_option_about">عن</string>
 	<string name="lateral_menu_option_goals">الأهداف</string>
 	<string name="lateral_menu_option_graphs">رسوم بيانية</string>
 	<string name="lateral_menu_option_history">السجل</string>
@@ -116,7 +108,6 @@
 	<string name="lateral_menu_option_weight">الوزن</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> غير متوفر. رجاءاً نزله من Google Play.</string>
-	<string name="msg_problem_setting_up_billing">حدوث مشكلة بضبط عملية الدفع بالبرنامج</string>
 	<string name="msg_problem_usb_stick_not_detected">Your device does not seem to have an integrated ANT+ radio, you need to connect an ANT+ USB stick to communicate with your weight scale.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">سمنة مخفية</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">years</string>
 	<string name="weight_fragment_action_upload">رفع</string>
 	<string name="weight_fragment_action_weight">الوزن</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">معدل الحرق النشط</string>
 	<string name="weight_fragment_icon_desc_basalMet">معدل الأيض الأساسي</string>
 	<string name="weight_fragment_icon_desc_boneMass">وزن العظام</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">طلب قياس الوزن</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">لا يوجد إتصال بالإنترنت حاليا. حاول مرةً أخرى.</string>
 	<string name="weight_fragment_msg_searching">البحث على ميزان +ANT</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">شكراً لك على الترقية الى</string>
 	<string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> تم التحديث بنجاح</string>
 	<string name="weight_fragment_msg_uploading">يتم الرفع</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">يوجد خطأ عند إنتاج ملف الفيت</string>
-	<string name="weight_fragment_msg_uploading_failure">يوجد خطأ عند رفع ملف الفيت الى جارمن كونيكت. حاول مرةً أخرى.</string>
 	<string name="weight_fragment_msg_waiting">في إنتظار قياس الوزن</string>
 	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

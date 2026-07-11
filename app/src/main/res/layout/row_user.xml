@@ -18,8 +18,7 @@
         android:text="@string/edit_user_fragment_user"
         android:id="@+id/nameTV"
         android:layout_alignTop="@+id/userIV"
-        android:layout_toEndOf="@+id/userIV"
-        android:layout_toRightOf="@+id/userIV" />
+        android:layout_toEndOf="@+id/userIV" />
 
     <TextView
         style="@style/WrapWrap"
@@ -28,7 +27,6 @@
         android:id="@+id/descTV"
         android:layout_alignBaseline="@+id/nameTV"
         android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
         android:layout_margin="5dp" />
 
     <LinearLayout
@@ -36,7 +34,6 @@
         android:padding="5dp"
         android:layout_below="@+id/nameTV"
         android:layout_toEndOf="@+id/userIV"
-        android:layout_toRightOf="@+id/userIV"
         android:id="@+id/linearLayout">
         <ImageView
             style="@style/WrapWrap"

@@ -136,7 +136,8 @@ class AsyncUpload {
                 if (gct != null) gct.join();
                 if (et != null) et.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                Thread.currentThread().interrupt();
+                Log.e(TAG, "Interrupted while waiting for uploads to finish", e);
             }
 
             if ((start_gc && gct.gc_error != null) || (start_email && et.email_error != null)) {
@@ -221,7 +222,7 @@ class AsyncUpload {
             encode.close();
             return filename;
         } catch (FitRuntimeException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to create the FIT upload file", e);
         }
         return null;
     }
@@ -331,7 +332,7 @@ class AsyncUpload {
                     activity.startActivity(Intent.createChooser(emailIntent, "Send email..."));
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to open the email client", e);
             }
             incProgress();
         }

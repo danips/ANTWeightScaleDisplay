@@ -32,9 +32,6 @@
     <string name="edit_user_fragment_athlete_mode">Режим атлета</string>
     <string name="edit_user_fragment_automatic_upload">Автоматичне завантаження</string>
     <string name="edit_user_fragment_birthdate">Дата народження</string>
-    <string name="edit_user_fragment_connect_to">Підключитися до <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Підключено до <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_dates_in_graph">Кількість дат на графіку</string>
     <string name="edit_user_fragment_email_category">Ел. пошта</string>
     <string name="edit_user_fragment_fat_mass">Показати жирову масу</string>
     <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
     <string name="history_fragment_action_export_csv">CSV</string>
     <string name="history_fragment_date">Дата</string>
     <string name="history_fragment_download">Завантаження <xliff:g id="name">%1$s</xliff:g></string>
-    <string name="history_fragment_download_complete">Завантаження завершено</string>
     <string name="history_fragment_download_in_progress">Триває завантаження</string>
-    <string name="hydration_percent_value_0">Низький</string>
-    <string name="hydration_percent_value_1">Хороший</string>
-    <string name="hydration_percent_value_2">Високий</string>
     <string name="lateral_menu_close">Закрити бічне меню</string>
     <string name="lateral_menu_open">Відкрити бічне меню</string>
-    <string name="lateral_menu_option_about">Про програму</string>
     <string name="lateral_menu_option_goals">Цілі</string>
     <string name="lateral_menu_option_graphs">Графіки</string>
     <string name="lateral_menu_option_history">Історія</string>
@@ -116,7 +108,6 @@
     <string name="lateral_menu_option_weight">Вага</string>
     <string name="msg_problem_ant_permission_disabled">ANT Radio Service не має дозволу на використання обладнання ANT. Будь ласка, увімкніть його для зв\'язку з вашою вагою.</string>
     <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> не знайдено.\nБудь ласка, встановіть його з Google Play.</string>
-    <string name="msg_problem_setting_up_billing">Проблема з налаштуванням оплати в додатку</string>
     <string name="msg_problem_usb_stick_not_detected">Ваш пристрій, схоже, не має вбудованого радіо ANT+. Вам потрібно підключити USB-накопичувач ANT+ для зв\'язку з вашою вагою.</string>
     <string name="msg_problem_usb_stick_not_detected_never">Більше не показувати</string>
     <string name="physique_rating_1">Приховане ожиріння</string>
@@ -147,9 +138,7 @@
     <string name="weight_edit_fragment_years_tag">років</string>
     <string name="weight_fragment_action_upload">Завантажити</string>
     <string name="weight_fragment_action_weight">Вага</string>
-    <string name="weight_fragment_amr_abbreviation">AMR</string>
     <string name="weight_fragment_bmi_tag">ІМТ</string>
-    <string name="weight_fragment_bmr_abbreviation">BMR</string>
     <string name="weight_fragment_icon_desc_activeMet">Активний рівень метаболізму</string>
     <string name="weight_fragment_icon_desc_basalMet">Базальний рівень метаболізму</string>
     <string name="weight_fragment_icon_desc_boneMass">Кісткова маса</string>
@@ -169,11 +158,9 @@
     <string name="weight_fragment_msg_found">Запит вимірювання ваги</string>
     <string name="weight_fragment_msg_problem_no_internet_connection">Наразі немає інтернет-з\'єднання. Спробуйте пізніше.</string>
     <string name="weight_fragment_msg_searching">Пошук ваги ANT+</string>
-    <string name="weight_fragment_msg_thankyou_purchasing">Дякуємо за оновлення до Premium!</string>
     <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> успішно оновлено</string>
     <string name="weight_fragment_msg_uploading">Завантаження</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">Виникла проблема при створенні FIT-файлу</string>
-    <string name="weight_fragment_msg_uploading_failure">Виникла проблема при завантаженні FIT-файлу в Garmin Connect.\nСпробуйте пізніше.</string>
     <string name="weight_fragment_msg_waiting">Очікування вимірювання ваги</string>
     <string name="weight_fragment_msg_wrong_credentials">Неправильне ім\'я користувача або пароль Garmin Connect!</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

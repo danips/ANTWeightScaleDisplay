@@ -72,7 +72,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
                                 }
                             }
                         } catch (FileNotFoundException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to open the backup destination", e);
                         }
                     }
                 }
@@ -171,7 +171,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
             out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(dst)));
             saveBackup(out);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to create the backup archive", e);
         }
     }
 
@@ -201,18 +201,18 @@ public class UsersFragment extends Fragment implements MenuProvider {
                         out.write(buffer, 0, count);
                     }
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Unable to add a file to the backup archive", e);
                 } finally {
                     origin.close();
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to save the backup archive", e);
         } finally {
             try {
                 out.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to close the backup archive", e);
             }
             if (getActivity() != null) {
                 getActivity().runOnUiThread(() ->
@@ -222,25 +222,13 @@ public class UsersFragment extends Fragment implements MenuProvider {
         }
     }
 
-    /*private final ActivityResultLauncher<String> requestPermissionLauncher =
-            //REQUEST_CODE_WRITE_EXTERNAL_STORAGE
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    // Permission granted: Action to take
-                    saveBackup();
-                } //else {
-                    // Permission denied: Inform the user
-                    // Toast.makeText(getContext(), "Permission denied", Toast.LENGTH_SHORT).show();
-                //}
-            });*/
-
     static boolean unzip(Uri zipFile, String location, ContentResolver contentResolver) {
         boolean ok = false;
         try {
             ZipInputStream zin = new ZipInputStream(contentResolver.openInputStream(zipFile));
             ok = unzip(zin, location);
         } catch (FileNotFoundException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to open the backup archive", e);
         }
         return ok;
     }

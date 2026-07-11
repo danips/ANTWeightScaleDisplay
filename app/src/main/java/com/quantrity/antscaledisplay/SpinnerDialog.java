@@ -36,13 +36,6 @@ public class SpinnerDialog {
         this.dTitle = dialogTitle;
     }
 
-    /*public SpinnerDialog(Activity activity, ArrayList<String> items, String dialogTitle, int style) {
-        this.items = items;
-        this.context = activity;
-        this.dTitle = dialogTitle;
-        this.style = style;
-    }*/
-
     void bindOnSpinnerListener(OnSpinerItemClick onSpinnerItemClick1) {
         this.onSpinerItemClick = onSpinnerItemClick1;
     }
@@ -57,7 +50,6 @@ public class SpinnerDialog {
         if(isShowKeyboard()){
             showKeyboard(searchBox);
         }
-//        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(context, R.layout.items_view, items);
         final ArrayAdapterWithContainsFilter adapter = new ArrayAdapterWithContainsFilter(context, R.layout.items_view, items);
         listView.setAdapter(adapter);
         adb.setView(v);
@@ -149,9 +141,4 @@ public class SpinnerDialog {
     public void setShowKeyboard(boolean showKeyboard) {
         this.showKeyboard = showKeyboard;
     }
-
-    /*public void setUseContainsFilter(boolean useContainsFilter) {
-        this.useContainsFilter = useContainsFilter;
-    }*/
-
 }

@@ -35,9 +35,6 @@
 	<string name="edit_user_fragment_athlete_mode">Atleet modus</string>
 	<string name="edit_user_fragment_automatic_upload">Automatische upload</string>
 	<string name="edit_user_fragment_birthdate">Verjaardag</string>
-	<string name="edit_user_fragment_connect_to">Verbind met <b>%1$s</b></string>
-	<string name="edit_user_fragment_connected_to">✔ Verbind met <b>%1$s</b></string>
-	<string name="edit_user_fragment_dates_in_graph">Aantal data in de grafiek</string>
 	<string name="edit_user_fragment_email_category">Email</string>
 	<string name="edit_user_fragment_fat_mass">Toon vetmassa</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +100,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Datum</string>
 	<string name="history_fragment_download">%1$s download</string>
-	<string name="history_fragment_download_complete">Download volledig</string>
 	<string name="history_fragment_download_in_progress">Download bezig</string>
-	<string name="hydration_percent_value_0">Laag</string>
-	<string name="hydration_percent_value_1">Goed</string>
-	<string name="hydration_percent_value_2">Hoog</string>
 	<string name="lateral_menu_close">Sluit lateraal menu</string>
 	<string name="lateral_menu_open">Open lateraal menu</string>
-	<string name="lateral_menu_option_about">Over</string>
 	<string name="lateral_menu_option_goals">Doelen</string>
 	<string name="lateral_menu_option_graphs">Grafiek</string>
 	<string name="lateral_menu_option_history">Geschiedenis</string>
@@ -118,7 +110,6 @@
 	<string name="lateral_menu_option_weight">Gewicht</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b>%1$s</b> niet gevonden.\n Installeer aub via Google Play.</string>
-	<string name="msg_problem_setting_up_billing">Probleem met de in-app betaling</string>
 	<string name="msg_problem_usb_stick_not_detected">Your device does not seem to have an integrated ANT+ radio, you need to connect an ANT+ USB stick to communicate with your weight scale.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">Verborgen Obees</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">jaar</string>
 	<string name="weight_fragment_action_upload">Upload</string>
 	<string name="weight_fragment_action_weight">Wegen</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">Dagelijkse calorie inname</string>
 	<string name="weight_fragment_icon_desc_basalMet">Ruststofwisseling</string>
 	<string name="weight_fragment_icon_desc_boneMass">Botmassa</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">Aanvragen gewichtsmeting</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">Er is momenteel geen internet verbinding. Probeer later opnieuw.</string>
 	<string name="weight_fragment_msg_searching">Zoeken naar ANT+ weegschaal</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Bedankt voor de upgrade naar premium!</string>
 	<string name="weight_fragment_msg_updating_success">%1$s succesvol geupload</string>
 	<string name="weight_fragment_msg_uploading">Uploading</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Er is een probleem om een FIT bestand te maken</string>
-	<string name="weight_fragment_msg_uploading_failure">Er is een probleem om het FIT bestand te uploaden naar Garmin Connect.\nProbeer later opnieuw.</string>
 	<string name="weight_fragment_msg_waiting">Wachten op gewichtmeting</string>
 	<string name="weight_fragment_msg_wrong_credentials">Foutieve Garmin Connect gebruikersnaam of wachtwoord !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>

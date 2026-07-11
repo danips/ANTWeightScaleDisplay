@@ -23,6 +23,7 @@
             app:srcCompat="@drawable/ic_weight" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/weightTV"
             android:text="@string/weight_fragment_icon_desc_weight" />
         <EditText
             android:id="@+id/weightTV"
@@ -37,6 +38,7 @@
             app:srcCompat="@drawable/ic_percent_fat" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/percentFatTV"
             android:text="@string/weight_fragment_icon_desc_percentFat" />
         <EditText
             android:id="@+id/percentFatTV"
@@ -51,6 +53,7 @@
             app:srcCompat="@drawable/ic_percent_hydration" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/percentHydrationTV"
             android:text="@string/weight_fragment_icon_desc_percentHydration" />
         <EditText
             android:id="@+id/percentHydrationTV"
@@ -66,6 +69,7 @@
             app:srcCompat="@drawable/ic_bone_mass" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/boneMassTV"
             android:text="@string/weight_fragment_icon_desc_boneMass" />
         <EditText
             android:id="@+id/boneMassTV"
@@ -80,6 +84,7 @@
             app:srcCompat="@drawable/ic_muscle_mass" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/muscleMassTV"
             android:text="@string/weight_fragment_icon_desc_muscleMass" />
         <EditText
             android:id="@+id/muscleMassTV"
@@ -94,6 +99,7 @@
             app:srcCompat="@drawable/ic_physique_rating" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/physiqueRatingTV"
             android:text="@string/weight_fragment_icon_desc_physiqueRating" />
         <EditText
             android:id="@+id/physiqueRatingTV"
@@ -109,6 +115,7 @@
             app:srcCompat="@drawable/ic_visceral_fat_rating" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/visceralFatRatingTV"
             android:text="@string/weight_fragment_icon_desc_visceralFat" />
         <EditText
             android:id="@+id/visceralFatRatingTV"
@@ -123,6 +130,7 @@
             app:srcCompat="@drawable/ic_metabolic_age" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/metabolicAgeTV"
             android:text="@string/weight_fragment_icon_desc_metabolicAge" />
         <EditText
             android:id="@+id/metabolicAgeTV"
@@ -138,6 +146,7 @@
             app:srcCompat="@drawable/ic_metabolic" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/activeMetTV"
             android:text="@string/weight_fragment_icon_desc_activeMet" />
         <EditText
             android:id="@+id/activeMetTV"
@@ -153,6 +162,7 @@
             app:srcCompat="@drawable/ic_metabolic" />
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/basalMetTV"
             android:text="@string/weight_fragment_icon_desc_basalMet" />
         <EditText
             android:id="@+id/basalMetTV"
@@ -171,6 +181,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/trunkPercentFatTV"
             android:text="@string/graphs_fragment_measurement_trunk_percent_fat" />
         <EditText
             android:id="@+id/trunkPercentFatTV"
@@ -181,6 +192,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/trunkMuscleMassTV"
             android:text="@string/graphs_fragment_measurement_trunk_muscle_mass" />
         <EditText
             android:id="@+id/trunkMuscleMassTV"
@@ -197,6 +209,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/leftArmPercentFatTV"
             android:text="@string/graphs_fragment_measurement_left_arm_percent_fat" />
         <EditText
             android:id="@+id/leftArmPercentFatTV"
@@ -207,6 +220,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/leftArmMuscleMassTV"
             android:text="@string/graphs_fragment_measurement_left_arm_muscle_mass" />
         <EditText
             android:id="@+id/leftArmMuscleMassTV"
@@ -223,6 +237,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/rightArmPercentFatTV"
             android:text="@string/graphs_fragment_measurement_right_arm_percent_fat" />
         <EditText
             android:id="@+id/rightArmPercentFatTV"
@@ -233,6 +248,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/rightArmMuscleMassTV"
             android:text="@string/graphs_fragment_measurement_right_arm_muscle_mass" />
         <EditText
             android:id="@+id/rightArmMuscleMassTV"
@@ -249,6 +265,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/leftLegPercentFatTV"
             android:text="@string/graphs_fragment_measurement_left_leg_percent_fat" />
         <EditText
             android:id="@+id/leftLegPercentFatTV"
@@ -259,6 +276,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/leftLegMuscleMassTV"
             android:text="@string/graphs_fragment_measurement_left_leg_muscle_mass" />
         <EditText
             android:id="@+id/leftLegMuscleMassTV"
@@ -275,6 +293,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/rightLegPercentFatTV"
             android:text="@string/graphs_fragment_measurement_right_leg_percent_fat" />
         <EditText
             android:id="@+id/rightLegPercentFatTV"
@@ -285,6 +304,7 @@
 
         <TextView
             style="@style/EditWeightDesc"
+            android:labelFor="@id/rightLegMuscleMassTV"
             android:text="@string/graphs_fragment_measurement_right_leg_muscle_mass" />
         <EditText
             android:id="@+id/rightLegMuscleMassTV"

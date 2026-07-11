@@ -32,9 +32,6 @@
     <string name="edit_user_fragment_athlete_mode">アスリートモード</string>
     <string name="edit_user_fragment_automatic_upload">自動アップロード</string>
     <string name="edit_user_fragment_birthdate">生年月日</string>
-    <string name="edit_user_fragment_connect_to"><b><xliff:g id="name">%1$s</xliff:g></b> に接続</string>
-    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> <b><xliff:g id="name">%1$s</xliff:g></b> に接続済み</string>
-    <string name="edit_user_fragment_dates_in_graph">グラフの日数</string>
     <string name="edit_user_fragment_email_category">メール</string>
     <string name="edit_user_fragment_fat_mass">体脂肪量を表示</string>
     <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
     <string name="history_fragment_action_export_csv">CSV</string>
     <string name="history_fragment_date">日付</string>
     <string name="history_fragment_download"><xliff:g id="name">%1$s</xliff:g> をダウンロード</string>
-    <string name="history_fragment_download_complete">ダウンロード完了</string>
     <string name="history_fragment_download_in_progress">ダウンロード中</string>
-    <string name="hydration_percent_value_0">低い</string>
-    <string name="hydration_percent_value_1">標準</string>
-    <string name="hydration_percent_value_2">高い</string>
     <string name="lateral_menu_close">メニューを閉じる</string>
     <string name="lateral_menu_open">メニューを開く</string>
-    <string name="lateral_menu_option_about">アプリについて</string>
     <string name="lateral_menu_option_goals">目標</string>
     <string name="lateral_menu_option_graphs">グラフ</string>
     <string name="lateral_menu_option_history">履歴</string>
@@ -116,7 +108,6 @@
     <string name="lateral_menu_option_weight">体重</string>
     <string name="msg_problem_ant_permission_disabled">ANT Radio Service には ANT ハードウェアを使用する権限がありません。体重計と通信するには、権限を有効にしてください。</string>
     <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> が見つかりません。\nGoogle Play からインストールしてください。</string>
-    <string name="msg_problem_setting_up_billing">アプリ内課金のセットアップ中に問題が発生しました</string>
     <string name="msg_problem_usb_stick_not_detected">デバイスに ANT+ 無線機能が内蔵されていないようです。体重計と通信するには ANT+ USB スティックを接続する必要があります。</string>
     <string name="msg_problem_usb_stick_not_detected_never">今後表示しない</string>
     <string name="physique_rating_1">隠れ肥満</string>
@@ -147,9 +138,7 @@
     <string name="weight_edit_fragment_years_tag">歳</string>
     <string name="weight_fragment_action_upload">アップロード</string>
     <string name="weight_fragment_action_weight">体重</string>
-    <string name="weight_fragment_amr_abbreviation">AMR</string>
     <string name="weight_fragment_bmi_tag">BMI</string>
-    <string name="weight_fragment_bmr_abbreviation">BMR</string>
     <string name="weight_fragment_icon_desc_activeMet">活動代謝量</string>
     <string name="weight_fragment_icon_desc_basalMet">基礎代謝</string>
     <string name="weight_fragment_icon_desc_boneMass">推定骨量</string>
@@ -169,11 +158,9 @@
     <string name="weight_fragment_msg_found">体重測定を要求しています</string>
     <string name="weight_fragment_msg_problem_no_internet_connection">現在インターネットに接続されていません。後でもう一度試してください。</string>
     <string name="weight_fragment_msg_searching">ANT+ 体重計を検索中</string>
-    <string name="weight_fragment_msg_thankyou_purchasing">プレミアムにアップグレードいただきありがとうございます！</string>
     <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> が正常に更新されました</string>
     <string name="weight_fragment_msg_uploading">アップロード中</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">FITファイルの生成中に問題が発生しました</string>
-    <string name="weight_fragment_msg_uploading_failure">Garmin Connect への FIT ファイルのアップロード中に問題が発生しました。\n後でもう一度試してください。</string>
     <string name="weight_fragment_msg_waiting">体重測定を待機中</string>
     <string name="weight_fragment_msg_wrong_credentials">Garmin Connect のユーザー名またはパスワードが間違っています！</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

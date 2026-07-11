@@ -32,9 +32,6 @@
     <string name="edit_user_fragment_athlete_mode">Mode athlète</string>
     <string name="edit_user_fragment_automatic_upload">Envoi automatique</string>
     <string name="edit_user_fragment_birthdate">Date de naissance</string>
-    <string name="edit_user_fragment_connect_to">Se connecter à <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Connecté à <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_dates_in_graph">Nombre de dates dans le graphique</string>
     <string name="edit_user_fragment_email_category">Email</string>
     <string name="edit_user_fragment_fat_mass">Afficher la masse grasse</string>
     <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
     <string name="history_fragment_action_export_csv">CSV</string>
     <string name="history_fragment_date">Date</string>
     <string name="history_fragment_download">Téléchargement de <xliff:g id="name">%1$s</xliff:g></string>
-    <string name="history_fragment_download_complete">Téléchargement terminé</string>
     <string name="history_fragment_download_in_progress">Téléchargement en cours</string>
-    <string name="hydration_percent_value_0">Faible</string>
-    <string name="hydration_percent_value_1">Bon</string>
-    <string name="hydration_percent_value_2">Élevé</string>
     <string name="lateral_menu_close">Fermer le menu latéral</string>
     <string name="lateral_menu_open">Ouvrir le menu latéral</string>
-    <string name="lateral_menu_option_about">À propos</string>
     <string name="lateral_menu_option_goals">Objectifs</string>
     <string name="lateral_menu_option_graphs">Graphiques</string>
     <string name="lateral_menu_option_history">Historique</string>
@@ -116,7 +108,6 @@
     <string name="lateral_menu_option_weight">Poids</string>
     <string name="msg_problem_ant_permission_disabled">ANT Radio Service n\'a pas la permission d\'utiliser le matériel ANT. Veuillez l\'activer pour communiquer avec votre balance.</string>
     <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> introuvable.\nVeuillez l\'installer depuis Google Play.</string>
-    <string name="msg_problem_setting_up_billing">Problème de configuration de la facturation in-app</string>
     <string name="msg_problem_usb_stick_not_detected">Votre appareil ne semble pas avoir de radio ANT+ intégrée, vous devez connecter une clé USB ANT+ pour communiquer avec votre balance.</string>
     <string name="msg_problem_usb_stick_not_detected_never">Ne plus afficher</string>
     <string name="physique_rating_1">Obésité cachée</string>
@@ -147,9 +138,7 @@
     <string name="weight_edit_fragment_years_tag">ans</string>
     <string name="weight_fragment_action_upload">Envoyer</string>
     <string name="weight_fragment_action_weight">Poids</string>
-    <string name="weight_fragment_amr_abbreviation">AMR</string>
     <string name="weight_fragment_bmi_tag">IMC</string>
-    <string name="weight_fragment_bmr_abbreviation">BMR</string>
     <string name="weight_fragment_icon_desc_activeMet">Taux métabolique actif</string>
     <string name="weight_fragment_icon_desc_basalMet">Taux métabolique basal</string>
     <string name="weight_fragment_icon_desc_boneMass">Masse osseuse</string>
@@ -169,11 +158,9 @@
     <string name="weight_fragment_msg_found">Demande de mesure du poids</string>
     <string name="weight_fragment_msg_problem_no_internet_connection">Pas de connexion internet pour le moment. Réessayez plus tard.</string>
     <string name="weight_fragment_msg_searching">Recherche de la balance ANT+</string>
-    <string name="weight_fragment_msg_thankyou_purchasing">Merci pour la mise à niveau vers premium !</string>
     <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> mis à jour avec succès</string>
     <string name="weight_fragment_msg_uploading">Envoi en cours</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">Il y a eu un problème lors de la génération du fichier FIT</string>
-    <string name="weight_fragment_msg_uploading_failure">Il y a eu un problème lors de l\'envoi du fichier FIT vers Garmin Connect.\nRéessayez plus tard.</string>
     <string name="weight_fragment_msg_waiting">En attente de la mesure du poids</string>
     <string name="weight_fragment_msg_wrong_credentials">Nom d\'utilisateur ou mot de passe Garmin Connect incorrect !</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

@@ -35,9 +35,6 @@
 	<string name="edit_user_fragment_athlete_mode">Tryb atlety</string>
 	<string name="edit_user_fragment_automatic_upload">Automatyczne przesyłanie</string>
 	<string name="edit_user_fragment_birthdate">Data urodzenia</string>
-	<string name="edit_user_fragment_connect_to">Podłącz do <b>%1$s</b></string>
-	<string name="edit_user_fragment_connected_to">✔ Połączony z <b>%1$s</b></string>
-	<string name="edit_user_fragment_dates_in_graph">Ilość dat w wykresie</string>
 	<string name="edit_user_fragment_email_category">Adres e-mail</string>
 	<string name="edit_user_fragment_fat_mass">Pokaż masy tkanki tłuszczowej</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +100,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Data</string>
 	<string name="history_fragment_download">%1$s pobieranie</string>
-	<string name="history_fragment_download_complete">Pobieranie zakończone</string>
 	<string name="history_fragment_download_in_progress">Trwa pobieranie</string>
-	<string name="hydration_percent_value_0">Niski</string>
-	<string name="hydration_percent_value_1">Dobry</string>
-	<string name="hydration_percent_value_2">Wysoki</string>
 	<string name="lateral_menu_close">Zamknięcie menu bocznego</string>
 	<string name="lateral_menu_open">Otworzenie menu bocznego</string>
-	<string name="lateral_menu_option_about">O aplikacji…</string>
 	<string name="lateral_menu_option_goals">Cele</string>
 	<string name="lateral_menu_option_graphs">Wykresy</string>
 	<string name="lateral_menu_option_history">Historia</string>
@@ -118,7 +110,6 @@
 	<string name="lateral_menu_option_weight">Waga</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b>%1$s</b> nie znaleziony.\nProszę zainstalować z Google Play.</string>
-	<string name="msg_problem_setting_up_billing">Problem ustawienia płatności w aplikacji</string>
 	<string name="msg_problem_usb_stick_not_detected">Your device does not seem to have an integrated ANT+ radio, you need to connect an ANT+ USB stick to communicate with your weight scale.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">Ukryta otyłość</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">lat</string>
 	<string name="weight_fragment_action_upload">Przesyłanie</string>
 	<string name="weight_fragment_action_weight">Waga</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">Dzienne spożycie kalorii</string>
 	<string name="weight_fragment_icon_desc_basalMet">Podstawowa Przemiana Materii (BMR)</string>
 	<string name="weight_fragment_icon_desc_boneMass">Waga kości</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">Ustawienie tarowania wagi</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">Brak połączenia z internetem. Spróbuj później.</string>
 	<string name="weight_fragment_msg_searching">Szukanie wagi ANT+</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Dziękuję za aktualizację do wersji premium!</string>
 	<string name="weight_fragment_msg_updating_success">%1$s pomyślnie zaktualizowany</string>
 	<string name="weight_fragment_msg_uploading">Przesyłanie</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Problem z wygenerowaniem pliku FIT</string>
-	<string name="weight_fragment_msg_uploading_failure">Przesyłanie pliku FIT do Garmin Connect nie udane.\nSpróbuj ponownie później.</string>
 	<string name="weight_fragment_msg_waiting">Oczekiwanie na tarowanie wagi</string>
 	<string name="weight_fragment_msg_wrong_credentials">Błąd nazwy użytkownika lub hasła Garmin Connect!</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>

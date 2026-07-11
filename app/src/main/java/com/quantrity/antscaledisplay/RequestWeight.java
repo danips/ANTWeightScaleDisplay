@@ -11,11 +11,12 @@ import android.content.ServiceConnection;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.provider.Settings;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 import com.dsi.ant.IAnt_6;
 
@@ -131,7 +132,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to disable ANT event buffering", e);
                             releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTAssignChannel: RemoteException"));
                             return;
                         }
@@ -153,7 +154,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to set ANT transmit power", e);
                             Log.v(TAG, "RemoteException in CONFIGURING_SET_CHANNEL_TRANSMIT_POWER");
                             //TODO notify problem
                             return;
@@ -162,12 +163,6 @@ class RequestWeight {
                         break;
 
                     case CONFIGURING_SET_CHANNEL_TRANSMIT_POWER:
-                        /*if ((antMessage.length < 5) && (antMessage[4] != 0x00)) {
-                            Log.e(TAG, "CONFIGURING_SET_CHANNEL_TRANSMIT_POWER " + String.format("Error = %02x", antMessage[4]));
-                            //TODO notify problem
-                            return;
-                        }*/
-
                         //12-17 19:09:21.153: I/ANTSerial(21655): built-in:Built-in:1 - Tx command - [02][45][00][39]
                         //12-17 19:09:21.153: I/ANTSerial(21655): built-in:Built-in:1 - Rx         - [03][40][00][45][00]
                         try {
@@ -176,7 +171,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to set the ANT channel frequency", e);
                             releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTSetChannelRFFreq: RemoteException"));
                             return;
                         }
@@ -202,7 +197,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to set the ANT channel period", e);
                             Log.v(TAG, "RemoteException in CONFIGURING_CHANNEL_PERIOD");
                             //TODO notify problem
                             return;
@@ -225,7 +220,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to set the ANT channel ID", e);
                             releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTSetChannelId: RemoteException"));
                             return;
                         }
@@ -248,7 +243,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to set the ANT search timeout", e);
                             Log.v(TAG, "RemoteException in CONFIGURING_SEARCH_TIMEOUT");
                             //TODO notify problem
                             return;
@@ -273,7 +268,7 @@ class RequestWeight {
                                 return;
                             }
                         } catch (RemoteException e) {
-                            e.printStackTrace();
+                            Log.e(TAG, "Unable to open the ANT channel", e);
                             releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTOpenChannel: RemoteException"));
                             return;
                         }
@@ -314,47 +309,15 @@ class RequestWeight {
                             if (Debug.ON) Log.v(TAG, "Received page " + antMessage[3]);
                             if (((antMessage[3] == (byte)0x01) && ((antMessage[9] != (byte)0xfe) || (antMessage[10] != (byte)0xff)))
                                     || ((antMessage[3] == (byte)0xf1) || (antMessage[3] == (byte)0x02) || (antMessage[3] == (byte)0x03) || (antMessage[3] == (byte)0x04))) {
-                                //releaseService(R.string.weight_process_msg_problem_scale_not_ready);
                                 if (Debug.ON) Log.v(TAG, "NOT OK (maybe smartlab) ====================================");
-                                //return;
                             } else if ((antMessage[3] == (byte)0x50) || (antMessage[3] == (byte)0x51)) {
                                 if (Debug.ON) Log.v(TAG, "Common pages, nok");
                                 return;
                             } else if (Debug.ON) Log.v(TAG, "OK??? " + messageToString(antMessage));
-                            /*else if ((antMessage[3] == (byte)0xf1) || (antMessage[3] == (byte)0x02) || (antMessage[3] == (byte)0x03) || (antMessage[3] == (byte)0x04)) {//ANT measures pages
-                                Log.v(TAG, "ANT measures pages");
-                                releaseService(R.string.weight_process_msg_problem_scale_not_ready);
-                                return;
-                            }*/
 
                             //TODO: Check the user ID the scale is sending: FFFF, set to something...
 
                             sProgressDialog.setMessage(sContext.getResources().getString(R.string.weight_fragment_msg_found));
-
-                            /*if (antMessage[3] == (byte)0x01) {
-                                byte capabilities = antMessage[6];
-                                Log.v(TAG, "BYTE="+String.format("%02x",antMessage[6]));
-                                if ((capabilities & 0x01) != 0)
-                                    Log.v(TAG, "Scale: User Profile Selected");
-                                if ((capabilities & 0x02) != 0)
-                                    Log.v(TAG, "Scale: User Profile Exchange");
-                                if ((capabilities & 0x04) != 0) Log.v(TAG, "Scale: ANT- FS");
-                                if ((capabilities & 0x08) != 0) {
-                                    if ((capabilities & 0x10) != 0) {
-                                        Log.v(TAG, "11 Scale: User Specific Data Transmission: Reserved");
-                                    } else {
-                                        Log.v(TAG, "01 Scale: User Specific Data Transmission: Sends user specific data");
-                                    }
-                                } else {
-                                    if ((capabilities & 0x10) != 0) {
-                                        Log.v(TAG, "10 Scale: User Specific Data Transmission: Never sends user specific data");
-                                    } else {
-                                        Log.v(TAG, "00 Scale: User Specific Data Transmission: Unknown");
-                                    }
-                                }
-                                if ((capabilities & 0x08) != 0) Log.v(TAG, "Display: User Profile  Storage");
-                            }
-                            //if (true) return;*/
 
                             //Send profile
                             byte[] msg = genUserProfileDataPage();
@@ -364,7 +327,7 @@ class RequestWeight {
                                     return;
                                 }
                             } catch (RemoteException e) {
-                                e.printStackTrace();
+                                Log.e(TAG, "Unable to transmit the ANT user profile", e);
                                 releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTTxMessage: RemoteException"));
                                 return;
                             }
@@ -421,7 +384,7 @@ class RequestWeight {
                                             return;
                                         }
                                     } catch (RemoteException e) {
-                                        e.printStackTrace();
+                                        Log.e(TAG, "Unable to transmit the ANT request", e);
                                         releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTTxMessage: RemoteException"));
                                         return;
                                     }
@@ -483,32 +446,7 @@ class RequestWeight {
                                         scheduledFuture = worker.schedule(task3, measurementsTimeout, TimeUnit.SECONDS);
                                     }
                                     got1 = true;
-                                } /*else {
-                                    //Log.v(TAG, "Page1 INVALID " + messageToString(antMessage));
-                                }*/
-
-                                /*if (!got1) {
-                                    if ((antMessage[9] == (byte)0xfe) && (antMessage[10] == (byte)0xff)) {
-                                        //Log.v(TAG, "Page1 INVALID " + messageToString(antMessage));
-                                    } else {
-                                        got1 = true;
-                                        the_weight.weight = (float)((double)((antMessage[9]& 0xFF) + 256 * (antMessage[10]& 0xFF)) / 100);
-                                        the_weight.date = Calendar.getInstance().getTime().getTime();//new Date().;
-                                        if (Debug.ON) Log.v(TAG, the_weight.date + " weight=" + the_weight.weight + " from " + messageToString(antMessage));
-
-                                        //Poner un timeout, si no llegan datos de composición es que no está descalzo
-                                        Runnable task3 = new Runnable() {
-                                            public void run() {
-                                                if (state == stateEnum.RECEIVING) {
-                                                    if (Debug.ON) Log.v(TAG, "Measurements timeout");
-                                                    if (the_weight.weight != -1) releaseService(null);
-                                                    else releaseService(R.string.weight_process_msg_problem_timeout_weight);
-                                                }
-                                            }
-                                        };
-                                        worker.schedule(task3, measurementsTimeout, TimeUnit.SECONDS);
-                                    }
-                                }*/
+                                }
                             }  else if ((antMessage[3] == (byte)0x50) || (antMessage[3] == (byte)0x51)) {
                                 if (Debug.ON) Log.v(TAG, "Ignoring common pages");
                             } else if (antMessage[3] == (byte)0xf1) {//Tanita BC-1000 & BC-1500 Special pages
@@ -675,46 +613,7 @@ class RequestWeight {
 
                                 releaseService(null);
                             }
-                        } /*else if (antMessage[1] == (byte)0x40) {//AntMesg.MESG_RESPONSE_EVENT_ID) {
-                            if (antMessage[3] == (byte)0x01) {//AntMesg.MESG_EVENT_ID) {
-                                if (antMessage[4] == (byte)0x03) {//AntDefine.EVENT_TX) {
-                                    if (Debug.ON) Log.v(TAG, "User profile transmitted successfully");
-
-                                    if (repeat != 0) {//Enviar dos veces la petición para asegurarse éxito
-                                        repeat--;// = false;
-
-                                        sProgressDialog.setMessage(sContext.getResources().getString(R.string.weight_fragment_msg_waiting));
-                                        byte msg2[] = genUserProfileDataPage();//(short) 0x2200);//, (boolean) true, (byte) 32, (byte) 179, (boolean) true, (byte) 6);
-                                        try {
-                                            if (!sAntReceiver.ANTTxMessage(msg2)) {
-                                                releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTTxMessage: false"));
-                                                return;
-                                            }
-                                        } catch (RemoteException e) {
-                                            e.printStackTrace();
-                                            releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_while), "ANTTxMessage: RemoteException"));
-                                            return;
-                                        }
-                                        if (Debug.ON) Log.v(TAG, "--------> sent=" + messageToString(msg2));
-                                        return;
-                                    }
-                                } else if (antMessage.length > 4 && antMessage[4] == (byte)0x02) {//AntDefine.EVENT_RX_FAIL) {
-                                    if (Debug.ON) Log.v(TAG, "EVENT_RX_FAIL, missed message");
-                                    return;
-                                } else if (antMessage.length > 4 && antMessage[4] == (byte)0x08) {//AntDefine.EVENT_RX_FAIL_GO_TO_SEARCH) {
-                                    if (Debug.ON) Log.v(TAG, "EVENT_RX_FAIL_GO_TO_SEARCH 2");
-                                    //releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_event), messageToString(antMessage)));
-                                    return;
-                                } else if (antMessage.length > 4 && antMessage[4] == (byte)0x01) {//AntDefine.EVENT_RX_SEARCH_TIMEOUT) {
-                                    releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_event), messageToString(antMessage)));
-                                    return;
-                                } else if (antMessage.length > 4 && antMessage[4] == (byte)0x07) {//AntDefine.EVENT_CHANNEL_CLOSED) {
-                                    releaseService(String.format(sContext.getString(R.string.weight_process_msg_problem_event), messageToString(antMessage)));
-                                    return;
-                                }
-                            }
-                            if (Debug.ON) Log.v(TAG, "MESG_RESPONSE_EVENT_ID " + messageToString(antMessage) +  " state=" + state.toString());
-                        }*/ else if (Debug.ON) Log.w(TAG, "*** Received messageId=" + antMessage[1] + " messageData" + messageToString(antMessage) +  " state=" + state.toString());
+                        } else if (Debug.ON) Log.w(TAG, "*** Received messageId=" + antMessage[1] + " messageData" + messageToString(antMessage) +  " state=" + state.toString());
                         break;
                     default:
                         if (Debug.ON) Log.i(TAG, "UNEXPECTED message " + messageToString(antMessage) +  " state=" + state.toString());
@@ -767,7 +666,7 @@ class RequestWeight {
                         return;
                     }
                 } catch (PackageManager.NameNotFoundException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Unable to inspect the ANT Radio Service", e);
                 }
             }
             releaseService(R.string.weight_process_msg_problem_timeout);
@@ -816,7 +715,7 @@ class RequestWeight {
                             if (Debug.ON) Log.i(TAG, "Radio already enabled");
                         }
                     } catch (RemoteException e) {
-                        e.printStackTrace();
+                        Log.e(TAG, "Unable to enable the ANT radio", e);
                     }
 
                     try {
@@ -893,7 +792,7 @@ class RequestWeight {
                 sAntReceiver.ANTCloseChannel((byte) 0);
                 sAntReceiver.ANTUnassignChannel((byte) 0);
             } catch (RemoteException e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to close the ANT channel", e);
             }
 
             unregisterForAntIntents();
@@ -961,15 +860,6 @@ class RequestWeight {
     private short userProfileIdentification = -1;
     private byte[] genUserProfileDataPage() {
         if (userProfileIdentification == -1) {
-            /*short tmp = 0;
-            for (byte chars : the_user.name.getBytes()) tmp += chars;
-            tmp += the_user.activity_level;
-            tmp += (the_user.isLifetimeAthlete) ? 1 : 0;
-            tmp += (the_user.usesCm) ? the_user.height_cm : the_user.height_ft + the_user.height_in;
-            tmp += the_user.age;
-            tmp += (the_user.isMale) ? 1 : 0;
-            userProfileIdentification = 256;
-            userProfileIdentification += (tmp % 30000);*/
             userProfileIdentification = (short) new Random().nextInt(Short.MAX_VALUE + 1);
 
         }
@@ -1000,19 +890,13 @@ class RequestWeight {
             statusIntentFilter.addAction("com.dsi.ant.intent.action.ANT_DISABLED");
             statusIntentFilter.addAction("com.dsi.ant.intent.action.ANT_INTERFACE_CLAIMED_ACTION");
             statusIntentFilter.addAction("com.dsi.ant.intent.action.ANT_RESET");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 (Tiramisu) and higher
-                sContext.registerReceiver(statusReceiver, statusIntentFilter, Context.RECEIVER_EXPORTED);
-            } else {
-                sContext.registerReceiver(statusReceiver, statusIntentFilter);
-            }
+            ContextCompat.registerReceiver(
+                    sContext, statusReceiver, statusIntentFilter, ContextCompat.RECEIVER_EXPORTED);
 
             IntentFilter dataIntentFilter = new IntentFilter();
             dataIntentFilter.addAction("com.dsi.ant.intent.action.ANT_RX_MESSAGE_ACTION");
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // Android 13 (Tiramisu) and higher
-                sContext.registerReceiver(dataReceiver, dataIntentFilter, Context.RECEIVER_EXPORTED);
-            } else {
-                sContext.registerReceiver(dataReceiver, dataIntentFilter);
-            }
+            ContextCompat.registerReceiver(
+                    sContext, dataReceiver, dataIntentFilter, ContextCompat.RECEIVER_EXPORTED);
         }
     }
 
@@ -1023,14 +907,14 @@ class RequestWeight {
                 sContext.unregisterReceiver(statusReceiver);
             } catch (Exception e)
             {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to unregister the ANT status receiver", e);
             }
             try
             {
                 sContext.unregisterReceiver(dataReceiver);
             } catch (Exception e)
             {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to unregister the ANT data receiver", e);
             }
         }
     }

@@ -58,11 +58,6 @@ public class MainActivity extends AppCompatActivity
     private static final int NAV_POS_HISTORY = 3;
     private static final int NAV_POS_USERS = 4;
 
-    /*public static final int DIRECTORY_PICKER_RESULT = 102;
-    public static final int FILE_PICKER_RESULT = 103;
-    public static final int CSV_DIRECTORY_PICKER_RESULT = 109;
-    public static final int REQUEST_CODE_WRITE_EXTERNAL_STORAGE = 110;*/
-
     private NavigationView navigationView;
     EditWeightFragment ewf;
 
@@ -309,7 +304,7 @@ public class MainActivity extends AppCompatActivity
                 try {
                     ewf.old_weight = (Weight) weight.clone();
                 } catch (CloneNotSupportedException e) {
-                    e.printStackTrace();
+                    Log.e(TAG, "Unable to copy the weight for editing", e);
                     ewf.old_weight = null;
                 }
             }
@@ -376,7 +371,6 @@ public class MainActivity extends AppCompatActivity
     public void closeEditGoalFragment(Goal goal) {
         if (goal != null) {
             if (!mGoalsArray.contains(goal)) mGoalsArray.add(0, goal);
-            /* TODO: Sort by end date */
             Goal.serializeGoals(this, mGoalsArray);
         }
 
@@ -761,7 +755,7 @@ public class MainActivity extends AppCompatActivity
             number = format.parse(et.getText().toString().trim());
             if (number != null) return number.doubleValue();
         } catch (ParseException e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to parse the entered value", e);
         }
         return 0;
     }

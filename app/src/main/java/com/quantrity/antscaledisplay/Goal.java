@@ -35,18 +35,9 @@ public class Goal {
         deserializeFromObj(obj);
     }
 
-    /*public Goal(String serializedObj) throws JSONException {
-        deserialize(serializedObj);
-    }*/
-
     static String goalsFilePath(Context context) {
         return context.getFilesDir() + "/goals";
     }
-
-    /*private void deserialize(String serializedObj) throws JSONException {
-        JSONObject obj = new JSONObject(serializedObj);
-        deserializeFromObj(obj);
-    }*/
 
     private void deserializeFromObj(JSONObject obj) throws JSONException {
         this.uuid = obj.getString("uuid");
@@ -90,7 +81,7 @@ public class Goal {
             reader.close();
             json = sb.toString();
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to read goal data", e);
         }
         return json;
     }
@@ -110,7 +101,7 @@ public class Goal {
         try {
             deserializeArray(serializedArray, goalsArray);
         } catch (Exception e) {
-            e.printStackTrace();
+            Log.e(TAG, "Unable to deserialize goals", e);
         }
     }
 
@@ -123,7 +114,7 @@ public class Goal {
             try {
                 while (tmp.hasNext()) jsonArray.put(tmp.next().serializeToObj());
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to serialize goals", e);
                 return;
             }
             try {
@@ -150,7 +141,7 @@ public class Goal {
                     }
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                Log.e(TAG, "Unable to save goals", e);
             }
         }).start();
     }

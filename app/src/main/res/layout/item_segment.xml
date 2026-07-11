@@ -13,6 +13,7 @@
         android:layout_height="32dp"
         android:layout_gravity="bottom"
         android:padding="10dp"
+        android:importantForAccessibility="no"
         tools:src="@drawable/ic_left_arm"
         tools:background="@drawable/rounded_blue"/>
 
@@ -57,6 +58,7 @@
         android:id="@+id/metricTrend"
         android:layout_width="10dp"
         android:layout_height="10dp"
+        android:importantForAccessibility="no"
         tools:src="@drawable/ic_equal"/>
 
 </LinearLayout>

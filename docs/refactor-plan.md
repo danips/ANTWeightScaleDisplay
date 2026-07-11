@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 1 — Fix lint and remove dead code
+- Current phase: Phase 2 — Package or isolate the Garmin FIT SDK
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -35,7 +35,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 ## Progress
 
 - [x] Phase 0 — Establish a safety baseline
-- [ ] Phase 1 — Fix lint and remove dead code
+- [x] Phase 1 — Fix lint and remove dead code
 - [ ] Phase 2 — Package or isolate the Garmin FIT SDK
 - [ ] Phase 3 — Centralize file persistence
 - [ ] Phase 4 — Move application state out of `MainActivity`
@@ -52,7 +52,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending commit
+Commit: `ea29454`
 
 ### Objective
 
@@ -117,9 +117,9 @@ test: add regression coverage for architecture refactor
 
 ## Phase 1 — Fix lint and remove dead code
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending commit
 
 ### Objective
 
@@ -127,23 +127,40 @@ Remove low-risk clutter and make lint a useful regression gate before structural
 
 ### Tasks
 
-- [ ] Delete the three unused qualified `fab_margin` resources rather than adding an unused
+- [x] Delete the three unused qualified `fab_margin` resources rather than adding an unused
       default resource.
-- [ ] Register ANT broadcast receivers with the correct exported/not-exported flags for supported
+- [x] Register ANT broadcast receivers with the correct exported/not-exported flags for supported
       Android versions. Confirm the flags still permit broadcasts from the external ANT service.
-- [ ] Resolve the missing `history_fragment_action_jump_to` translation issue by translating it or
+- [x] Resolve the missing `history_fragment_action_jump_to` translation issue by translating it or
       documenting the intended translation policy.
-- [ ] Resolve the FIT SDK API-24 stream usage for the current minimum SDK, or defer it explicitly to
+- [x] Resolve the FIT SDK API-24 stream usage for the current minimum SDK, or defer it explicitly to
       the FIT isolation phase if that phase removes the source from app lint.
-- [ ] Review the suspicious indentation reported in the FIT SDK before deciding whether to patch or
+- [x] Review the suspicious indentation reported in the FIT SDK before deciding whether to patch or
       replace that source.
-- [ ] Delete resources confirmed unused by lint after checking dynamic/resource-name lookups.
-- [ ] Remove obsolete commented-out methods, constants, and stale TODO comments.
-- [ ] Replace remaining hardcoded user-facing text with resources.
-- [ ] Address straightforward RTL, label, content-description, and accessibility warnings.
-- [ ] Fix clear logging mistakes and replace `printStackTrace()` in application code with contextual
+- [x] Delete resources confirmed unused by lint after checking dynamic/resource-name lookups.
+- [x] Remove obsolete commented-out methods, constants, and stale TODO comments.
+- [x] Replace remaining hardcoded user-facing text with resources.
+- [x] Address straightforward RTL, label, content-description, and accessibility warnings.
+- [x] Fix clear logging mistakes and replace `printStackTrace()` in application code with contextual
       logging or propagated errors.
-- [ ] Do not create a broad lint baseline to hide existing errors.
+- [x] Do not create a broad lint baseline to hide existing errors.
+
+### Completion notes
+
+- Reduced lint from 9 errors and 155 warnings to 0 errors and 60 warnings without creating a lint
+  baseline.
+- Added narrowly scoped temporary lint exclusions for two generated FIT SDK files. Their API usage
+  and suspicious indentation will disappear from app lint when Phase 2 isolates the SDK.
+- Removed 28 lint-confirmed unused resources, including their translated string variants, after
+  checking that the application does not resolve them dynamically.
+- Registered ANT receivers as exported through `ContextCompat`, preserving broadcasts from the
+  external ANT Radio Service on current Android versions.
+- Kept `history_fragment_action_jump_to` in English as the fallback until translations are supplied;
+  the intentional fallback is documented at the resource.
+- Remaining warnings are deferred to their owning phases: generated FIT boxing (Phase 2), form
+  autofill and adapter refreshes (Phase 9), plus low-risk vector, overdraw, target-SDK, and obsolete
+  attribute cleanup.
+- All 22 unit tests, debug lint, and the full minified release build pass.
 
 ### Acceptance criteria
 
@@ -690,7 +707,9 @@ Add entries whenever a decision changes the implementation direction or phase or
 |---|---|---|---|---|
 | 2026-07-11 | Planning | Use incremental Java refactoring instead of a Kotlin/Compose rewrite | Preserves behavior and reduces regression risk around Garmin and ANT integrations | — |
 | 2026-07-11 | Phase 3 | Preserve JSON storage before considering Room | A repository and shared atomic store provide most of the simplification without a risky data migration | — |
-| 2026-07-11 | Phase 0 | Use reflection only in persistence characterization tests | Captures current private serializer behavior without changing production persistence APIs before Phase 3 | Pending commit |
+| 2026-07-11 | Phase 0 | Use reflection only in persistence characterization tests | Captures current private serializer behavior without changing production persistence APIs before Phase 3 | `ea29454` |
+| 2026-07-11 | Phase 1 | Suppress lint only on the two generated FIT sources scheduled for removal | Avoids modifying generated third-party code while keeping all application lint errors visible | Pending commit |
+| 2026-07-11 | Phase 1 | Use the English jump-to label as the documented translation fallback | Avoids inventing unreviewed translations while resolving the fatal missing-translation check | Pending commit |
 
 ## Final results
 
@@ -712,4 +731,5 @@ Complete this section during Phase 10.
 
 Record deliberately deferred work here instead of expanding an active phase without review.
 
-- None recorded yet.
+- The 60 non-fatal lint warnings are assigned to later phases or low-risk final cleanup; see the
+  Phase 1 completion notes for their categories.

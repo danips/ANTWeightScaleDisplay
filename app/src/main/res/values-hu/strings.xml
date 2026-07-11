@@ -35,9 +35,6 @@
 	<string name="edit_user_fragment_athlete_mode">Sportoló üzemmód</string>
 	<string name="edit_user_fragment_automatic_upload">Automatikus feltöltés</string>
 	<string name="edit_user_fragment_birthdate">Szülinap</string>
-	<string name="edit_user_fragment_connect_to">Kapcsolódás: <b><xliff:g id="name">%1$s</xliff:g></b></string>
-	<string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Kapcsolódva <b><xliff:g id="name">%1$s</xliff:g></b></string>
-	<string name="edit_user_fragment_dates_in_graph">Napok száma a grafikonon</string>
 	<string name="edit_user_fragment_email_category">Email</string>
 	<string name="edit_user_fragment_fat_mass">Testzsír tömeg mutatása</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +100,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Dátum</string>
 	<string name="history_fragment_download"><xliff:g id="name">%1$s</xliff:g> letöltése</string>
-	<string name="history_fragment_download_complete">Letöltés kész</string>
 	<string name="history_fragment_download_in_progress">Letöltés folyamatban</string>
-	<string name="hydration_percent_value_0">Alacsony</string>
-	<string name="hydration_percent_value_1">Normál</string>
-	<string name="hydration_percent_value_2">Magas</string>
 	<string name="lateral_menu_close">Oldal menü bezárása</string>
 	<string name="lateral_menu_open">Oldal menü megnyitása</string>
-	<string name="lateral_menu_option_about">Súgó</string>
 	<string name="lateral_menu_option_goals">Célok</string>
 	<string name="lateral_menu_option_graphs">Grafikonok</string>
 	<string name="lateral_menu_option_history">Előző mérések</string>
@@ -118,7 +110,6 @@
 	<string name="lateral_menu_option_weight">Testsúly</string>
 	<string name="msg_problem_ant_permission_disabled">Az ANT interfész használatának engedélyezése szükséges a mérleggel való kapcsolódáshoz.</string>
 	<string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> nem található.\nTelepítsd a Google Play-ről!</string>
-	<string name="msg_problem_setting_up_billing">Probléma az alkalmazáson belüli vásárlással</string>
 	<string name="msg_problem_usb_stick_not_detected">Úgy tűnik, a készüléked nem rendelkezik beépített ANT+ képességgel: csatlakoztass egy ANT+ USB adaptert, hogy kapcsolódhass a mérleghez.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Ne mutasd többet</string>
 	<string name="physique_rating_1">Rejtett elhízás</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">év</string>
 	<string name="weight_fragment_action_upload">Feltöltés</string>
 	<string name="weight_fragment_action_weight">Testsúly</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">BMR</string>
 	<string name="weight_fragment_icon_desc_activeMet">Aktív anyagcsere (AMR)</string>
 	<string name="weight_fragment_icon_desc_basalMet">Alap anyagcsere (BMR)</string>
 	<string name="weight_fragment_icon_desc_boneMass">Csonttömeg</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">Testsúly mérés kérése</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">Nincs internetkapcsolat. Próbáld újra!</string>
 	<string name="weight_fragment_msg_searching">ANT+ mérleg keresése</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Köszi, hogy megvásároltad a prémium verziót!</string>
 	<string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> sikeresen frissítve</string>
 	<string name="weight_fragment_msg_uploading">Feltöltés</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Probléma a FIT fájl előállítása során</string>
-	<string name="weight_fragment_msg_uploading_failure">Probléma a FIT fájl Garmin Connect-re való feltöltésével.\nPróbáld újra később!</string>
 	<string name="weight_fragment_msg_waiting">Mérésre várakozás</string>
 	<string name="weight_fragment_msg_wrong_credentials">Hibás Garmin Connect felhasználónév vagy jelszó!</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

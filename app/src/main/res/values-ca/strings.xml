@@ -35,9 +35,6 @@
 	<string name="edit_user_fragment_athlete_mode">Mode atleta</string>
 	<string name="edit_user_fragment_automatic_upload">Càrrega automàtica</string>
 	<string name="edit_user_fragment_birthdate">Data de naixement</string>
-	<string name="edit_user_fragment_connect_to">Connectat a <b><xliff:g id="name">%1$s</xliff:g></b></string>
-	<string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> Connextat a <b><xliff:g id="name">%1$s</xliff:g></b></string>
-	<string name="edit_user_fragment_dates_in_graph">Nombre de dates al gràfic</string>
 	<string name="edit_user_fragment_email_category">Email</string>
 	<string name="edit_user_fragment_fat_mass">Mostra el greix</string>
 	<string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -103,14 +100,9 @@
 	<string name="history_fragment_action_export_csv">CSV</string>
 	<string name="history_fragment_date">Data</string>
 	<string name="history_fragment_download"><xliff:g id="name">%1$s</xliff:g> descàrrega</string>
-	<string name="history_fragment_download_complete">Descàrrega completa</string>
 	<string name="history_fragment_download_in_progress">Descàrrega en procés</string>
-	<string name="hydration_percent_value_0">Baix</string>
-	<string name="hydration_percent_value_1">Bé</string>
-	<string name="hydration_percent_value_2">Alt</string>
 	<string name="lateral_menu_close">Tancar el menú lateral</string>
 	<string name="lateral_menu_open">Obrir el menú lateral</string>
-	<string name="lateral_menu_option_about">Sobre</string>
 	<string name="lateral_menu_option_goals">Objectius</string>
 	<string name="lateral_menu_option_graphs">Gràfiques</string>
 	<string name="lateral_menu_option_history">Historial</string>
@@ -118,7 +110,6 @@
 	<string name="lateral_menu_option_weight">Pes</string>
 	<string name="msg_problem_ant_permission_disabled">ANT Radio Service has no permission to use ANT hardware. Please, enable it to communicate with your weight scale.</string>
 	<string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> no trobat.\nPer favor intal·la-ho des de Google Play.</string>
-	<string name="msg_problem_setting_up_billing">S\'ha produït un problema en configurar la facturació a l\'aplicació</string>
 	<string name="msg_problem_usb_stick_not_detected">El vostre dispositiu no sembla tenir una ràdio ANT + integrada, necessiteu connectar una memòria USB ANT+ per comunicar-se amb la vostra escala de pes.</string>
 	<string name="msg_problem_usb_stick_not_detected_never">Never show again</string>
 	<string name="physique_rating_1">Molt obès</string>
@@ -147,9 +138,7 @@
 	<string name="weight_edit_fragment_years_tag">anys</string>
 	<string name="weight_fragment_action_upload">Carregar</string>
 	<string name="weight_fragment_action_weight">Pes</string>
-	<string name="weight_fragment_amr_abbreviation">AMR</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
-	<string name="weight_fragment_bmr_abbreviation">RMB</string>
 	<string name="weight_fragment_icon_desc_activeMet">Calories diàries</string>
 	<string name="weight_fragment_icon_desc_basalMet">Ràtio Metabòlic Basal</string>
 	<string name="weight_fragment_icon_desc_boneMass">Massa òssia</string>
@@ -169,11 +158,9 @@
 	<string name="weight_fragment_msg_found">Sol·licitud de mesurament de pes</string>
 	<string name="weight_fragment_msg_problem_no_internet_connection">No hi ha connexió a internet en aquest moment. Intenta-ho més tard.</string>
 	<string name="weight_fragment_msg_searching">Buscant una bàscula amb ANT+</string>
-	<string name="weight_fragment_msg_thankyou_purchasing">Gràcies per millorar a premium!</string>
 	<string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> càrrega satisfactòria</string>
 	<string name="weight_fragment_msg_uploading">Carregant</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">S\'ha produït un problema en generar el fitxer FIT</string>
-	<string name="weight_fragment_msg_uploading_failure">S\'ha produït un problema carregant el fitxer FIT a Garming Connect. Intenta-ho més tard.</string>
 	<string name="weight_fragment_msg_waiting">Esperant la mesura del pes</string>
 	<string name="weight_fragment_msg_wrong_credentials">Error de nom d\'usuari o de mot de pas Garmin Connect!</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

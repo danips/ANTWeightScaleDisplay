@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#121212"
-    android:fillViewport="true">
+    android:fillViewport="true"
+    tools:ignore="DuplicateIncludedIds">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -36,6 +37,7 @@
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:srcCompat="@drawable/ic_weight"
+                    android:importantForAccessibility="no"
                     android:background="@drawable/rounded_green"/>
 
                 <TextView
@@ -90,6 +92,7 @@
                     android:layout_marginEnd="8dp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
+                    android:importantForAccessibility="no"
                     app:layout_constraintBottom_toBottomOf="parent"/>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
@@ -175,7 +178,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginLeft="0dp"/>
+                android:layout_marginStart="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardWater"
@@ -184,7 +187,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginRight="0dp"/>
+                android:layout_marginEnd="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardMuscle"
@@ -193,7 +196,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginLeft="0dp"/>
+                android:layout_marginStart="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardBone"
@@ -202,7 +205,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginRight="0dp"/>
+                android:layout_marginEnd="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardVisceral"
@@ -211,7 +214,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginLeft="0dp"/>
+                android:layout_marginStart="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardPhysique"
@@ -220,7 +223,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginRight="0dp"/>
+                android:layout_marginEnd="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardMetabolicAge"
@@ -229,7 +232,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginLeft="0dp"/>
+                android:layout_marginStart="0dp"/>
 
             <include layout="@layout/item_metric_card"
                 android:id="@+id/cardBMR"
@@ -238,7 +241,7 @@
                 android:layout_columnWeight="1"
                 android:layout_gravity="fill"
                 android:layout_margin="8dp"
-                android:layout_marginRight="0dp"/>
+                android:layout_marginEnd="0dp"/>
 
         </GridLayout>
 
@@ -247,6 +250,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="16dp"
+            android:contentDescription="@string/weight_fragment_action_weight"
             app:srcCompat="@android:drawable/ic_input_add"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>

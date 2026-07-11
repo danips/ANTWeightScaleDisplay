@@ -32,9 +32,6 @@
     <string name="edit_user_fragment_athlete_mode">מצב ספורטאי</string>
     <string name="edit_user_fragment_automatic_upload">העלאה אוטומטית</string>
     <string name="edit_user_fragment_birthdate">תאריך לידה</string>
-    <string name="edit_user_fragment_connect_to">התחבר אל <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_connected_to"><xliff:g id="ok_symbol">✔</xliff:g> מחובר אל <b><xliff:g id="name">%1$s</xliff:g></b></string>
-    <string name="edit_user_fragment_dates_in_graph">מספר תאריכים בגרף</string>
     <string name="edit_user_fragment_email_category">דוא\"ל</string>
     <string name="edit_user_fragment_fat_mass">הצג מסת שומן</string>
     <string name="edit_user_fragment_garmin_connect_category">Garmin Connect</string>
@@ -101,14 +98,9 @@
     <string name="history_fragment_action_export_csv">CSV</string>
     <string name="history_fragment_date">תאריך</string>
     <string name="history_fragment_download">הורדת <xliff:g id="name">%1$s</xliff:g></string>
-    <string name="history_fragment_download_complete">ההורדה הושלמה</string>
     <string name="history_fragment_download_in_progress">הורדה מתבצעת</string>
-    <string name="hydration_percent_value_0">נמוך</string>
-    <string name="hydration_percent_value_1">טוב</string>
-    <string name="hydration_percent_value_2">גבוה</string>
     <string name="lateral_menu_close">סגור תפריט צד</string>
     <string name="lateral_menu_open">פתח תפריט צד</string>
-    <string name="lateral_menu_option_about">אודות</string>
     <string name="lateral_menu_option_goals">יעדים</string>
     <string name="lateral_menu_option_graphs">גרפים</string>
     <string name="lateral_menu_option_history">היסטוריה</string>
@@ -116,7 +108,6 @@
     <string name="lateral_menu_option_weight">משקל</string>
     <string name="msg_problem_ant_permission_disabled">ל-ANT Radio Service אין הרשאה להשתמש בחומרת ANT. אנא אפשר זאת כדי לתקשר עם המשקל שלך.</string>
     <string name="msg_problem_service_not_found"><b><xliff:g id="name">%1$s</xliff:g></b> לא נמצא.\nאנא התקן אותו מ-Google Play.</string>
-    <string name="msg_problem_setting_up_billing">בעיה בהגדרת רכישות בתוך האפליקציה</string>
     <string name="msg_problem_usb_stick_not_detected">נראה כי למכשיר שלך אין רדיו ANT+ מובנה, עליך לחבר מתאם USB ANT+ כדי לתקשר עם המשקל.</string>
     <string name="msg_problem_usb_stick_not_detected_never">אל תציג שוב</string>
     <string name="physique_rating_1">השמנה סמויה</string>
@@ -147,9 +138,7 @@
     <string name="weight_edit_fragment_years_tag">שנים</string>
     <string name="weight_fragment_action_upload">העלה</string>
     <string name="weight_fragment_action_weight">משקל</string>
-    <string name="weight_fragment_amr_abbreviation">AMR</string>
     <string name="weight_fragment_bmi_tag">BMI</string>
-    <string name="weight_fragment_bmr_abbreviation">BMR</string>
     <string name="weight_fragment_icon_desc_activeMet">קצב מטבולי פעיל</string>
     <string name="weight_fragment_icon_desc_basalMet">קצב מטבולי בסיסי</string>
     <string name="weight_fragment_icon_desc_boneMass">מסת עצם</string>
@@ -169,11 +158,9 @@
     <string name="weight_fragment_msg_found">מבקש מדידת משקל</string>
     <string name="weight_fragment_msg_problem_no_internet_connection">אין חיבור לאינטרנט כרגע. נסה שוב מאוחר יותר.</string>
     <string name="weight_fragment_msg_searching">מחפש משקל ANT+</string>
-    <string name="weight_fragment_msg_thankyou_purchasing">תודה ששדרגת לגרסת פרימיום!</string>
     <string name="weight_fragment_msg_updating_success"><xliff:g id="filename">%1$s</xliff:g> עודכן בהצלחה</string>
     <string name="weight_fragment_msg_uploading">מעלה</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">אירעה בעיה ביצירת קובץ ה-FIT</string>
-    <string name="weight_fragment_msg_uploading_failure">אירעה בעיה בהעלאת קובץ ה-FIT ל-Garmin Connect.\nנסה שוב מאוחר יותר.</string>
     <string name="weight_fragment_msg_waiting">ממתין למדידת משקל</string>
     <string name="weight_fragment_msg_wrong_credentials">שם משתמש או סיסמה שגויים ל-Garmin Connect!</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>

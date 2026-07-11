@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@color/background_material_dark_copy"
@@ -12,10 +13,10 @@
         android:id="@+id/spinerTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Select or Search Items"
         android:textSize="17sp"
         android:padding="5sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        tools:text="Select or search items" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -27,15 +28,18 @@
             android:id="@+id/searchIcon"
             android:layout_width="30dp"
             android:layout_height="30dp"
+            android:importantForAccessibility="no"
             app:srcCompat="@drawable/ic_search_white_36dp" />
 
         <EditText
             android:id="@+id/searchBox"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginLeft="5dp"
-            android:paddingLeft="5dp"
+            android:layout_marginStart="5dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="5dp"
             android:background="#ffffff"
+            android:hint="@string/edit_user_fragment_user"
             android:textColor="@color/background_material_dark_copy"
             android:inputType="text" />
 

@@ -124,10 +124,21 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
 
         holder.user = item;
         holder.nameTV.setText(item.name);
+        String age = mContext.getString(R.string.weight_fragment_years_tag, item.age);
         if (item.usesCm) {
-            holder.descTV.setText(String.format(mContext.getResources().getString(R.string.weight_fragment_years_tag), item.age) + ", " + item.height_cm + " " + mContext.getResources().getString(R.string.edit_user_fragment_units_tag_cm));
+            holder.descTV.setText(mContext.getString(
+                    R.string.format_user_description_cm,
+                    age,
+                    item.height_cm,
+                    mContext.getString(R.string.edit_user_fragment_units_tag_cm)));
         } else {
-            holder.descTV.setText(String.format(mContext.getResources().getString(R.string.weight_fragment_years_tag), item.age) + ", " + item.height_ft + mContext.getResources().getString(R.string.edit_user_fragment_units_tag_ft) + " " + item.height_in + mContext.getResources().getString(R.string.edit_user_fragment_units_tag_in));
+            holder.descTV.setText(mContext.getString(
+                    R.string.format_user_description_imperial,
+                    age,
+                    item.height_ft,
+                    mContext.getString(R.string.edit_user_fragment_units_tag_ft),
+                    item.height_in,
+                    mContext.getString(R.string.edit_user_fragment_units_tag_in)));
         }
         holder.userIV.setColorFilter((item.isMale) ? BLUE : PINK, PorterDuff.Mode.SRC_IN);
 

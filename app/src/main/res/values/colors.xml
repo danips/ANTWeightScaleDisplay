@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <drawable name="list_activated_holo">#0099cc</drawable>
     <color name="background_material_dark_copy">@color/material_grey_850</color>
 </resources>
