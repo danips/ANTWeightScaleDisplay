@@ -18,6 +18,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.quantrity.antscaledisplay.databinding.RowWeightBinding;
+
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -26,7 +28,7 @@ import java.util.Locale;
 class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     //private static final String TAG = "HistoryAdapter";
 
-    private ArrayList<Weight> mDataset;
+    private final ArrayList<Weight> mDataset;
     private final Context mContext;
     private final HistoryFragment parent;
     private User user;
@@ -38,7 +40,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     // Provide a suitable constructor (depends on the kind of dataset)
     HistoryAdapter(ArrayList<Weight> myDataset, Context mContext, User user,
                    HistoryFragment parent) {
-        mDataset = myDataset;
+        mDataset = new ArrayList<>(myDataset);
         this.mContext = mContext;
         this.user = user;
         this.parent = parent;
@@ -48,10 +50,13 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
     void replaceAll(ArrayList<Weight> myDataset, User user) {
         this.user = user;
-        mDataset = myDataset;
+        int oldSize = mDataset.size();
+        mDataset.clear();
         // Reset expanded states when data changes/reloads
         expandedStates.clear();
-        notifyDataSetChanged();
+        if (oldSize > 0) notifyItemRangeRemoved(0, oldSize);
+        mDataset.addAll(myDataset);
+        if (!myDataset.isEmpty()) notifyItemRangeInserted(0, myDataset.size());
     }
 
     // Provide a reference to the views for each data item
@@ -106,58 +111,57 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         final TableRow prvfTR;
         final TableRow maamTR;
 
-        ViewHolder(View v) {
-            super(v);
+        ViewHolder(RowWeightBinding binding) {
+            super(binding.getRoot());
 
             // New View References for Expandable Layout
-            detailsContainer = v.findViewById(R.id.row_details_container);
-            expandIcon = v.findViewById(R.id.expand_icon);
+            detailsContainer = binding.rowDetailsContainer;
+            expandIcon = binding.expandIcon;
 
             // Existing View References
-            dateTV = v.findViewById(R.id.row_weight_dateTV);
-            timeTV = v.findViewById(R.id.row_weight_timeTV);
-            weightTV = v.findViewById(R.id.row_weight_weightTV);
-            bmiTV = v.findViewById(R.id.row_weight_bmiTV);
+            dateTV = binding.rowWeightDateTV;
+            timeTV = binding.rowWeightTimeTV;
+            weightTV = binding.rowWeightWeightTV;
+            bmiTV = binding.rowWeightBmiTV;
 
-            trunkPercentFatTV = v.findViewById(R.id.row_weight_trunkPercentFatTV);
-            trunkMuscleMassTV = v.findViewById(R.id.row_weight_trunkMuscleMassTV);
-            leftArmPercentFatTV = v.findViewById(R.id.row_weight_leftArmPercentFatTV);
-            leftArmMuscleMassTV = v.findViewById(R.id.row_weight_leftArmMuscleMassTV);
-            rightArmPercentFatTV = v.findViewById(R.id.row_weight_rightArmPercentFatTV);
-            rightArmMuscleMassTV = v.findViewById(R.id.row_weight_rightArmMuscleMassTV);
-            leftLegPercentFatTV = v.findViewById(R.id.row_weight_leftLegPercentFatTV);
-            leftLegMuscleMassTV = v.findViewById(R.id.row_weight_leftLegMuscleMassTV);
-            rightLegPercentFatTV = v.findViewById(R.id.row_weight_rightLegPercentFatTV);
-            rightLegMuscleMassTV = v.findViewById(R.id.row_weight_rightLegMuscleMassTV);
-            percentFatTV = v.findViewById(R.id.row_weight_percentFatTV);
-            percentHydrationTV = v.findViewById(R.id.row_weight_percentHydrationTV);
-            boneMassTV = v.findViewById(R.id.row_weight_boneMassTV);
-            muscleMassTV = v.findViewById(R.id.row_weight_muscleMassTV);
-            physiqueRatingTV = v.findViewById(R.id.row_weight_physiqueRatingTV);
-            visceralFatRatingTV = v.findViewById(R.id.row_weight_visceralFatRatingTV);
-            metabolicAgeTV = v.findViewById(R.id.row_weight_metabolicAgeTV);
-            basalMetTV = v.findViewById(R.id.row_weight_basalMetTV);
+            trunkPercentFatTV = binding.rowWeightTrunkPercentFatTV;
+            trunkMuscleMassTV = binding.rowWeightTrunkMuscleMassTV;
+            leftArmPercentFatTV = binding.rowWeightLeftArmPercentFatTV;
+            leftArmMuscleMassTV = binding.rowWeightLeftArmMuscleMassTV;
+            rightArmPercentFatTV = binding.rowWeightRightArmPercentFatTV;
+            rightArmMuscleMassTV = binding.rowWeightRightArmMuscleMassTV;
+            leftLegPercentFatTV = binding.rowWeightLeftLegPercentFatTV;
+            leftLegMuscleMassTV = binding.rowWeightLeftLegMuscleMassTV;
+            rightLegPercentFatTV = binding.rowWeightRightLegPercentFatTV;
+            rightLegMuscleMassTV = binding.rowWeightRightLegMuscleMassTV;
+            percentFatTV = binding.rowWeightPercentFatTV;
+            percentHydrationTV = binding.rowWeightPercentHydrationTV;
+            boneMassTV = binding.rowWeightBoneMassTV;
+            muscleMassTV = binding.rowWeightMuscleMassTV;
+            physiqueRatingTV = binding.rowWeightPhysiqueRatingTV;
+            visceralFatRatingTV = binding.rowWeightVisceralFatRatingTV;
+            metabolicAgeTV = binding.rowWeightMetabolicAgeTV;
+            basalMetTV = binding.rowWeightBasalMetTV;
 
-            percentFatIV = v.findViewById(R.id.row_weight_percentFatIV);
-            percentHydrationIV = v.findViewById(R.id.row_weight_percentHydrationIV);
-            boneMassIV = v.findViewById(R.id.row_weight_boneMassIV);
-            //muscleMassIV = v.findViewById(R.id.row_weight_muscleMassIV);
-            physiqueRatingIV = v.findViewById(R.id.row_weight_physiqueRatingIV);
-            visceralFatRatingIV = v.findViewById(R.id.row_weight_visceralFatRatingIV);
-            metabolicAgeIV = v.findViewById(R.id.row_weight_metabolicAgeIV);
-            basalMetIV = v.findViewById(R.id.row_weight_basalMetIV);
+            percentFatIV = binding.rowWeightPercentFatIV;
+            percentHydrationIV = binding.rowWeightPercentHydrationIV;
+            boneMassIV = binding.rowWeightBoneMassIV;
+            physiqueRatingIV = binding.rowWeightPhysiqueRatingIV;
+            visceralFatRatingIV = binding.rowWeightVisceralFatRatingIV;
+            metabolicAgeIV = binding.rowWeightMetabolicAgeIV;
+            basalMetIV = binding.rowWeightBasalMetIV;
 
-            tftmTR = v.findViewById(R.id.tftmTR);
-            laflamTR = v.findViewById(R.id.laflamTR);
-            raframTR = v.findViewById(R.id.raframTR);
-            llfllmTR = v.findViewById(R.id.llfllmTR);
-            rlfrlmTR = v.findViewById(R.id.rlfrlmTR);
-            pfphTR = v.findViewById(R.id.pfphTR);
-            bmmmTR = v.findViewById(R.id.bmmmTR);
-            prvfTR = v.findViewById(R.id.prvfTR);
-            maamTR = v.findViewById(R.id.maamTR);
+            tftmTR = binding.tftmTR;
+            laflamTR = binding.laflamTR;
+            raframTR = binding.raframTR;
+            llfllmTR = binding.llfllmTR;
+            rlfrlmTR = binding.rlfrlmTR;
+            pfphTR = binding.pfphTR;
+            bmmmTR = binding.bmmmTR;
+            prvfTR = binding.prvfTR;
+            maamTR = binding.maamTR;
 
-            v.setOnCreateContextMenuListener(this);
+            binding.getRoot().setOnCreateContextMenuListener(this);
         }
 
         @Override
@@ -206,8 +210,8 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_weight, parent, false);
-        return new ViewHolder(v);
+        return new ViewHolder(RowWeightBinding.inflate(
+                LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     // Replace the contents of a view (invoked by the layout manager)

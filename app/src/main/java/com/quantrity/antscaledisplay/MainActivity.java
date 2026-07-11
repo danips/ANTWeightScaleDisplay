@@ -37,6 +37,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.dsi.ant.AntSupportChecker;
 import com.google.android.material.navigation.NavigationView;
+import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -55,6 +56,7 @@ public class MainActivity extends AppCompatActivity
 
     private NavigationView navigationView;
     private AppStateViewModel state;
+    private ActivityMainBinding binding;
 
     private void loadDB() {
         RepositoryResult<Void> result = state.reload();
@@ -80,17 +82,18 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        Toolbar toolbar = binding.appBarMain.toolbar;
         setSupportActionBar(toolbar);
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        DrawerLayout drawer = binding.drawerLayout;
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.lateral_menu_open, R.string.lateral_menu_close);
         drawer.addDrawerListener(toggle);
         toggle.syncState();
 
-        navigationView = findViewById(R.id.nav_view);
+        navigationView = binding.navView;
         navigationView.setNavigationItemSelectedListener(this);
         state = new ViewModelProvider(this).get(AppStateViewModel.class);
 
@@ -355,8 +358,7 @@ public class MainActivity extends AppCompatActivity
             navigationView.getMenu().getItem(pos).setChecked(true);
         }
 
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
+        binding.drawerLayout.closeDrawer(GravityCompat.START);
 
         return true;
     }

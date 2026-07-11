@@ -13,13 +13,15 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.quantrity.antscaledisplay.databinding.RowGoalBinding;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
 
 class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
-    private ArrayList<Goal> dataset;
+    private final ArrayList<Goal> dataset;
     private final Context context;
     private final GoalsFragment parent;
     private User user;
@@ -28,7 +30,7 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
 
     GoalAdapter(ArrayList<Goal> dataset, Context context, User user, Weight lastWeight,
                 GoalsFragment parent) {
-        this.dataset = dataset;
+        this.dataset = new ArrayList<>(dataset);
         this.context = context;
         this.user = user;
         this.lastWeight = lastWeight;
@@ -48,17 +50,17 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         final TextView totalProgressTV;
         final TextView onTrackProgressTV;
 
-        ViewHolder(View view) {
-            super(view);
-            metricIV = view.findViewById(R.id.row_goal_metricIV);
-            startDateTV = view.findViewById(R.id.row_goal_startDateTV);
-            endDateTV = view.findViewById(R.id.row_goal_endDateTV);
-            startValueTV = view.findViewById(R.id.row_goal_startValueTV);
-            endValueTV = view.findViewById(R.id.row_goal_endValueTV);
-            totalProgressTV = view.findViewById(R.id.row_goal_totalProgressTV);
-            onTrackProgressTV = view.findViewById(R.id.row_goal_onTrackProgressTV);
-            view.setOnCreateContextMenuListener(this);
-            view.setOnClickListener(View::showContextMenu);
+        ViewHolder(RowGoalBinding binding) {
+            super(binding.getRoot());
+            metricIV = binding.rowGoalMetricIV;
+            startDateTV = binding.rowGoalStartDateTV;
+            endDateTV = binding.rowGoalEndDateTV;
+            startValueTV = binding.rowGoalStartValueTV;
+            endValueTV = binding.rowGoalEndValueTV;
+            totalProgressTV = binding.rowGoalTotalProgressTV;
+            onTrackProgressTV = binding.rowGoalOnTrackProgressTV;
+            binding.getRoot().setOnCreateContextMenuListener(this);
+            binding.getRoot().setOnClickListener(View::showContextMenu);
         }
 
         @Override
@@ -94,8 +96,11 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
 
     void replaceAll(ArrayList<Goal> dataset, User user) {
         this.user = user;
-        this.dataset = dataset;
-        notifyDataSetChanged();
+        int oldSize = this.dataset.size();
+        this.dataset.clear();
+        if (oldSize > 0) notifyItemRangeRemoved(0, oldSize);
+        this.dataset.addAll(dataset);
+        if (!dataset.isEmpty()) notifyItemRangeInserted(0, dataset.size());
     }
 
     public Goal get(Goal item) { return dataset.get(dataset.indexOf(item)); }
@@ -103,8 +108,8 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        return new ViewHolder(LayoutInflater.from(parent.getContext())
-                .inflate(R.layout.row_goal, parent, false));
+        return new ViewHolder(RowGoalBinding.inflate(
+                LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     @Override

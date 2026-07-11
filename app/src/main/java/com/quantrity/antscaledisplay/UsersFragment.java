@@ -26,6 +26,8 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.quantrity.antscaledisplay.databinding.FragmentUsersBinding;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.File;
@@ -50,6 +52,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
     private UsersAdapter mAdapter;
     private AppStateViewModel state;
+    private FragmentUsersBinding binding;
 
     // Launcher for Database Backup (Directory Picker)
     private final ActivityResultLauncher<Intent> backupLauncher = registerForActivityResult(
@@ -110,10 +113,9 @@ public class UsersFragment extends Fragment implements MenuProvider {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_users, container, false);
+        binding = FragmentUsersBinding.inflate(inflater, container, false);
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
-
-        RecyclerView mRecyclerView = rootView.findViewById(R.id.users_recycler_view);
+        RecyclerView mRecyclerView = binding.usersRecyclerView;
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
         mRecyclerView.setHasFixedSize(true);
@@ -130,7 +132,14 @@ public class UsersFragment extends Fragment implements MenuProvider {
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        return rootView;
+        return binding.getRoot();
+    }
+
+    @Override public void onDestroyView() {
+        binding.usersRecyclerView.setAdapter(null);
+        mAdapter = null;
+        binding = null;
+        super.onDestroyView();
     }
 
     @Override

@@ -15,6 +15,8 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.quantrity.antscaledisplay.databinding.RowUserBinding;
+
 import java.util.ArrayList;
 
 
@@ -29,7 +31,7 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
 
     // Provide a suitable constructor (depends on the kind of dataset)
     UsersAdapter(ArrayList<User> myDataset, Context mContext, UsersFragment usersFragment) {
-        mDataset = myDataset;
+        mDataset = new ArrayList<>(myDataset);
         this.mContext = mContext;
         this.usersFragment = usersFragment;
     }
@@ -47,19 +49,17 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
         final ImageView emailIV;
         //final RelativeLayout ll_user;
 
-        ViewHolder(View v) {
-            super(v);
+        ViewHolder(RowUserBinding binding) {
+            super(binding.getRoot());
+            nameTV = binding.nameTV;
+            descTV = binding.descTV;
+            userIV = binding.userIV;
+            gcIV = binding.gcIV;
+            emailIV = binding.emailIV;
 
-            nameTV =  v.findViewById(R.id.nameTV);
-            descTV =  v.findViewById(R.id.descTV);
-            userIV =  v.findViewById(R.id.userIV);
-            gcIV =  v.findViewById(R.id.gcIV);
-            emailIV =  v.findViewById(R.id.emailIV);
-            //ll_user =  v.findViewById(R.id.ll_user);
-
-            v.setOnCreateContextMenuListener(this);
-            v.setOnClickListener(view -> usersFragment.editUser(user));
-            v.setOnLongClickListener(view -> {
+            binding.getRoot().setOnCreateContextMenuListener(this);
+            binding.getRoot().setOnClickListener(view -> usersFragment.editUser(user));
+            binding.getRoot().setOnLongClickListener(view -> {
                 view.showContextMenu();
                 return true;
             });
@@ -108,9 +108,12 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
     }
 
     void replaceAll(ArrayList<User> users) {
+        ArrayList<User> replacement = new ArrayList<>(users);
+        int oldSize = mDataset.size();
         mDataset.clear();
-        mDataset.addAll(users);
-        notifyDataSetChanged();
+        if (oldSize > 0) notifyItemRangeRemoved(0, oldSize);
+        mDataset.addAll(replacement);
+        if (!replacement.isEmpty()) notifyItemRangeInserted(0, replacement.size());
     }
 
     // Create new views (invoked by the layout manager)
@@ -118,9 +121,8 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         // create a new view
-        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.row_user, parent, false);
-        // set the view's size, margins, paddings and layout parameters
-        return new ViewHolder(v);
+        return new ViewHolder(RowUserBinding.inflate(
+                LayoutInflater.from(parent.getContext()), parent, false));
     }
 
     // Replace the contents of a view (invoked by the layout manager)

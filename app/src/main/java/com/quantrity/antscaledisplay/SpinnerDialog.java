@@ -11,6 +11,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.quantrity.antscaledisplay.databinding.DialogLayoutBinding;
+import com.quantrity.antscaledisplay.databinding.ItemsViewBinding;
+
 import java.util.ArrayList;
 
 /**
@@ -42,24 +45,23 @@ public class SpinnerDialog {
 
     void showSpinnerDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(context);
-        View v = context.getLayoutInflater().inflate(R.layout.dialog_layout, null);
-        TextView title = v.findViewById(R.id.spinerTitle);
-        title.setText(dTitle);
-        final ListView listView = v.findViewById(R.id.list);
-        final EditText searchBox = v.findViewById(R.id.searchBox);
+        DialogLayoutBinding binding = DialogLayoutBinding.inflate(context.getLayoutInflater());
+        binding.spinerTitle.setText(dTitle);
+        final ListView listView = binding.list;
+        final EditText searchBox = binding.searchBox;
         if(isShowKeyboard()){
             showKeyboard(searchBox);
         }
         final ArrayAdapterWithContainsFilter adapter = new ArrayAdapterWithContainsFilter(context, R.layout.items_view, items);
         listView.setAdapter(adapter);
-        adb.setView(v);
+        adb.setView(binding.getRoot());
         alertDialog = adb.create();
         if (alertDialog.getWindow() != null) {
             alertDialog.getWindow().getAttributes().windowAnimations = style;
         }
 
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
-            TextView t = view.findViewById(R.id.text1);
+            TextView t = ItemsViewBinding.bind(view).text1;
             for (int j = 0; j < items.size(); j++) {
                 if (t.getText().toString().equalsIgnoreCase(items.get(j))) {
                     pos = j;
@@ -103,13 +105,7 @@ public class SpinnerDialog {
     }
 
     private void hideKeyboard(){
-        try {
-            if (context.getCurrentFocus() != null) {
-                InputMethodManager inputManager = (InputMethodManager) context.getSystemService(Context.INPUT_METHOD_SERVICE);
-                inputManager.hideSoftInputFromWindow(context.getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
-            }
-        } catch (Exception ignored) {
-        }
+        KeyboardUtils.hide(context);
     }
 
     private void showKeyboard(final EditText et){

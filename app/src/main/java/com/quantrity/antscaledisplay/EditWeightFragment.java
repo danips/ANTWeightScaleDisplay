@@ -26,6 +26,8 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.quantrity.antscaledisplay.databinding.FragmentEditWeightBinding;
+
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
 import java.text.ParseException;
@@ -83,6 +85,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
     boolean edit;
     private AppStateViewModel state;
     private boolean preserveRestoredViews;
+    private FragmentEditWeightBinding binding;
 
     static EditWeightFragment newInstance(String weightUserUuid, long weightDate,
                                           String userUuid, boolean edit) {
@@ -126,43 +129,44 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 Log.e(TAG, "Unable to copy the weight for editing", e);
             }
         }
-        View rootView = inflater.inflate(R.layout.fragment_edit_weight, container, false);
+        binding = FragmentEditWeightBinding.inflate(inflater, container, false);
+        View rootView = binding.getRoot();
 
-        dateTV = rootView.findViewById(R.id.dateTV);
-        weightTV = rootView.findViewById(R.id.weightTV);
-        trunkPercentFatTV = rootView.findViewById(R.id.trunkPercentFatTV);
-        trunkMuscleMassTV = rootView.findViewById(R.id.trunkMuscleMassTV);
-        leftArmPercentFatTV = rootView.findViewById(R.id.leftArmPercentFatTV);
-        leftArmMuscleMassTV = rootView.findViewById(R.id.leftArmMuscleMassTV);
-        rightArmPercentFatTV = rootView.findViewById(R.id.rightArmPercentFatTV);
-        rightArmMuscleMassTV = rootView.findViewById(R.id.rightArmMuscleMassTV);
-        leftLegPercentFatTV = rootView.findViewById(R.id.leftLegPercentFatTV);
-        leftLegMuscleMassTV = rootView.findViewById(R.id.leftLegMuscleMassTV);
-        rightLegPercentFatTV = rootView.findViewById(R.id.rightLegPercentFatTV);
-        rightLegMuscleMassTV = rootView.findViewById(R.id.rightLegMuscleMassTV);
-        percentFatTV = rootView.findViewById(R.id.percentFatTV);
-        percentHydrationTV = rootView.findViewById(R.id.percentHydrationTV);
-        boneMassTV = rootView.findViewById(R.id.boneMassTV);
-        muscleMassTV = rootView.findViewById(R.id.muscleMassTV);
-        physiqueRatingTV = rootView.findViewById(R.id.physiqueRatingTV);
-        visceralFatRatingTV = rootView.findViewById(R.id.visceralFatRatingTV);
-        metabolicAgeTV = rootView.findViewById(R.id.metabolicAgeTV);
-        activeMetTV = rootView.findViewById(R.id.activeMetTV);
-        basalMetTV = rootView.findViewById(R.id.basalMetTV);
-        weightUnits = rootView.findViewById(R.id.weightUnits);
-        trunkPercentFatUnits = rootView.findViewById(R.id.trunkPercentFatUnits);
-        trunkMuscleMassUnits = rootView.findViewById(R.id.trunkMuscleMassUnits);
-        leftArmPercentFatUnits = rootView.findViewById(R.id.leftArmPercentFatUnits);
-        leftArmMuscleMassUnits = rootView.findViewById(R.id.leftArmMuscleMassUnits);
-        rightArmPercentFatUnits = rootView.findViewById(R.id.rightArmPercentFatUnits);
-        rightArmMuscleMassUnits = rootView.findViewById(R.id.rightArmMuscleMassUnits);
-        leftLegPercentFatUnits = rootView.findViewById(R.id.leftLegPercentFatUnits);
-        leftLegMuscleMassUnits = rootView.findViewById(R.id.leftLegMuscleMassUnits);
-        rightLegPercentFatUnits = rootView.findViewById(R.id.rightLegPercentFatUnits);
-        rightLegMuscleMassUnits = rootView.findViewById(R.id.rightLegMuscleMassUnits);
-        percentFatUnits = rootView.findViewById(R.id.percentFatUnits);
-        boneMassUnits = rootView.findViewById(R.id.boneMassUnits);
-        muscleMassUnits = rootView.findViewById(R.id.muscleMassUnits);
+        dateTV = binding.dateTV;
+        weightTV = binding.weightTV;
+        trunkPercentFatTV = binding.trunkPercentFatTV;
+        trunkMuscleMassTV = binding.trunkMuscleMassTV;
+        leftArmPercentFatTV = binding.leftArmPercentFatTV;
+        leftArmMuscleMassTV = binding.leftArmMuscleMassTV;
+        rightArmPercentFatTV = binding.rightArmPercentFatTV;
+        rightArmMuscleMassTV = binding.rightArmMuscleMassTV;
+        leftLegPercentFatTV = binding.leftLegPercentFatTV;
+        leftLegMuscleMassTV = binding.leftLegMuscleMassTV;
+        rightLegPercentFatTV = binding.rightLegPercentFatTV;
+        rightLegMuscleMassTV = binding.rightLegMuscleMassTV;
+        percentFatTV = binding.percentFatTV;
+        percentHydrationTV = binding.percentHydrationTV;
+        boneMassTV = binding.boneMassTV;
+        muscleMassTV = binding.muscleMassTV;
+        physiqueRatingTV = binding.physiqueRatingTV;
+        visceralFatRatingTV = binding.visceralFatRatingTV;
+        metabolicAgeTV = binding.metabolicAgeTV;
+        activeMetTV = binding.activeMetTV;
+        basalMetTV = binding.basalMetTV;
+        weightUnits = binding.weightUnits;
+        trunkPercentFatUnits = binding.trunkPercentFatUnits;
+        trunkMuscleMassUnits = binding.trunkMuscleMassUnits;
+        leftArmPercentFatUnits = binding.leftArmPercentFatUnits;
+        leftArmMuscleMassUnits = binding.leftArmMuscleMassUnits;
+        rightArmPercentFatUnits = binding.rightArmPercentFatUnits;
+        rightArmMuscleMassUnits = binding.rightArmMuscleMassUnits;
+        leftLegPercentFatUnits = binding.leftLegPercentFatUnits;
+        leftLegMuscleMassUnits = binding.leftLegMuscleMassUnits;
+        rightLegPercentFatUnits = binding.rightLegPercentFatUnits;
+        rightLegMuscleMassUnits = binding.rightLegMuscleMassUnits;
+        percentFatUnits = binding.percentFatUnits;
+        boneMassUnits = binding.boneMassUnits;
+        muscleMassUnits = binding.muscleMassUnits;
 
         if (DecimalFormatSymbols.getInstance().getDecimalSeparator() == ',')
         {
@@ -233,6 +237,23 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
+    }
+
+    @Override public void onDestroyView() {
+        dateTV = null;
+        weightTV = trunkPercentFatTV = trunkMuscleMassTV = leftArmPercentFatTV = null;
+        leftArmMuscleMassTV = rightArmPercentFatTV = rightArmMuscleMassTV = null;
+        leftLegPercentFatTV = leftLegMuscleMassTV = rightLegPercentFatTV = null;
+        rightLegMuscleMassTV = percentFatTV = percentHydrationTV = boneMassTV = null;
+        muscleMassTV = physiqueRatingTV = visceralFatRatingTV = metabolicAgeTV = null;
+        activeMetTV = basalMetTV = null;
+        weightUnits = trunkPercentFatUnits = trunkMuscleMassUnits = null;
+        leftArmPercentFatUnits = leftArmMuscleMassUnits = rightArmPercentFatUnits = null;
+        rightArmMuscleMassUnits = leftLegPercentFatUnits = leftLegMuscleMassUnits = null;
+        rightLegPercentFatUnits = rightLegMuscleMassUnits = percentFatUnits = null;
+        boneMassUnits = muscleMassUnits = null;
+        binding = null;
+        super.onDestroyView();
     }
 
 

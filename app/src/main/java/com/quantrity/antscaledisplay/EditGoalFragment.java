@@ -1,7 +1,5 @@
 package com.quantrity.antscaledisplay;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -12,7 +10,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -26,6 +23,7 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
+import com.quantrity.antscaledisplay.databinding.FragmentEditGoalBinding;
 
 import java.util.Calendar;
 import java.util.Locale;
@@ -92,30 +90,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     private TextView tv_endValue20;
     private TextView tv_endValue21;
     private ColorPicker cp;
-
-    private static void hideSoftKeyboard(Activity activity) {
-        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        if ((activity.getCurrentFocus() != null) && (inputMethodManager != null)) inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private void setupUI(View view) {
-        //Set up touch listener for non-text box views to hide keyboard.
-        if(!(view instanceof EditText) && (getActivity() != null)) {
-            view.setOnTouchListener((v, event) -> {
-                if (getActivity() != null) hideSoftKeyboard(getActivity());
-                return false;
-            });
-        }
-
-        //If a layout container, iterate over children and seed recursion.
-        if (view instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-                View innerView = ((ViewGroup) view).getChildAt(i);
-                setupUI(innerView);
-            }
-        }
-    }
+    private FragmentEditGoalBinding binding;
 
     private Goal checkValues() {
         Goal tmp = new Goal();
@@ -500,40 +475,41 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
             start_date_millis = savedInstanceState.getLong(STATE_START_DATE, -1);
             end_date_millis = savedInstanceState.getLong(STATE_END_DATE, -1);
         }
-        View rootView = inflater.inflate(R.layout.fragment_edit_goal, container, false);
+        binding = FragmentEditGoalBinding.inflate(inflater, container, false);
+        View rootView = binding.getRoot();
 
         //Close keyboard when clicking any other item on screen
-        setupUI(rootView);
+        KeyboardUtils.dismissOnTouchOutsideInputs(rootView, requireActivity());
 
-        sp_type = rootView.findViewById(R.id.sp_type);
+        sp_type = binding.spType;
         if (the_goal != null)
         {
             sp_type.setEnabled(false);
         }
-        et_start_date = rootView.findViewById(R.id.et_start_date);
-        et_end_date = rootView.findViewById(R.id.et_end_date);
+        et_start_date = binding.etStartDate;
+        et_end_date = binding.etEndDate;
 
-        ll_0unitStart = rootView.findViewById(R.id.ll_0unitStart);
-        ll_1unitStart = rootView.findViewById(R.id.ll_1unitStart);
-        ll_2unitStart = rootView.findViewById(R.id.ll_2unitStart);
-        ll_0unitEnd = rootView.findViewById(R.id.ll_0unitEnd);
-        ll_1unitEnd = rootView.findViewById(R.id.ll_1unitEnd);
-        ll_2unitEnd = rootView.findViewById(R.id.ll_2unitEnd);
-        et_startValue00 = rootView.findViewById(R.id.et_startValue00);
-        et_startValue10 = rootView.findViewById(R.id.et_startValue10);
-        et_startValue20 = rootView.findViewById(R.id.et_startValue20);
-        et_startValue21 = rootView.findViewById(R.id.et_startValue21);
-        tv_startValue10 = rootView.findViewById(R.id.tv_startValue10);
-        tv_startValue20 = rootView.findViewById(R.id.tv_startValue20);
-        tv_startValue21 = rootView.findViewById(R.id.tv_startValue21);
-        et_endValue00 = rootView.findViewById(R.id.et_endValue00);
-        et_endValue10 = rootView.findViewById(R.id.et_endValue10);
-        et_endValue20 = rootView.findViewById(R.id.et_endValue20);
-        et_endValue21 = rootView.findViewById(R.id.et_endValue21);
-        tv_endValue10 = rootView.findViewById(R.id.tv_endValue10);
-        tv_endValue20 = rootView.findViewById(R.id.tv_endValue20);
-        tv_endValue21 = rootView.findViewById(R.id.tv_endValue21);
-        cp = rootView.findViewById(R.id.picker);
+        ll_0unitStart = binding.ll0unitStart;
+        ll_1unitStart = binding.ll1unitStart;
+        ll_2unitStart = binding.ll2unitStart;
+        ll_0unitEnd = binding.ll0unitEnd;
+        ll_1unitEnd = binding.ll1unitEnd;
+        ll_2unitEnd = binding.ll2unitEnd;
+        et_startValue00 = binding.etStartValue00;
+        et_startValue10 = binding.etStartValue10;
+        et_startValue20 = binding.etStartValue20;
+        et_startValue21 = binding.etStartValue21;
+        tv_startValue10 = binding.tvStartValue10;
+        tv_startValue20 = binding.tvStartValue20;
+        tv_startValue21 = binding.tvStartValue21;
+        et_endValue00 = binding.etEndValue00;
+        et_endValue10 = binding.etEndValue10;
+        et_endValue20 = binding.etEndValue20;
+        et_endValue21 = binding.etEndValue21;
+        tv_endValue10 = binding.tvEndValue10;
+        tv_endValue20 = binding.tvEndValue20;
+        tv_endValue21 = binding.tvEndValue21;
+        cp = binding.picker;
 
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
@@ -595,6 +571,20 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         }
 
         return rootView;
+    }
+
+    @Override public void onDestroyView() {
+        sp_type = null;
+        et_start_date = et_end_date = null;
+        ll_0unitStart = ll_1unitStart = ll_2unitStart = null;
+        ll_0unitEnd = ll_1unitEnd = ll_2unitEnd = null;
+        et_startValue00 = et_startValue10 = et_startValue20 = et_startValue21 = null;
+        tv_startValue10 = tv_startValue20 = tv_startValue21 = null;
+        et_endValue00 = et_endValue10 = et_endValue20 = et_endValue21 = null;
+        tv_endValue10 = tv_endValue20 = tv_endValue21 = null;
+        cp = null;
+        binding = null;
+        super.onDestroyView();
     }
 
 

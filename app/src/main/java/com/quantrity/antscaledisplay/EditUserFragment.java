@@ -1,6 +1,5 @@
 package com.quantrity.antscaledisplay;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
@@ -15,7 +14,6 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -35,6 +33,8 @@ import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
+
+import com.quantrity.antscaledisplay.databinding.FragmentEditUserBinding;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -72,6 +72,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private CheckBox cb_show_fat_mass;
     private TextView tv_garmin_token_information;
     private List<WorkInfo> garmin_refresh_work = Collections.emptyList();
+    private FragmentEditUserBinding binding;
 
     static EditUserFragment newInstance(String userUuid) {
         EditUserFragment fragment = new EditUserFragment();
@@ -101,30 +102,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 }
             }
     );
-
-    private static void hideSoftKeyboard(Activity activity) {
-        InputMethodManager inputMethodManager = (InputMethodManager)  activity.getSystemService(Activity.INPUT_METHOD_SERVICE);
-        if ((activity.getCurrentFocus() != null) && (inputMethodManager != null)) inputMethodManager.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private void setupUI(View view) {
-        //Set up touch listener for non-text box views to hide keyboard.
-        if(!(view instanceof EditText) && (getActivity() != null)) {
-            view.setOnTouchListener((v, event) -> {
-                if (getActivity() != null) hideSoftKeyboard(getActivity());
-                return false;
-            });
-        }
-
-        //If a layout container, iterate over children and seed recursion.
-        if (view instanceof ViewGroup) {
-            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
-                View innerView = ((ViewGroup) view).getChildAt(i);
-                setupUI(innerView);
-            }
-        }
-    }
 
     void showMessage(int id) {
         showMessage(getString(id));
@@ -316,24 +293,25 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         if (savedInstanceState != null) {
             birthdate_millis = savedInstanceState.getLong(STATE_BIRTHDATE, -1);
         }
-        View rootView = inflater.inflate(R.layout.fragment_edit_user, container, false);
+        binding = FragmentEditUserBinding.inflate(inflater, container, false);
+        View rootView = binding.getRoot();
 
         //Close keyboard when clicking any other item on screen
-        setupUI(rootView);
+        KeyboardUtils.dismissOnTouchOutsideInputs(rootView, requireActivity());
 
-        cm_ll = rootView.findViewById(R.id.ll_height_metric);
-        ft_ll = rootView.findViewById(R.id.ll_height_imperial);
-        et_name =  rootView.findViewById(R.id.et_name);
-        rg_gender = rootView.findViewById(R.id.rg_gender);
-        et_birthdate =  rootView.findViewById(R.id.et_birthdate);
-        et_height_cm =  rootView.findViewById(R.id.et_height_cm);
-        et_height_ft =  rootView.findViewById(R.id.et_height_ft);
-        et_height_in =  rootView.findViewById(R.id.et_height_in);
-        sp_activity =  rootView.findViewById(R.id.sp_activity);
-        cb_lifetime_athlete =  rootView.findViewById(R.id.cb_lifetime_athlete);
-        et_gc_user =  rootView.findViewById(R.id.et_gc_user);
-        et_gc_pass =  rootView.findViewById(R.id.et_gc_pass);
-        sp_units =  rootView.findViewById(R.id.sp_units);
+        cm_ll = binding.llHeightMetric;
+        ft_ll = binding.llHeightImperial;
+        et_name = binding.etName;
+        rg_gender = binding.rgGender;
+        et_birthdate = binding.etBirthdate;
+        et_height_cm = binding.etHeightCm;
+        et_height_ft = binding.etHeightFt;
+        et_height_in = binding.etHeightIn;
+        sp_activity = binding.spActivity;
+        cb_lifetime_athlete = binding.cbLifetimeAthlete;
+        et_gc_user = binding.etGcUser;
+        et_gc_pass = binding.etGcPass;
+        sp_units = binding.spUnits;
         sp_units.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
@@ -350,12 +328,11 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             public void onNothingSelected(AdapterView<?> parentView) {}
         });
 
-        et_email_to =  rootView.findViewById(R.id.et_email_to);
-
-        cb_auto_upload =  rootView.findViewById(R.id.cb_automatic_upload);
-        cb_show_fat_mass =  rootView.findViewById(R.id.cb_fat_mass);
-        tv_garmin_token_information = rootView.findViewById(R.id.garmin_token_information);
-        Button b_gc_token_clear = rootView.findViewById(R.id.garmin_token_clear);
+        et_email_to = binding.etEmailTo;
+        cb_auto_upload = binding.cbAutomaticUpload;
+        cb_show_fat_mass = binding.cbFatMass;
+        tv_garmin_token_information = binding.garminTokenInformation;
+        Button b_gc_token_clear = binding.garminTokenClear;
         b_gc_token_clear.setOnClickListener(v -> clearGarminTokens());
 
         //Declare it has items for the actionbar
@@ -390,6 +367,18 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         });
 
         return rootView;
+    }
+
+    @Override public void onDestroyView() {
+        cm_ll = ft_ll = null;
+        et_name = et_birthdate = et_height_cm = et_height_ft = et_height_in = null;
+        et_gc_user = et_gc_pass = et_email_to = null;
+        rg_gender = null;
+        sp_units = sp_activity = null;
+        cb_lifetime_athlete = cb_auto_upload = cb_show_fat_mass = null;
+        tv_garmin_token_information = null;
+        binding = null;
+        super.onDestroyView();
     }
 
     @Override

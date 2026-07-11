@@ -37,6 +37,7 @@ import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
+import com.quantrity.antscaledisplay.databinding.FragmentHistoryBinding;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -67,6 +68,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     private Spinner usersSpinner = null;
     private RecyclerView mRecyclerView = null;
     private AppStateViewModel state;
+    private FragmentHistoryBinding binding;
 
     // Launcher for CSV Export Directory Picker
     private final ActivityResultLauncher<Intent> csvExportLauncher = registerForActivityResult(
@@ -107,10 +109,9 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_history, container, false);
+        binding = FragmentHistoryBinding.inflate(inflater, container, false);
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
-
-        mRecyclerView = rootView.findViewById(R.id.history_recycler_view);
+        mRecyclerView = binding.historyRecyclerView;
 
         if (getActivity() != null) {
             // use a linear layout manager
@@ -123,7 +124,18 @@ public class HistoryFragment extends Fragment implements MenuProvider {
 
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        return rootView;
+        return binding.getRoot();
+    }
+
+    @Override public void onDestroyView() {
+        mRecyclerView.setAdapter(null);
+        mRecyclerView = null;
+        mAdapter = null;
+        usersSpinner = null;
+        downloadMI = null;
+        gcMI = null;
+        binding = null;
+        super.onDestroyView();
     }
 
     void deleteWeight(Weight weight) {

@@ -44,6 +44,8 @@ import com.github.mikephil.charting.listener.OnChartGestureListener;
 import com.github.mikephil.charting.utils.MPPointD;
 import com.github.mikephil.charting.utils.MPPointF;
 import com.github.mikephil.charting.utils.ViewPortHandler;
+import com.quantrity.antscaledisplay.databinding.FragmentGraphsBinding;
+import com.quantrity.antscaledisplay.databinding.CustomMarkerViewBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -54,6 +56,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     private final static String TAG = "GraphsFragment";
 
     private LinearLayout graphLayout;
+    private FragmentGraphsBinding binding;
 
     private User the_user;
     private ArrayList<Weight> weights;
@@ -94,10 +97,9 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_graphs, container, false);
+        binding = FragmentGraphsBinding.inflate(inflater, container, false);
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
-
-        graphLayout = rootView.findViewById(R.id.graph);
+        graphLayout = binding.graph;
 
         if (getActivity() != null) {
             weights = state.selectedWeights();
@@ -113,7 +115,19 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        return rootView;
+        return binding.getRoot();
+    }
+
+    @Override public void onDestroyView() {
+        cdt.cancel();
+        mChart = null;
+        graphLayout = null;
+        measurement_selection = null;
+        measurement_items = null;
+        period_selection = null;
+        period_items = null;
+        binding = null;
+        super.onDestroyView();
     }
 
     private void updateActionBar() {
@@ -647,7 +661,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         public MyMarkerView(Context context, int layoutResource, String measureFormat, boolean stones, boolean pounds) {
             super(context, layoutResource);
 
-            tvContent = findViewById(R.id.tvContent);
+            tvContent = CustomMarkerViewBinding.bind(this).tvContent;
             this.measureFormat = measureFormat;
             this.stones = stones;
             this.pounds = pounds;

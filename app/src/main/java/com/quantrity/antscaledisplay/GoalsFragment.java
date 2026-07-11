@@ -17,19 +17,21 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.quantrity.antscaledisplay.databinding.FragmentGoalsBinding;
+
 public class GoalsFragment extends Fragment implements MenuProvider {
     //private final static String TAG = "GoalsFragment";
 
     private GoalAdapter mAdapter;
     private AppStateViewModel state;
+    private FragmentGoalsBinding binding;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View rootView = inflater.inflate(R.layout.fragment_goals, container, false);
+        binding = FragmentGoalsBinding.inflate(inflater, container, false);
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
-
-        RecyclerView mRecyclerView = rootView.findViewById(R.id.goal_recycler_view);
+        RecyclerView mRecyclerView = binding.goalRecyclerView;
 
         if (getActivity() != null) {
             // use a linear layout manager
@@ -44,7 +46,14 @@ public class GoalsFragment extends Fragment implements MenuProvider {
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        return rootView;
+        return binding.getRoot();
+    }
+
+    @Override public void onDestroyView() {
+        binding.goalRecyclerView.setAdapter(null);
+        mAdapter = null;
+        binding = null;
+        super.onDestroyView();
     }
 
     final AdapterView.OnItemSelectedListener oisListener = new AdapterView.OnItemSelectedListener() {

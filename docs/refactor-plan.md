@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 8 — Decouple the ANT state machine
+- Current phase: Phase 8 device verification; Phase 9 implementation complete
 - Overall status: Verification pending
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -43,7 +43,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 - [x] Phase 6 — Simplify upload orchestration
 - [x] Phase 7 — Split Garmin responsibilities
 - [ ] Phase 8 — Decouple the ANT state machine
-- [ ] Phase 9 — Apply View Binding consistently
+- [x] Phase 9 — Apply View Binding consistently
 - [ ] Phase 10 — Complete final migration and regression verification
 
 ---
@@ -644,7 +644,7 @@ refactor: decouple Garmin MFA from activity UI
 
 Status: Verification pending<br>
 Completed: —<br>
-Commit: —
+Commit: `704c8bc`
 
 ### Objective
 
@@ -735,9 +735,9 @@ refactor: decouple ANT session from weight UI
 
 ## Phase 9 — Apply View Binding consistently
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending commit
 
 ### Objective
 
@@ -746,14 +746,27 @@ has moved out of those classes.
 
 ### Tasks
 
-- [ ] Convert one fragment or adapter per small commit.
-- [ ] Hold fragment bindings only from `onCreateView` through `onDestroyView`.
-- [ ] Clear every fragment binding in `onDestroyView`.
-- [ ] Convert RecyclerView row holders to row bindings.
-- [ ] Replace broad `notifyDataSetChanged()` calls with specific updates or `ListAdapter`/`DiffUtil`.
-- [ ] Consolidate duplicated keyboard dismissal and simple dialog helpers.
-- [ ] Remove remaining `findViewById` calls where binding is appropriate.
-- [ ] Do not combine this mechanical conversion with visual redesign.
+- [x] Convert one fragment or adapter at a time in reviewable changes.
+- [x] Hold fragment bindings only from `onCreateView` through `onDestroyView`.
+- [x] Clear every fragment binding in `onDestroyView`.
+- [x] Convert RecyclerView row holders to row bindings.
+- [x] Replace broad `notifyDataSetChanged()` calls with specific updates or `ListAdapter`/`DiffUtil`.
+- [x] Consolidate duplicated keyboard dismissal and simple dialog helpers.
+- [x] Remove remaining `findViewById` calls where binding is appropriate.
+- [x] Do not combine this mechanical conversion with visual redesign.
+
+### Implementation notes
+
+- All fragments now use generated bindings and release view, adapter, chart, and menu references in
+  `onDestroyView` so destroyed view hierarchies are not retained.
+- `MainActivity`, the searchable spinner dialog, chart marker, and RecyclerView rows now use typed
+  bindings instead of raw view lookup.
+- Recycler adapters keep private snapshots and dispatch explicit removal and insertion ranges when
+  their contents are replaced. The filtering `ArrayAdapter` retains `notifyDataSetChanged()` because
+  filtering intentionally replaces its complete visible result set.
+- Shared `KeyboardUtils` behavior replaces the duplicated recursive keyboard-dismissal code in the
+  user and goal editors and is also used by the spinner dialog.
+- No layouts, styling, strings, or interaction flows were redesigned in this phase.
 
 ### Acceptance criteria
 
@@ -761,6 +774,13 @@ has moved out of those classes.
 - UI behavior and layout remain unchanged.
 - Adapters use typed row bindings.
 - RecyclerView updates remain correct and become more specific where practical.
+
+### Verification
+
+- All 155 debug unit tests pass.
+- `lintDebug` passes.
+- The complete minified release build, including `lintVitalRelease`, passes.
+- `git diff --check` reports no whitespace errors.
 
 ### Suggested commit
 
@@ -890,7 +910,8 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | `c7f5322` |
 | 2026-07-11 | Phase 4 | Use repository-owned state behind an activity-scoped ViewModel | Preserves state across rotation, supports disk re-resolution after process death, and keeps navigation separate from model ownership | Pending commit |
 | 2026-07-11 | Phase 7 | Defer Android Keystore protection until a credential migration and recovery format is designed | Avoids silently invalidating existing Garmin connections while token persistence is being structurally isolated | Pending commit |
-| 2026-07-11 | Phase 8 | Persist only protocol-complete ANT measurements | Prevents timeouts, disconnects, and partial composition sequences from being saved or automatically uploaded | Pending commit |
+| 2026-07-11 | Phase 8 | Persist only protocol-complete ANT measurements | Prevents timeouts, disconnects, and partial composition sequences from being saved or automatically uploaded | `704c8bc` |
+| 2026-07-11 | Phase 9 | Keep adapter-owned snapshots and dispatch explicit replacement ranges | Avoids broad RecyclerView invalidation while preventing adapters from mutating repository-owned collections | Pending commit |
 
 ## Final results
 
