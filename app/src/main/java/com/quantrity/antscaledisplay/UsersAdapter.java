@@ -75,10 +75,12 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
 
                 int pos = mDataset.indexOf(user);
                 //Delete user weights
-                ((MainActivity)mContext).deleteHistoryAndUser(user);
-
-                notifyItemRemoved(pos);
-                ((MainActivity)mContext).supportInvalidateOptionsMenu();
+                usersFragment.deleteUser(user);
+                if (pos != -1) {
+                    mDataset.remove(pos);
+                    notifyItemRemoved(pos);
+                }
+                usersFragment.requireActivity().supportInvalidateOptionsMenu();
                 return true;
             });
             mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_edit);
@@ -103,6 +105,12 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
 
     public User get(User item) {
         return mDataset.get(mDataset.indexOf(item));
+    }
+
+    void replaceAll(ArrayList<User> users) {
+        mDataset.clear();
+        mDataset.addAll(users);
+        notifyDataSetChanged();
     }
 
     // Create new views (invoked by the layout manager)

@@ -839,7 +839,7 @@ class RequestWeight {
             the_weight.age = the_user.age;
             the_weight.isMale = the_user.isMale;
             the_weight.height = the_user.height_cm;
-            ((MainActivity)sContext).saveWeight(the_weight);
+            AppRepository.get(sContext).upsertWeight(the_weight, false);
         } else {
             // FIX: If failed, ensure the_weight is invalid/reset so UI doesn't show partial data
             the_weight = new Weight();

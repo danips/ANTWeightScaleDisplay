@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.quantrity.antscaledisplay.databinding.FragmentWeightBinding;
 import com.quantrity.antscaledisplay.databinding.ItemMetricCardBinding;
@@ -31,11 +32,13 @@ public class WeightFragment extends Fragment implements MenuProvider {
     private boolean enableUploadButton = false;
     User userToUpload = null;
     private Spinner usersSpinner;
+    private AppStateViewModel state;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentWeightBinding.inflate(inflater, container, false);
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
         View rootView = binding.getRoot();
 
         // 1. Initialize Segment Cards (Using ItemSegmentBinding)
@@ -93,14 +96,14 @@ public class WeightFragment extends Fragment implements MenuProvider {
             if (getActivity() == null || binding == null) return;
 
             Weight displayWeight = null;
-            User displayUser = mainActivity.getSelectedUser();
+            User displayUser = state.selectedUser();
 
             // 1. Live Data or 2. History
             if (rw != null && rw.the_weight != null && rw.the_weight.weight != -1 && rw.the_user != null) {
                 displayWeight = rw.the_weight;
                 displayUser = rw.the_user;
             } else if (displayUser != null) {
-                ArrayList<Weight> history = mainActivity.getHistoryArray();
+                ArrayList<Weight> history = state.weights();
                 if (history != null && !history.isEmpty()) {
                     for (Weight w : history) {
                         if (w.uuid.equals(displayUser.uuid)) {
@@ -117,7 +120,7 @@ public class WeightFragment extends Fragment implements MenuProvider {
             }
 
             // Trend
-            ArrayList<Weight> history = mainActivity.getHistoryArray();
+            ArrayList<Weight> history = state.weights();
             Weight lastWeight = null;
             if (history != null) {
                 for (Weight w : history) {
@@ -440,7 +443,7 @@ public class WeightFragment extends Fragment implements MenuProvider {
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             if (view != null && getActivity() != null) {
-                ((MainActivity)getActivity()).setSelectedUser((User)adapterView.getItemAtPosition(i));
+                state.selectUser((User)adapterView.getItemAtPosition(i));
                 updateUi();
             }
         }

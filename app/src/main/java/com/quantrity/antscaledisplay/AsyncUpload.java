@@ -242,7 +242,8 @@ class AsyncUpload {
                 }
             } else {
                 if (activity != null) {
-                    GarminConnect gc = new GarminConnect(user, activity.getUsersArray(), activity);
+                    GarminConnect gc = new GarminConnect(user,
+                            AppRepository.get(activity).usersSnapshot(), activity);
                     if (gc.signin(user)) {
                         String result = gc.uploadFitFile(new File(encoding_path));
                         if (result == null) {

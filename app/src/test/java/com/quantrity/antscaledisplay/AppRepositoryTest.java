@@ -151,8 +151,59 @@ public class AppRepositoryTest {
         assertEquals(renewedTokens.garminOauth2ExpiryTimestamp, stored.garminOauth2ExpiryTimestamp);
     }
 
+    @Test
+    public void stateSurvivesRecreationAndMigratesLegacySelectedUserName() throws Exception {
+        writeFixture("users", "users.json");
+        writeFixture("history", "history.json");
+        writeFixture("goals", "goals.json");
+        FakeSelectionStore selection = new FakeSelectionStore();
+        selection.legacyName = "Sample Legacy User";
+        repository.close();
+        repository = new AppRepository(temporaryFolder.getRoot(), selection);
+
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals("user-legacy-002", repository.selectedUser().uuid);
+        assertEquals("user-legacy-002", selection.uuid);
+
+        ArrayList<User> snapshot = repository.usersSnapshot();
+        snapshot.clear();
+        assertEquals(2, repository.usersSnapshot().size());
+
+        repository.selectUser("user-current-001");
+        repository.close();
+        repository = new AppRepository(temporaryFolder.getRoot(), selection);
+        assertTrue(repository.reloadState().isSuccess());
+
+        assertEquals("user-current-001", repository.selectedUser().uuid);
+        Weight weight = repository.weightsSnapshot().get(0);
+        Goal goal = repository.goalsSnapshot().get(0);
+        assertEquals(weight, repository.findWeight(weight.uuid, weight.date));
+        assertEquals(goal, repository.findGoal(goal.uuid, goal.start_date, goal.type.toString()));
+    }
+
     private void writeFixture(String filename, String fixture) throws Exception {
         Files.write(new File(temporaryFolder.getRoot(), filename).toPath(),
                 FixtureLoader.load(fixture).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static final class FakeSelectionStore implements AppRepository.SelectionStore {
+        String uuid;
+        String legacyName;
+
+        @Override
+        public String selectedUuid() {
+            return uuid;
+        }
+
+        @Override
+        public String legacySelectedName() {
+            return legacyName;
+        }
+
+        @Override
+        public void saveSelectedUuid(String uuid) {
+            this.uuid = uuid;
+            legacyName = null;
+        }
     }
 }

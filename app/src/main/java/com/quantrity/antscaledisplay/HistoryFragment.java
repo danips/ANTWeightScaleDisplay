@@ -29,6 +29,7 @@ import androidx.core.app.NotificationCompat;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -65,6 +66,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     private MenuItem gcMI = null;
     private Spinner usersSpinner = null;
     private RecyclerView mRecyclerView = null;
+    private AppStateViewModel state;
 
     // Launcher for CSV Export Directory Picker
     private final ActivityResultLauncher<Intent> csvExportLauncher = registerForActivityResult(
@@ -75,7 +77,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                     Log.v(TAG, "CSV Directory Selected: " + data.getData());
 
                     if (getActivity() != null && usersSpinner != null) {
-                        List<Weight> wl = ((MainActivity) getActivity()).getHistoryArraySelectedUser();
+                        List<Weight> wl = state.selectedWeights();
                         Calendar cal = Calendar.getInstance();
                         User user = (User) usersSpinner.getSelectedItem();
                         SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
@@ -106,6 +108,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_history, container, false);
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
 
         mRecyclerView = rootView.findViewById(R.id.history_recycler_view);
 
@@ -114,13 +117,23 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
             mRecyclerView.setLayoutManager(mLayoutManager);
 
-            mAdapter = new HistoryAdapter(((MainActivity) getActivity()).getHistoryArraySelectedUser(), getActivity(), ((MainActivity) getActivity()).getSelectedUser());
+            mAdapter = new HistoryAdapter(state.selectedWeights(), getActivity(), state.selectedUser(), this);
             mRecyclerView.setAdapter(mAdapter);
         }
 
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
         return rootView;
+    }
+
+    void deleteWeight(Weight weight) {
+        state.deleteWeight(weight);
+    }
+
+    void editWeight(Weight weight, User user) {
+        if (getActivity() != null) {
+            ((MainActivity) getActivity()).openEditWeightFragment(weight, user, true);
+        }
     }
 
     private final AdapterView.OnItemSelectedListener oisListener = new AdapterView.OnItemSelectedListener() {
@@ -130,10 +143,10 @@ public class HistoryFragment extends Fragment implements MenuProvider {
             if ((view != null) && (getActivity() != null)) {
                 //Log.v(TAG, "onItemSelected2 " + view);
                 User user = (User) adapterView.getItemAtPosition(i);
-                ((MainActivity) getActivity()).setSelectedUser(user);
+                state.selectUser(user);
 
                 //Mostrar todos los pesos del usuario
-                mAdapter.replaceAll(((MainActivity) getActivity()).getHistoryArraySelectedUser(), user);
+                mAdapter.replaceAll(state.selectedWeights(), user);
 
                 if ((user.gc_user != null && user.gc_pass != null)) {
                     downloadMI.setVisible(true);
@@ -161,7 +174,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         MenuItem csvMI = menu.findItem(R.id.action_export_history);
         csvMI.setVisible(false);
         if (getActivity() != null) {
-            User user = ((MainActivity) getActivity()).getSelectedUser();
+            User user = state.selectedUser();
             if ((user != null) && ((user.gc_user != null && user.gc_pass != null))) {
                 //|| (user.tp_access_token != null && user.tp_refresh_token != null))) {
                 downloadMI.setVisible(true);
@@ -207,7 +220,7 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         if (getActivity() == null || mRecyclerView == null) return;
 
         // 1. Get the current list from MainActivity
-        List<Weight> history = ((MainActivity) getActivity()).getHistoryArraySelectedUser();
+        List<Weight> history = state.selectedWeights();
         if (history == null || history.isEmpty()) return;
 
         int closestIndex = -1;
@@ -381,12 +394,12 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                     boolean success = false;
                     try {
                         final User user = (User) usersSpinner.getSelectedItem();
-                        GarminConnect gc = new GarminConnect(user, ((MainActivity) getActivity()).getUsersArray(), getActivity());
+                        GarminConnect gc = new GarminConnect(user, state.users(), getActivity());
                         if (gc.signin(user)) {
                             success = gc.downloadHistory(result);
                             if (success) {
                                 String history = result.toString();
-                                List<Weight> wl = ((MainActivity) getActivity()).getHistoryArray();
+                                List<Weight> wl = state.weights();
                                 List<Weight> tmp = new ArrayList<>();
 
                                 JSONObject jo = new JSONObject(history);
@@ -523,10 +536,10 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                 wl.addAll(tmp);
                                 Collections.sort(wl, new Weight.DateComparator());
                                 //Hacer que se muestre la nueva lista
-                                getActivity().runOnUiThread(() -> mAdapter.replaceAll(((MainActivity) getActivity()).getHistoryArraySelectedUser(), user));
+                                getActivity().runOnUiThread(() -> mAdapter.replaceAll(state.selectedWeights(), user));
 
                                 //Guardar el nuevo historial a disco
-                                Weight.serializeWeight(getActivity(), wl);
+                                state.replaceWeights(wl);
 
                                 notificationManager.cancel(GARMIN_CONNECT_NOTIFICATION_ID);
                                 //success = true;

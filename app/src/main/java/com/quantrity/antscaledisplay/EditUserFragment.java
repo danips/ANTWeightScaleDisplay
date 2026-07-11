@@ -32,6 +32,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.work.WorkInfo;
 import androidx.work.WorkManager;
 
@@ -44,12 +45,15 @@ import java.util.UUID;
 
 public class EditUserFragment extends Fragment implements MenuProvider {
     private final static String TAG = "EditUserFragment";
+    private static final String ARG_USER_UUID = "user_uuid";
+    private static final String STATE_BIRTHDATE = "birthdate";
 
     private LinearLayout cm_ll;
     private LinearLayout ft_ll;
 
     //Data fields
-    User the_user;
+    private User the_user;
+    private AppStateViewModel state;
     private boolean needs_to_sync;
     private EditText et_name;
     private RadioGroup rg_gender;
@@ -68,6 +72,14 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private CheckBox cb_show_fat_mass;
     private TextView tv_garmin_token_information;
     private List<WorkInfo> garmin_refresh_work = Collections.emptyList();
+
+    static EditUserFragment newInstance(String userUuid) {
+        EditUserFragment fragment = new EditUserFragment();
+        Bundle arguments = new Bundle();
+        if (userUuid != null) arguments.putString(ARG_USER_UUID, userUuid);
+        fragment.setArguments(arguments);
+        return fragment;
+    }
 
     // Replacement for startActivityForResult
     private final ActivityResultLauncher<Intent> filePickerLauncher = registerForActivityResult(
@@ -133,7 +145,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         }
 
         if ((the_user == null) && (getActivity() != null)) {
-            ArrayList<User> users = ((MainActivity) getActivity()).getUsersArray();
+            ArrayList<User> users = state.users();
             for (User user : users) {
                 if (user.name.equals(et_name.getText().toString().trim().replaceAll("[\n\r]", ""))) {
                     showMessage(R.string.edit_user_fragment_msg_name_dup);
@@ -297,6 +309,13 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
+        if (!state.isLoaded()) state.reload();
+        String userUuid = getArguments() == null ? null : getArguments().getString(ARG_USER_UUID);
+        the_user = userUuid == null ? null : state.findUser(userUuid);
+        if (savedInstanceState != null) {
+            birthdate_millis = savedInstanceState.getLong(STATE_BIRTHDATE, -1);
+        }
         View rootView = inflater.inflate(R.layout.fragment_edit_user, container, false);
 
         //Close keyboard when clicking any other item on screen
@@ -342,7 +361,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        this.needs_to_sync = true;
+        this.needs_to_sync = savedInstanceState == null;
 
         et_birthdate.setOnFocusChangeListener((view, b) -> {
             if ((b) && (getActivity() != null)) {
@@ -403,6 +422,12 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         if (the_user != null) User.reloadGarminTokens(requireContext(), the_user);
         updateGarminTokenInformation();
         super.onResume();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(STATE_BIRTHDATE, birthdate_millis);
     }
 
     private void updateGarminTokenInformation() {
@@ -521,9 +546,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     /* Clear Garmin OAuth Tokens */
     private void clearGarminTokens() {
         if (getActivity() != null) {
-            ArrayList<User> users = ((MainActivity) getActivity()).getUsersArray();
-
-            if ((the_user != null) && users.contains(the_user)) {
+            if (the_user != null && state.findUser(the_user.uuid) != null) {
                 the_user.garminOauth1Token = "";
                 the_user.garminOauth1TokenSecret = "";
                 the_user.garminOauth1MfaToken = "";
@@ -531,7 +554,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 the_user.garminOauth2Token = "";
                 the_user.garminOauth2ExpiryTimestamp = -1;
                 GarminTokenRefreshScheduler.cancel(getActivity(), the_user);
-                User.serializeUsers(getActivity().getApplicationContext(), users);
+                state.saveUser(the_user);
                 updateGarminTokenInformation();
                 Toast.makeText(getActivity(), R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
             }

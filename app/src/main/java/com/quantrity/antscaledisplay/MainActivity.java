@@ -35,22 +35,20 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.dsi.ant.AntSupportChecker;
 import com.google.android.material.navigation.NavigationView;
 
-import java.text.Collator;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, CoreInterface {
+        implements NavigationView.OnNavigationItemSelectedListener {
     private static final String TAG = "MainActivity";
     private static final int NAV_POS_WEIGHT = 0;
     private static final int NAV_POS_GOALS = 1;
@@ -59,59 +57,20 @@ public class MainActivity extends AppCompatActivity
     private static final int NAV_POS_USERS = 4;
 
     private NavigationView navigationView;
-    EditWeightFragment ewf;
-
-
-    private ArrayList<User> mUsersArray;
-    private ArrayList<Weight> mHistoryArray;
-    private ArrayList<Goal> mGoalsArray;
+    private AppStateViewModel state;
 
     private RequestWeight rw = null;
 
-    private User selectedUser = null;
-
     private void loadDB() {
-        //Read existing users
-        User.deserializeUsers(getApplicationContext(), mUsersArray);
-        GarminTokenRefreshScheduler.scheduleAll(getApplicationContext(), mUsersArray);
+        RepositoryResult<Void> result = state.reload();
+        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+        ArrayList<User> users = state.users();
+        GarminTokenRefreshScheduler.scheduleAll(getApplicationContext(), users);
 
         //First time open users tab and request data
-        if (mUsersArray.isEmpty()) {
-            selectedUser = null;
+        if (users.isEmpty()) {
             runOnUiThread(() -> openEditUserFragment(null));
-        } else {
-            if (mUsersArray.size() == 1) {
-                selectedUser = mUsersArray.get(0);
-            }
-            else {
-                String selected_user = AppRepository.get(this).getSelectedUserName();
-                final Collator collator = Collator.getInstance();
-                Collections.sort(mUsersArray, (o1, o2) -> collator.compare(o1.name, o2.name));
-                if ((selected_user == null) || selected_user.isEmpty()) {
-                    selectedUser = mUsersArray.get(0);
-                }
-                else {
-                    Iterator<User> it = mUsersArray.iterator();
-                    User user = null;
-                    while (it.hasNext()) {
-                        User tmp = it.next();
-                        if (tmp.name.equals(selected_user)) {
-                            user = tmp;
-                            break;
-                        }
-                    }
-                    if (user == null) {
-                        selectedUser = mUsersArray.get(0);
-                    }
-                    else {
-                        selectedUser = user;
-                    }
-                }
-            }
         }
-        Weight.deserializeHistory(getApplicationContext(), mHistoryArray);
-
-        Goal.deserializeGoals(getApplicationContext(), mGoalsArray);
 
         /* Get latest measurement for selected user */
         // Notify the WeightFragment to refresh its data now that DB is loaded
@@ -138,6 +97,7 @@ public class MainActivity extends AppCompatActivity
 
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        state = new ViewModelProvider(this).get(AppStateViewModel.class);
 
         // Handle Back Press using OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -148,7 +108,7 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     Fragment current_fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
                     if (current_fragment instanceof EditWeightFragment) {
-                        closeEditWeightFragment((MainActivity) current_fragment.getActivity(), null, null, ((EditWeightFragment) current_fragment).edit, false);
+                        closeEditWeightFragment(null, null, ((EditWeightFragment) current_fragment).edit, false);
                     } else if (current_fragment instanceof EditUserFragment) {
                         closeEditUserFragment(null);
                     } else {
@@ -179,91 +139,19 @@ public class MainActivity extends AppCompatActivity
             }
         }
 
-        //Everything is OK, start loading data asynchronously
-        //Deserialize Users
-        mUsersArray = new ArrayList<>();
-        mHistoryArray = new ArrayList<>();
-        mGoalsArray = new ArrayList<>();
-        new Thread(this::loadDB).start();
+        if (!state.isLoaded()) new Thread(this::loadDB).start();
 
         if (savedInstanceState == null) {
             selectItem(getString(R.string.lateral_menu_option_weight));
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    ///// <CoreInterface
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Override
     public void reloadDB() {
-        mUsersArray.clear();
-        mHistoryArray.clear();
-        mGoalsArray.clear();
         loadDB();
     }
 
-    @Override
-    public ArrayList<User> getUsersArray() { return mUsersArray; }
-
-    @Override
-    public ArrayList<Weight> getHistoryArray() { return mHistoryArray; }
-
-    @Override
-    public ArrayList<Goal> getGoalsArray() { return mGoalsArray; }
-
-    @Override
-    public ArrayList<Weight> getHistoryArraySelectedUser(){
-        if (selectedUser == null)
-        {
-            return new ArrayList<>();
-        }
-        ArrayList<Weight> wal = (ArrayList<Weight>) mHistoryArray.clone();
-
-        Iterator<Weight> itr = wal.iterator();
-        while (itr.hasNext())
-        {
-            Weight w = itr.next();
-            if (!w.uuid.equals(selectedUser.uuid))
-            {
-                itr.remove();
-            }
-        }
-        return wal;
-    }
-
-    @Override
-    public Weight getLastHistorySelectedUser(){
-        Weight w = null;
-
-        if ((selectedUser != null) && (!mHistoryArray.isEmpty())){
-            for (Weight weight : mHistoryArray)
-            {
-                if ((weight.uuid.equals(selectedUser.uuid))) {
-                    w = weight;
-                    break;
-                }
-            }
-        }
-        return w;
-    }
-
-    @Override
-    public ArrayList<Goal> getGoalsArraySelectedUser(){
-        ArrayList<Goal> wal = new ArrayList<>();
-
-        if (selectedUser != null) {
-            for (Goal g : mGoalsArray) {
-                if (g.uuid.equals(selectedUser.uuid)) wal.add(g);
-            }
-        }
-        return wal;
-    }
-
-    @Override
     public void openEditUserFragment(User user) {
-        EditUserFragment euf = new EditUserFragment();
-        euf.the_user = user;
+        EditUserFragment euf = EditUserFragment.newInstance(user == null ? null : user.uuid);
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, euf).commit();
 
         // update selected item and title, then close the drawer
@@ -271,49 +159,27 @@ public class MainActivity extends AppCompatActivity
         setTitle(getString(R.string.lateral_menu_option_users));
     }
 
-    @Override
     public void closeEditUserFragment(User user) {
         if (user != null) {
-            if (Debug.ON) Log.v(TAG, "closeEditUserFragment " + mUsersArray.contains(user) + " " + mUsersArray.size());
-            if (!mUsersArray.contains(user)) mUsersArray.add(0, user);
-            User.serializeUsers(this, mUsersArray);
+            RepositoryResult<Void> result = state.saveUser(user);
+            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
             GarminTokenRefreshScheduler.schedule(this, user);
-            selectedUser = user;
         }
-
-        if (this.getCurrentFocus()!= null) {
-            InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(Activity.INPUT_METHOD_SERVICE);
-            if (inputMethodManager != null) {
-                inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
-            }
-        }
-
+        dismissKeyboard();
         selectItem(getString(R.string.lateral_menu_option_users));
     }
 
-    @Override
     public void openEditWeightFragment(Weight weight, User user, boolean edit) {
-        if (mUsersArray.isEmpty())
+        if (state.users().isEmpty())
         {
             openEditUserFragment(null);
         }
         else {
-            if (ewf == null) ewf = new EditWeightFragment();
-            if (weight != null) {
-                try {
-                    ewf.old_weight = (Weight) weight.clone();
-                } catch (CloneNotSupportedException e) {
-                    Log.e(TAG, "Unable to copy the weight for editing", e);
-                    ewf.old_weight = null;
-                }
-            }
-            else
-            {
-                ewf.old_weight = null;
-            }
-            ewf.the_weight = weight;
-            ewf.the_user = user;
-            ewf.edit = edit;
+            EditWeightFragment ewf = EditWeightFragment.newInstance(
+                    weight == null ? null : weight.uuid,
+                    weight == null ? -1 : weight.date,
+                    user == null ? null : user.uuid,
+                    edit);
             getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, ewf, "EditWeightFragmentTag").commit();
 
             // update selected item and title, then close the drawer
@@ -322,26 +188,16 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    @Override
-    public void closeEditWeightFragment(MainActivity activity, Weight weight, User user, boolean edit, boolean change) {
+    public void closeEditWeightFragment(Weight weight, User user, boolean edit, boolean change) {
         if (weight != null) {
-            if (!edit) {
-                mHistoryArray.add(0, weight);
-            }
-            Collections.sort(mHistoryArray, new Weight.DateComparator());
-            Weight.serializeWeight(this, mHistoryArray);
+            state.saveWeight(weight, edit);
             if ((user != null) && user.autoupload && change)
             {
-                uploadButton(activity, weight, user);
+                uploadButton(this, weight, user);
             }
         }
 
-        if (this.getCurrentFocus()!= null) {
-            InputMethodManager inputMethodManager = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-            if (inputMethodManager != null) {
-                inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
-            }
-        }
+        dismissKeyboard();
 
         if (edit)
             selectItem(getString(R.string.lateral_menu_option_history));
@@ -349,16 +205,18 @@ public class MainActivity extends AppCompatActivity
             selectItem(getString(R.string.lateral_menu_option_weight));
     }
 
-    @Override
     public void openEditGoalFragment(Goal goal) {
+        User selectedUser = state.selectedUser();
         if (selectedUser == null) {
             showMessage(R.string.edit_user_fragment_msg_user_missing);
             return;
         }
 
-        EditGoalFragment egf = new EditGoalFragment();
-        egf.the_goal = goal;
-        egf.the_user = selectedUser;
+        EditGoalFragment egf = EditGoalFragment.newInstance(
+                goal == null ? null : goal.uuid,
+                goal == null ? -1 : goal.start_date,
+                goal == null ? null : goal.type.toString(),
+                selectedUser.uuid);
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, egf).commit();
 
         // update selected item and title, then close the drawer
@@ -366,67 +224,16 @@ public class MainActivity extends AppCompatActivity
         setTitle(getString(R.string.lateral_menu_option_goals));
     }
 
-    @Override
     public void closeEditGoalFragment(Goal goal) {
-        if (goal != null) {
-            if (!mGoalsArray.contains(goal)) mGoalsArray.add(0, goal);
-            Goal.serializeGoals(this, mGoalsArray);
-        }
-
-        if (this.getCurrentFocus()!= null) {
-            InputMethodManager inputMethodManager = (InputMethodManager)  getSystemService(Activity.INPUT_METHOD_SERVICE);
-            if (inputMethodManager != null) {
-                inputMethodManager.hideSoftInputFromWindow(this.getCurrentFocus().getWindowToken(), 0);
-            }
-        }
-
+        if (goal != null) state.saveGoal(goal);
+        dismissKeyboard();
         selectItem(getString(R.string.lateral_menu_option_goals));
     }
 
-    @Override
     public RequestWeight getRequestWeight() { return rw; }
 
-    @Override
     public RequestWeight newRequestWeight(WeightFragment fragment) {
         return (rw = new RequestWeight(fragment));
-    }
-
-    @Override
-    public void saveWeight(Weight w) {
-        mHistoryArray.add(0, w);
-        Weight.serializeWeight(this, mHistoryArray);
-    }
-
-    public void deleteWeight(Weight weight) {
-        boolean ret;
-        ret = mHistoryArray.remove(weight);
-        Weight.serializeWeight(this, mHistoryArray);
-        if (ret && (Debug.ON)) Log.v(TAG, "Unable to remove weight from history");
-    }
-
-
-    @Override
-    public void saveGoal(Goal goal) {
-        mGoalsArray.add(0, goal);
-        Goal.serializeGoals(this, mGoalsArray);
-    }
-
-    public void deleteGoal(Goal goal) {
-        boolean ret;
-        ret = mGoalsArray.remove(goal);
-        Goal.serializeGoals(this, mGoalsArray);
-        if (ret && (Debug.ON)) Log.v(TAG, "Unable to remove goal from history");
-    }
-
-    @Override
-    public User getSelectedUser() {
-        return selectedUser;
-    }
-
-    @Override
-    public void setSelectedUser(User user) {
-        selectedUser = user;
-        AppRepository.get(this).setSelectedUserName(user.name);
     }
 
     @SuppressLint("ClickableViewAccessibility")
@@ -447,7 +254,7 @@ public class MainActivity extends AppCompatActivity
 
     private void showSearch(final Spinner v)
     {
-        final ArrayList<User> mUsersArray = getUsersArray();
+        final ArrayList<User> mUsersArray = state.users();
         ArrayList<String> items=new ArrayList<>();
         for (User user : mUsersArray) {
             items.add(user.toString());
@@ -459,7 +266,7 @@ public class MainActivity extends AppCompatActivity
 
 
         spinnerDialog.bindOnSpinnerListener((item, position) -> {
-            setSelectedUser(mUsersArray.get(position));
+            state.selectUser(mUsersArray.get(position));
             v.setSelection(position);
             spinnerDialog.closeSpinnerDialog();
         });
@@ -469,7 +276,7 @@ public class MainActivity extends AppCompatActivity
     public Spinner addUsersSpinner(Menu menu, AdapterView.OnItemSelectedListener oisListener) {
         MenuItem mSpinnerItem = menu.findItem(R.id.action_select_user);
 
-        ArrayList<User> mUsersArray = getUsersArray();
+        ArrayList<User> mUsersArray = state.users();
         if (!mUsersArray.isEmpty()) {
             Spinner spinner = (Spinner)mSpinnerItem.getActionView();
             // Check for null to avoid NPE on setAdapter
@@ -479,7 +286,7 @@ public class MainActivity extends AppCompatActivity
                 spinner.setAdapter(adapter);
 
                 if (mUsersArray.size() > 1) {
-                    spinner.setSelection(mUsersArray.indexOf(selectedUser), false);
+                    spinner.setSelection(mUsersArray.indexOf(state.selectedUser()), false);
                     if (mUsersArray.size() > 10) {
                         spinner.setOnTouchListener(spinnerOnTouch);
                         spinner.setOnKeyListener(spinnerOnKey);
@@ -494,31 +301,6 @@ public class MainActivity extends AppCompatActivity
             return null;
         }
     }
-
-    @Override
-    public void deleteHistoryAndUser(User user) {
-        GarminTokenRefreshScheduler.cancel(this, user);
-        String selected_user = AppRepository.get(this).getSelectedUserName();
-        if ((selected_user == null) || selected_user.equals(user.name) || (selected_user.isEmpty())) {
-            AppRepository.get(this).clearSelectedUser();
-            selectedUser = null;
-        }
-
-        Iterator<Weight> it = mHistoryArray.iterator();
-        while (it.hasNext()) if (it.next().uuid.equals(user.uuid)) it.remove();
-        Weight.serializeWeight(this, mHistoryArray);
-
-        Iterator<Goal> it2 = mGoalsArray.iterator();
-        while (it2.hasNext()) if (it2.next().uuid.equals(user.uuid)) it2.remove();
-        Goal.serializeGoals(this, mGoalsArray);
-
-        mUsersArray.remove(user);
-        User.serializeUsers(getApplicationContext(), mUsersArray);
-    }
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    ///// >CoreInterface
-    ///////////////////////////////////////////////////////////////////////////////////////////////
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -645,6 +427,16 @@ public class MainActivity extends AppCompatActivity
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(msg)
                 .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.dismiss()).create().show();
+    }
+
+    private void dismissKeyboard() {
+        View focus = getCurrentFocus();
+        if (focus == null) return;
+        InputMethodManager inputMethodManager =
+                (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        if (inputMethodManager != null) {
+            inputMethodManager.hideSoftInputFromWindow(focus.getWindowToken(), 0);
+        }
     }
 
     void showNoAntMessage() {

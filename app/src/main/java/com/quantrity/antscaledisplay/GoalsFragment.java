@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -20,11 +21,13 @@ public class GoalsFragment extends Fragment implements MenuProvider {
     //private final static String TAG = "GoalsFragment";
 
     private GoalAdapter mAdapter;
+    private AppStateViewModel state;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_goals, container, false);
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
 
         RecyclerView mRecyclerView = rootView.findViewById(R.id.goal_recycler_view);
 
@@ -33,9 +36,8 @@ public class GoalsFragment extends Fragment implements MenuProvider {
             RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(getActivity());
             mRecyclerView.setLayoutManager(mLayoutManager);
 
-            mAdapter = new GoalAdapter(((MainActivity) getActivity()).getGoalsArraySelectedUser(),
-                    getActivity(), ((MainActivity) getActivity()).getSelectedUser(),
-                    ((MainActivity) getActivity()).getLastHistorySelectedUser());
+            mAdapter = new GoalAdapter(state.selectedGoals(), getActivity(), state.selectedUser(),
+                    state.lastSelectedWeight(), this);
             mRecyclerView.setAdapter(mAdapter);
         }
 
@@ -52,10 +54,10 @@ public class GoalsFragment extends Fragment implements MenuProvider {
             if ((view != null) && (getActivity() != null)) {
                 //Log.v(TAG, "onItemSelected2 " + view);
                 User user = (User)adapterView.getItemAtPosition(i);
-                ((MainActivity)getActivity()).setSelectedUser(user);
+                state.selectUser(user);
 
                 //Mostrar todos los pesos del usuario
-                mAdapter.replaceAll(((MainActivity)getActivity()).getGoalsArraySelectedUser(), user);
+                mAdapter.replaceAll(state.selectedGoals(), user);
             }
         }
         @Override
@@ -80,5 +82,13 @@ public class GoalsFragment extends Fragment implements MenuProvider {
             return true;
         }
         return false;
+    }
+
+    void deleteGoal(Goal goal) {
+        state.deleteGoal(goal);
+    }
+
+    void editGoal(Goal goal) {
+        if (getActivity() != null) ((MainActivity) getActivity()).openEditGoalFragment(goal);
     }
 }

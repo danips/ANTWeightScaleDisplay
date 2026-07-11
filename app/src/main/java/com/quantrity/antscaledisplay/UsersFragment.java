@@ -22,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -48,6 +49,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
     private String dst;
 
     private UsersAdapter mAdapter;
+    private AppStateViewModel state;
 
     // Launcher for Database Backup (Directory Picker)
     private final ActivityResultLauncher<Intent> backupLauncher = registerForActivityResult(
@@ -98,7 +100,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
                         ((MainActivity) getActivity()).reloadDB();
                         getActivity().invalidateOptionsMenu();
                         if (mAdapter != null) {
-                            mAdapter.notifyDataSetChanged();
+                            mAdapter.replaceAll(state.users());
                         }
                     }
                 }
@@ -109,6 +111,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_users, container, false);
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
 
         RecyclerView mRecyclerView = rootView.findViewById(R.id.users_recycler_view);
         // use this setting to improve performance if you know that changes
@@ -121,7 +124,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
         // specify an adapter
         if (getActivity() != null)
-            mAdapter = new UsersAdapter(((MainActivity) getActivity()).getUsersArray(), getActivity(), this);
+            mAdapter = new UsersAdapter(state.users(), getActivity(), this);
         mRecyclerView.setAdapter(mAdapter);
 
         //Declare it has items for the actionbar
@@ -163,6 +166,12 @@ public class UsersFragment extends Fragment implements MenuProvider {
     void editUser(User user) {
         if (getActivity() != null)
             ((MainActivity) getActivity()).openEditUserFragment(user);
+    }
+
+    void deleteUser(User user) {
+        GarminTokenRefreshScheduler.cancel(requireContext(), user);
+        RepositoryResult<Void> result = state.deleteUser(user);
+        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
     }
 
     private void saveBackup() {

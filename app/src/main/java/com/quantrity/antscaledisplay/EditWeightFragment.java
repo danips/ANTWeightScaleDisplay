@@ -24,6 +24,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -33,6 +34,13 @@ import java.util.Locale;
 
 public class EditWeightFragment extends Fragment implements MenuProvider {
     private static final String TAG = "EditWeightFragment";
+    private static final String ARG_WEIGHT_USER_UUID = "weight_user_uuid";
+    private static final String ARG_WEIGHT_DATE = "weight_date";
+    private static final String ARG_USER_UUID = "user_uuid";
+    private static final String ARG_EDIT = "edit";
+    private static final String STATE_WEIGHT_USER_UUID = "state_weight_user_uuid";
+    private static final String STATE_WEIGHT_DATE = "state_weight_date";
+    private static final String STATE_USER_UUID = "state_user_uuid";
 
     private TextView dateTV = null;
     private EditText weightTV = null;
@@ -70,13 +78,54 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
     private TextView boneMassUnits = null;
     private TextView muscleMassUnits = null;
 
-    Weight the_weight, old_weight;
-    User the_user;
+    private Weight the_weight, old_weight;
+    private User the_user;
     boolean edit;
+    private AppStateViewModel state;
+    private boolean preserveRestoredViews;
+
+    static EditWeightFragment newInstance(String weightUserUuid, long weightDate,
+                                          String userUuid, boolean edit) {
+        EditWeightFragment fragment = new EditWeightFragment();
+        Bundle arguments = new Bundle();
+        if (weightUserUuid != null) arguments.putString(ARG_WEIGHT_USER_UUID, weightUserUuid);
+        arguments.putLong(ARG_WEIGHT_DATE, weightDate);
+        if (userUuid != null) arguments.putString(ARG_USER_UUID, userUuid);
+        arguments.putBoolean(ARG_EDIT, edit);
+        fragment.setArguments(arguments);
+        return fragment;
+    }
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
+        if (!state.isLoaded()) state.reload();
+        Bundle arguments = getArguments();
+        String weightUuid = savedInstanceState == null
+                ? (arguments == null ? null : arguments.getString(ARG_WEIGHT_USER_UUID))
+                : savedInstanceState.getString(STATE_WEIGHT_USER_UUID);
+        long weightDate = savedInstanceState == null
+                ? (arguments == null ? -1 : arguments.getLong(ARG_WEIGHT_DATE, -1))
+                : savedInstanceState.getLong(STATE_WEIGHT_DATE, -1);
+        String userUuid = savedInstanceState == null
+                ? (arguments == null ? null : arguments.getString(ARG_USER_UUID))
+                : savedInstanceState.getString(STATE_USER_UUID);
+        edit = arguments != null && arguments.getBoolean(ARG_EDIT, false);
+        preserveRestoredViews = savedInstanceState != null;
+        the_weight = weightUuid == null ? null : state.findWeight(weightUuid, weightDate);
+        the_user = userUuid == null ? state.selectedUser() : state.findUser(userUuid);
+        if (savedInstanceState != null && the_weight == null && !edit) {
+            the_weight = new Weight();
+            the_weight.date = weightDate;
+        }
+        if (the_weight != null) {
+            try {
+                old_weight = (Weight) the_weight.clone();
+            } catch (CloneNotSupportedException e) {
+                Log.e(TAG, "Unable to copy the weight for editing", e);
+            }
+        }
         View rootView = inflater.inflate(R.layout.fragment_edit_weight, container, false);
 
         dateTV = rootView.findViewById(R.id.dateTV);
@@ -190,8 +239,18 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
     @Override
     public void onResume() {
         super.onResume();
+        if (preserveRestoredViews) preserveRestoredViews = false;
+        else updateUi();
+    }
 
-        updateUi();
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (the_weight != null) {
+            outState.putString(STATE_WEIGHT_USER_UUID, the_weight.uuid);
+            outState.putLong(STATE_WEIGHT_DATE, the_weight.date);
+        }
+        if (the_user != null) outState.putString(STATE_USER_UUID, the_user.uuid);
     }
 
     // updates UI to reflect model
@@ -208,9 +267,9 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 {
                     return;
                 }
-                if ((the_user = ((MainActivity)getActivity()).getSelectedUser()) == null)
+                if ((the_user = state.selectedUser()) == null)
                 {
-                    ((MainActivity)getActivity()).closeEditWeightFragment((MainActivity)getActivity(),null, null, edit, false);
+                    ((MainActivity)getActivity()).closeEditWeightFragment(null, null, edit, false);
                     return;
                 }
             }
@@ -353,7 +412,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             if (view != null) {
                 if (getActivity() != null) {
-                    ((MainActivity) getActivity()).setSelectedUser((User) adapterView.getItemAtPosition(i));
+                    state.selectUser((User) adapterView.getItemAtPosition(i));
                     the_user = (User)adapterView.getItemAtPosition(i);
                     updateUi();
                 }
@@ -378,11 +437,12 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         int itemId = menuItem.getItemId();
         if (itemId == R.id.action_editweight_cancel) {
             if (getActivity() != null)
-                ((MainActivity) getActivity()).closeEditWeightFragment((MainActivity) getActivity(), null, null, edit, false);
+                ((MainActivity) getActivity()).closeEditWeightFragment(null, null, edit, false);
             return true;
         } else if (itemId == R.id.action_editweight_done) {
             if (checkValues() && (getActivity() != null)) {
-                ((MainActivity) getActivity()).closeEditWeightFragment((MainActivity) getActivity(), the_weight, the_user, edit, !the_weight.equals(old_weight));
+                ((MainActivity) getActivity()).closeEditWeightFragment(the_weight, the_user, edit,
+                        !the_weight.equals(old_weight));
             }
             return true;
         }

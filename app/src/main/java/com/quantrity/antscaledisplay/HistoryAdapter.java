@@ -28,6 +28,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
     private ArrayList<Weight> mDataset;
     private final Context mContext;
+    private final HistoryFragment parent;
     private User user;
     private final SimpleDateFormat dateFormatter;
 
@@ -35,10 +36,12 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     private final SparseBooleanArray expandedStates = new SparseBooleanArray();
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    HistoryAdapter(ArrayList<Weight> myDataset, Context mContext, User user) {
+    HistoryAdapter(ArrayList<Weight> myDataset, Context mContext, User user,
+                   HistoryFragment parent) {
         mDataset = myDataset;
         this.mContext = mContext;
         this.user = user;
+        this.parent = parent;
         this.dateFormatter = (SimpleDateFormat) android.text.format.DateFormat.getDateFormat(mContext);
         this.dateFormatter.applyPattern(dateFormatter.toPattern().replaceAll("y", "yy").replaceAll("y{4}", "yy"));
     }
@@ -167,7 +170,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                     mDataset.remove(weight);
                     expandedStates.delete(position); // Remove state for deleted item
                     notifyItemRemoved(position);
-                    ((MainActivity) mContext).deleteWeight(weight);
+                    parent.deleteWeight(weight);
                 }
                 return true;
             });
@@ -192,7 +195,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
                 mi = contextMenu.add(0, view.getId(), 0, mContext.getString(R.string.weight_edit_fragment_edit_weight));
                 mi.setOnMenuItemClickListener(menuItem -> {
-                    ((MainActivity)mContext).openEditWeightFragment(weight, user, true);
+                    parent.editWeight(weight, user);
                     return true;
                 });
             }

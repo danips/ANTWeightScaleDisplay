@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.LimitLine;
@@ -56,6 +57,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
 
     private User the_user;
     private ArrayList<Weight> weights;
+    private AppStateViewModel state;
     private int graph_measurement_displayed;
     private int graph_period_displayed;
     private MenuItem measurement_selection;
@@ -93,12 +95,13 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View rootView = inflater.inflate(R.layout.fragment_graphs, container, false);
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
 
         graphLayout = rootView.findViewById(R.id.graph);
 
         if (getActivity() != null) {
-            weights = ((MainActivity) getActivity()).getHistoryArraySelectedUser();
-            the_user = ((MainActivity) getActivity()).getSelectedUser();
+            weights = state.selectedWeights();
+            the_user = state.selectedUser();
 
             // Replaced deprecated PreferenceManager.getDefaultSharedPreferences
             SharedPreferences settings = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
@@ -200,9 +203,9 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             if ((view != null) && (getActivity() != null)) {
                 User user = (User)adapterView.getItemAtPosition(i);
-                ((MainActivity)getActivity()).setSelectedUser(user);
+                state.selectUser(user);
 
-                weights = ((MainActivity)getActivity()).getHistoryArraySelectedUser();
+                weights = state.selectedWeights();
                 the_user = user;
                 updateActionBar();
                 loadGraph(graph_measurement_displayed, graph_period_displayed);
@@ -609,7 +612,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         dataSets.add(series);
 
         if (getActivity() != null) {
-            ArrayList<Goal> goals = ((MainActivity) getActivity()).getGoalsArray();
+            ArrayList<Goal> goals = state.goals();
             if ((goals != null) && (!goals.isEmpty())) {
                 for (Goal g : goals) {
                     if (g.uuid.equals(the_user.uuid)) {

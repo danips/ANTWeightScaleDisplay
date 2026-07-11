@@ -23,6 +23,7 @@ import androidx.annotation.NonNull;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.larswerkman.holocolorpicker.ColorPicker;
 
@@ -30,6 +31,12 @@ import java.util.Calendar;
 import java.util.Locale;
 
 public class EditGoalFragment extends Fragment implements MenuProvider {
+    private static final String ARG_GOAL_USER_UUID = "goal_user_uuid";
+    private static final String ARG_GOAL_START_DATE = "goal_start_date";
+    private static final String ARG_GOAL_TYPE = "goal_type";
+    private static final String ARG_USER_UUID = "user_uuid";
+    private static final String STATE_START_DATE = "start_date";
+    private static final String STATE_END_DATE = "end_date";
     //private final static String TAG = "EditGoalFragment";
 
     enum Units {
@@ -40,9 +47,22 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     }
 
     //Data fields
-    Goal the_goal;
-    User the_user;
+    private Goal the_goal;
+    private User the_user;
     private Weight last;
+    private AppStateViewModel state;
+
+    static EditGoalFragment newInstance(String goalUserUuid, long startDate, String goalType,
+                                        String userUuid) {
+        EditGoalFragment fragment = new EditGoalFragment();
+        Bundle arguments = new Bundle();
+        if (goalUserUuid != null) arguments.putString(ARG_GOAL_USER_UUID, goalUserUuid);
+        arguments.putLong(ARG_GOAL_START_DATE, startDate);
+        if (goalType != null) arguments.putString(ARG_GOAL_TYPE, goalType);
+        arguments.putString(ARG_USER_UUID, userUuid);
+        fragment.setArguments(arguments);
+        return fragment;
+    }
 
     private boolean needs_to_sync;
 
@@ -101,7 +121,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         Goal tmp = new Goal();
 
         if (getActivity() == null) return null;
-        tmp.uuid = ((MainActivity) getActivity()).getSelectedUser().uuid;
+        tmp.uuid = the_user.uuid;
         Units units;
         switch (sp_type.getSelectedItemPosition())
         {
@@ -530,8 +550,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         et_start_date.setText(DateUtils.formatDateTime(getActivity(), start_date_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
         et_end_date.setText(DateUtils.formatDateTime(getActivity(), end_date_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
 
-        if (getActivity() == null) last = null;
-        else last = ((MainActivity) getActivity()).getLastHistorySelectedUser();
+        last = state.lastSelectedWeight();
         if (last != null) {
             the_goal.start_value = last.weight;
             the_goal.end_value = last.weight;
@@ -548,6 +567,20 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
+        if (!state.isLoaded()) state.reload();
+        Bundle arguments = getArguments();
+        String goalUuid = arguments == null ? null : arguments.getString(ARG_GOAL_USER_UUID);
+        long goalStart = arguments == null ? -1 : arguments.getLong(ARG_GOAL_START_DATE, -1);
+        String goalType = arguments == null ? null : arguments.getString(ARG_GOAL_TYPE);
+        String userUuid = arguments == null ? null : arguments.getString(ARG_USER_UUID);
+        the_goal = goalUuid == null ? null : state.findGoal(goalUuid, goalStart, goalType);
+        the_user = state.findUser(userUuid);
+        last = state.lastSelectedWeight();
+        if (savedInstanceState != null) {
+            start_date_millis = savedInstanceState.getLong(STATE_START_DATE, -1);
+            end_date_millis = savedInstanceState.getLong(STATE_END_DATE, -1);
+        }
         View rootView = inflater.inflate(R.layout.fragment_edit_goal, container, false);
 
         //Close keyboard when clicking any other item on screen
@@ -586,7 +619,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
 
-        this.needs_to_sync = true;
+        this.needs_to_sync = savedInstanceState == null;
 
         et_start_date.setOnFocusChangeListener((view, b) -> {
             if ((b) && (getActivity() != null)) {
@@ -782,6 +815,13 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
             needs_to_sync = false;
         }
         super.onResume();
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putLong(STATE_START_DATE, start_date_millis);
+        outState.putLong(STATE_END_DATE, end_date_millis);
     }
 
     @Override

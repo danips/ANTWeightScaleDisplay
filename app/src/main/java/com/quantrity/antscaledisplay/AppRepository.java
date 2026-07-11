@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.io.File;
+import java.text.Collator;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -15,6 +18,7 @@ import java.util.concurrent.FutureTask;
 
 final class AppRepository {
     private static final String SELECTED_USER_KEY = "selected_user";
+    private static final String SELECTED_USER_UUID_KEY = "selected_user_uuid";
     private static final String USERS_FILE_NAME = "users";
     private static final String HISTORY_FILE_NAME = "history";
     private static final String GOALS_FILE_NAME = "goals";
@@ -27,16 +31,24 @@ final class AppRepository {
     private final WeightJsonCodec weightCodec = new WeightJsonCodec();
     private final GoalJsonCodec goalCodec = new GoalJsonCodec();
     private final ExecutorService writeExecutor;
-    private final SharedPreferences preferences;
+    private final SelectionStore selectionStore;
     private final File filesDirectory;
+    private final Object stateLock = new Object();
+    private final ArrayList<User> users = new ArrayList<>();
+    private final ArrayList<Weight> weights = new ArrayList<>();
+    private final ArrayList<Goal> goals = new ArrayList<>();
+    private String selectedUserUuid;
+    private boolean stateLoaded;
 
     static AppRepository get(Context context) {
         if (instance == null) {
             synchronized (AppRepository.class) {
                 if (instance == null) {
                     Context application = context.getApplicationContext();
-                    instance = new AppRepository(application.getFilesDir(), application.getSharedPreferences(
-                            application.getPackageName() + "_preferences", Context.MODE_PRIVATE));
+                    SharedPreferences preferences = application.getSharedPreferences(
+                            application.getPackageName() + "_preferences", Context.MODE_PRIVATE);
+                    instance = new AppRepository(application.getFilesDir(),
+                            new SharedPreferencesSelectionStore(preferences));
                 }
             }
         }
@@ -47,12 +59,12 @@ final class AppRepository {
         this(filesDirectory, null);
     }
 
-    private AppRepository(File filesDirectory, SharedPreferences preferences) {
+    AppRepository(File filesDirectory, SelectionStore selectionStore) {
         this.filesDirectory = filesDirectory;
         usersFile = new AtomicJsonFile(new File(filesDirectory, USERS_FILE_NAME));
         historyFile = new AtomicJsonFile(new File(filesDirectory, HISTORY_FILE_NAME));
         goalsFile = new AtomicJsonFile(new File(filesDirectory, GOALS_FILE_NAME));
-        this.preferences = preferences;
+        this.selectionStore = selectionStore;
         writeExecutor = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "app-repository-writes");
             thread.setDaemon(true);
@@ -79,6 +91,198 @@ final class AppRepository {
         if (!read.isSuccess()) return RepositoryResult.failure(read.message, read.error);
         if (read.value == null || read.value.isEmpty()) return RepositoryResult.success(new ArrayList<>());
         return goalCodec.decode(read.value);
+    }
+
+    RepositoryResult<Void> reloadState() {
+        RepositoryResult<List<User>> loadedUsers = loadUsers();
+        if (!loadedUsers.isSuccess()) return RepositoryResult.failure(loadedUsers.message, loadedUsers.error);
+        RepositoryResult<List<Weight>> loadedWeights = loadWeights();
+        if (!loadedWeights.isSuccess()) return RepositoryResult.failure(loadedWeights.message, loadedWeights.error);
+        RepositoryResult<List<Goal>> loadedGoals = loadGoals();
+        if (!loadedGoals.isSuccess()) return RepositoryResult.failure(loadedGoals.message, loadedGoals.error);
+
+        synchronized (stateLock) {
+            users.clear();
+            users.addAll(loadedUsers.value);
+            weights.clear();
+            weights.addAll(loadedWeights.value);
+            goals.clear();
+            goals.addAll(loadedGoals.value);
+            sortUsers(users);
+            Collections.sort(weights, new Weight.DateComparator());
+            selectedUserUuid = resolveSelectedUserUuid(users);
+            stateLoaded = true;
+        }
+        return RepositoryResult.success(null);
+    }
+
+    boolean isStateLoaded() {
+        synchronized (stateLock) {
+            return stateLoaded;
+        }
+    }
+
+    ArrayList<User> usersSnapshot() {
+        synchronized (stateLock) {
+            return new ArrayList<>(users);
+        }
+    }
+
+    ArrayList<Weight> weightsSnapshot() {
+        synchronized (stateLock) {
+            return new ArrayList<>(weights);
+        }
+    }
+
+    ArrayList<Goal> goalsSnapshot() {
+        synchronized (stateLock) {
+            return new ArrayList<>(goals);
+        }
+    }
+
+    User selectedUser() {
+        synchronized (stateLock) {
+            return findUser(users, selectedUserUuid);
+        }
+    }
+
+    void selectUser(String uuid) {
+        synchronized (stateLock) {
+            selectedUserUuid = findUser(users, uuid) == null ? null : uuid;
+            persistSelectedUserUuid(selectedUserUuid);
+        }
+    }
+
+    User findUser(String uuid) {
+        synchronized (stateLock) {
+            return findUser(users, uuid);
+        }
+    }
+
+    Weight findWeight(String userUuid, long date) {
+        synchronized (stateLock) {
+            for (Weight weight : weights) {
+                if (date == weight.date && userUuid.equals(weight.uuid)) return weight;
+            }
+            return null;
+        }
+    }
+
+    Goal findGoal(String userUuid, long startDate, String type) {
+        synchronized (stateLock) {
+            for (Goal goal : goals) {
+                if (startDate == goal.start_date && userUuid.equals(goal.uuid)
+                        && goal.type.toString().equals(type)) return goal;
+            }
+            return null;
+        }
+    }
+
+    ArrayList<Weight> selectedUserWeights() {
+        synchronized (stateLock) {
+            ArrayList<Weight> selected = new ArrayList<>();
+            if (selectedUserUuid == null) return selected;
+            for (Weight weight : weights) if (selectedUserUuid.equals(weight.uuid)) selected.add(weight);
+            return selected;
+        }
+    }
+
+    ArrayList<Goal> selectedUserGoals() {
+        synchronized (stateLock) {
+            ArrayList<Goal> selected = new ArrayList<>();
+            if (selectedUserUuid == null) return selected;
+            for (Goal goal : goals) if (selectedUserUuid.equals(goal.uuid)) selected.add(goal);
+            return selected;
+        }
+    }
+
+    Weight lastSelectedUserWeight() {
+        ArrayList<Weight> selected = selectedUserWeights();
+        return selected.isEmpty() ? null : selected.get(0);
+    }
+
+    RepositoryResult<Void> upsertUser(User user) {
+        ArrayList<User> snapshot;
+        synchronized (stateLock) {
+            User existing = findUser(users, user.uuid);
+            if (existing == null) users.add(user);
+            else if (existing != user) users.set(users.indexOf(existing), user);
+            sortUsers(users);
+            selectedUserUuid = user.uuid;
+            persistSelectedUserUuid(selectedUserUuid);
+            snapshot = new ArrayList<>(users);
+        }
+        return saveUsersSynchronously(snapshot);
+    }
+
+    Future<RepositoryResult<Void>> upsertWeight(Weight weight, boolean editing) {
+        ArrayList<Weight> snapshot;
+        synchronized (stateLock) {
+            Weight existing = findWeight(weight.uuid, weight.date);
+            if (!editing && existing == null) weights.add(weight);
+            else if (existing != null && existing != weight) weights.set(weights.indexOf(existing), weight);
+            Collections.sort(weights, new Weight.DateComparator());
+            snapshot = new ArrayList<>(weights);
+        }
+        return saveWeights(snapshot);
+    }
+
+    Future<RepositoryResult<Void>> upsertGoal(Goal goal) {
+        ArrayList<Goal> snapshot;
+        synchronized (stateLock) {
+            if (!goals.contains(goal)) goals.add(goal);
+            snapshot = new ArrayList<>(goals);
+        }
+        return saveGoals(snapshot);
+    }
+
+    Future<RepositoryResult<Void>> replaceWeights(List<Weight> replacement) {
+        synchronized (stateLock) {
+            weights.clear();
+            weights.addAll(replacement);
+            Collections.sort(weights, new Weight.DateComparator());
+            return saveWeights(new ArrayList<>(weights));
+        }
+    }
+
+    Future<RepositoryResult<Void>> deleteWeight(Weight weight) {
+        synchronized (stateLock) {
+            weights.remove(weight);
+            return saveWeights(new ArrayList<>(weights));
+        }
+    }
+
+    Future<RepositoryResult<Void>> deleteGoal(Goal goal) {
+        synchronized (stateLock) {
+            goals.remove(goal);
+            return saveGoals(new ArrayList<>(goals));
+        }
+    }
+
+    RepositoryResult<Void> deleteUser(User user) {
+        ArrayList<User> userSnapshot;
+        ArrayList<Weight> weightSnapshot;
+        ArrayList<Goal> goalSnapshot;
+        synchronized (stateLock) {
+            users.remove(user);
+            for (Iterator<Weight> iterator = weights.iterator(); iterator.hasNext();) {
+                if (user.uuid.equals(iterator.next().uuid)) iterator.remove();
+            }
+            for (Iterator<Goal> iterator = goals.iterator(); iterator.hasNext();) {
+                if (user.uuid.equals(iterator.next().uuid)) iterator.remove();
+            }
+            if (user.uuid.equals(selectedUserUuid)) {
+                selectedUserUuid = users.isEmpty() ? null : users.get(0).uuid;
+                persistSelectedUserUuid(selectedUserUuid);
+            }
+            userSnapshot = new ArrayList<>(users);
+            weightSnapshot = new ArrayList<>(weights);
+            goalSnapshot = new ArrayList<>(goals);
+        }
+        RepositoryResult<Void> userResult = saveUsersSynchronously(userSnapshot);
+        saveWeights(weightSnapshot);
+        saveGoals(goalSnapshot);
+        return userResult;
     }
 
     RepositoryResult<Void> saveUsersSynchronously(List<User> users) {
@@ -108,7 +312,14 @@ final class AppRepository {
                         new IllegalArgumentException("Unknown user " + tokenSource.uuid));
             }
             copyGarminAccessToken(tokenSource, target);
-            return writeUsers(loaded.value);
+            RepositoryResult<Void> result = writeUsers(loaded.value);
+            if (result.isSuccess()) {
+                synchronized (stateLock) {
+                    User stateUser = findUser(users, tokenSource.uuid);
+                    if (stateUser != null) copyGarminAccessToken(tokenSource, stateUser);
+                }
+            }
+            return result;
         });
     }
 
@@ -119,18 +330,6 @@ final class AppRepository {
         User latest = findUser(loaded.value, target.uuid);
         if (latest != null) copyGarminAccessToken(latest, target);
         return RepositoryResult.success(null);
-    }
-
-    String getSelectedUserName() {
-        return preferences == null ? null : preferences.getString(SELECTED_USER_KEY, null);
-    }
-
-    void setSelectedUserName(String name) {
-        if (preferences != null) preferences.edit().putString(SELECTED_USER_KEY, name).apply();
-    }
-
-    void clearSelectedUser() {
-        if (preferences != null) preferences.edit().remove(SELECTED_USER_KEY).apply();
     }
 
     List<File> dataFiles() {
@@ -182,6 +381,69 @@ final class AppRepository {
         if (uuid == null) return null;
         for (User user : users) if (uuid.equals(user.uuid)) return user;
         return null;
+    }
+
+    private static void sortUsers(List<User> users) {
+        Collator collator = Collator.getInstance();
+        Collections.sort(users, (first, second) -> collator.compare(first.name, second.name));
+    }
+
+    private String resolveSelectedUserUuid(List<User> loadedUsers) {
+        if (loadedUsers.isEmpty()) {
+            persistSelectedUserUuid(null);
+            return null;
+        }
+        String uuid = selectionStore == null ? null : selectionStore.selectedUuid();
+        if (findUser(loadedUsers, uuid) != null) return uuid;
+
+        String legacyName = selectionStore == null ? null : selectionStore.legacySelectedName();
+        if (legacyName != null) {
+            for (User user : loadedUsers) {
+                if (legacyName.equals(user.name)) {
+                    persistSelectedUserUuid(user.uuid);
+                    return user.uuid;
+                }
+            }
+        }
+        uuid = loadedUsers.get(0).uuid;
+        persistSelectedUserUuid(uuid);
+        return uuid;
+    }
+
+    private void persistSelectedUserUuid(String uuid) {
+        if (selectionStore != null) selectionStore.saveSelectedUuid(uuid);
+    }
+
+    interface SelectionStore {
+        String selectedUuid();
+        String legacySelectedName();
+        void saveSelectedUuid(String uuid);
+    }
+
+    private static final class SharedPreferencesSelectionStore implements SelectionStore {
+        private final SharedPreferences preferences;
+
+        SharedPreferencesSelectionStore(SharedPreferences preferences) {
+            this.preferences = preferences;
+        }
+
+        @Override
+        public String selectedUuid() {
+            return preferences.getString(SELECTED_USER_UUID_KEY, null);
+        }
+
+        @Override
+        public String legacySelectedName() {
+            return preferences.getString(SELECTED_USER_KEY, null);
+        }
+
+        @Override
+        public void saveSelectedUuid(String uuid) {
+            SharedPreferences.Editor editor = preferences.edit().remove(SELECTED_USER_KEY);
+            if (uuid == null) editor.remove(SELECTED_USER_UUID_KEY);
+            else editor.putString(SELECTED_USER_UUID_KEY, uuid);
+            editor.apply();
+        }
     }
 
     private static void copyGarminAccessToken(User source, User target) {

@@ -26,6 +26,7 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
 
     private ArrayList<Goal> mDataset;
     private final Context mContext;
+    private final GoalsFragment parent;
 
     private User user;
     private final Weight last_weight;
@@ -33,13 +34,15 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
     private final SimpleDateFormat dateFormatter;
 
     // Provide a suitable constructor (depends on the kind of dataset)
-    GoalAdapter(ArrayList<Goal> myDataset, Context mContext, User user, Weight last_weight) {
+    GoalAdapter(ArrayList<Goal> myDataset, Context mContext, User user, Weight last_weight,
+                GoalsFragment parent) {
         mDataset = myDataset;
         this.mContext = mContext;
         this.user = user;
         this.dateFormatter = (SimpleDateFormat) android.text.format.DateFormat.getDateFormat(mContext);
         this.dateFormatter.applyPattern(dateFormatter.toPattern().replaceAll("y", "yy").replaceAll("y{4}", "yy"));
         this.last_weight = last_weight;
+        this.parent = parent;
     }
 
     // Provide a reference to the views for each data item
@@ -78,13 +81,13 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
             MenuItem mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_delete);//groupId, itemId, order, title
             mi.setOnMenuItemClickListener(menuItem -> {
                 remove(goal);
-                ((MainActivity)mContext).deleteGoal(goal);
+                parent.deleteGoal(goal);
                 return true;
             });
 
             mi = contextMenu.add(0, view.getId(), 0, mContext.getString(R.string.users_fragment_user_contextmenu_edit));
             mi.setOnMenuItemClickListener(menuItem -> {
-                ((MainActivity)mContext).openEditGoalFragment(goal);
+                parent.editGoal(goal);
                 return true;
             });
         }

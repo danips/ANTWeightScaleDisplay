@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 4 — Move application state out of `MainActivity`
+- Current phase: Phase 5 — Make metric handling data-driven
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -38,7 +38,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 - [x] Phase 1 — Fix lint and remove dead code
 - [x] Phase 2 — Package or isolate the Garmin FIT SDK
 - [x] Phase 3 — Centralize file persistence
-- [ ] Phase 4 — Move application state out of `MainActivity`
+- [x] Phase 4 — Move application state out of `MainActivity`
 - [ ] Phase 5 — Make metric handling data-driven
 - [ ] Phase 6 — Simplify upload orchestration
 - [ ] Phase 7 — Split Garmin responsibilities
@@ -255,7 +255,7 @@ build: replace vendored Garmin FIT sources with packaged SDK
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending commit
+Commit: `c7f5322`
 
 ### Objective
 
@@ -339,9 +339,9 @@ refactor: introduce application data repository
 
 ## Phase 4 — Move application state out of `MainActivity`
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending commit
 
 ### Objective
 
@@ -350,18 +350,40 @@ measurement, goal, selection, and persistence operation.
 
 ### Tasks
 
-- [ ] Move users, measurements, goals, and selected-user state into `AppRepository`.
-- [ ] Persist the selected user by UUID instead of mutable display name.
-- [ ] Expose lifecycle-aware state through ViewModels and/or `LiveData` suitable for the Java codebase.
-- [ ] Replace direct mutable list access with snapshots or narrowly scoped repository operations.
-- [ ] Replace fragment public fields such as `the_user`, `the_weight`, and `the_goal` with stable UUID
+- [x] Move users, measurements, goals, and selected-user state into `AppRepository`.
+- [x] Persist the selected user by UUID instead of mutable display name.
+- [x] Expose lifecycle-aware state through ViewModels and/or `LiveData` suitable for the Java codebase.
+- [x] Replace direct mutable list access with snapshots or narrowly scoped repository operations.
+- [x] Replace fragment public fields such as `the_user`, `the_weight`, and `the_goal` with stable UUID
       arguments.
-- [ ] Resolve objects from the repository after fragment recreation.
-- [ ] Remove casts to `MainActivity` where a repository or ViewModel can provide the data.
-- [ ] Remove `CoreInterface`; it is implemented only by `MainActivity` and is not consumed as an
+- [x] Resolve objects from the repository after fragment recreation.
+- [x] Remove casts to `MainActivity` where a repository or ViewModel can provide the data.
+- [x] Remove `CoreInterface`; it is implemented only by `MainActivity` and is not consumed as an
       abstraction.
-- [ ] Centralize navigation methods and keyboard dismissal.
-- [ ] Add tests or manual checks for rotation, background/foreground transitions, and process death.
+- [x] Centralize navigation methods and keyboard dismissal.
+- [x] Add tests or manual checks for rotation, background/foreground transitions, and process death.
+
+### Completion notes
+
+- Repository-owned state now contains users, measurements, goals, and the selected-user UUID.
+  Collection getters return snapshots, while add, edit, delete, download, and token updates use
+  narrowly scoped repository operations.
+- Added an activity-scoped `AppStateViewModel`. It survives configuration changes and delegates to
+  the repository, which can reload the same identities from disk after process recreation.
+- Migrated the `selected_user` name preference to `selected_user_uuid`. Existing installations read
+  the legacy name once, resolve its UUID, and remove the mutable-name preference.
+- Edit user, weight, and goal fragments now receive stable identity arguments and resolve their
+  models through the ViewModel. Their edit fields and date state are preserved during recreation.
+- Removed `CoreInterface`, non-persisted public fragment model fields, model list ownership from
+  `MainActivity`, and activity casts used only to retrieve application data.
+- `MainActivity` now coordinates navigation, ANT request lifecycle, upload launch, user spinners,
+  and keyboard dismissal without performing model serialization.
+- Added repository recreation, legacy-selection migration, snapshot-isolation, and stable identity
+  resolution coverage. All 33 unit tests pass.
+- `lintDebug` passes with 0 errors and 50 warnings. The full minified release build passes, and the
+  unsigned release APK is 2,290,196 bytes.
+- Rotation and process-recreation behavior is covered at the state/identity level. A full physical
+  device navigation smoke test was not performed locally.
 
 ### Acceptance criteria
 
@@ -746,7 +768,8 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 1 | Suppress lint only on the two generated FIT sources scheduled for removal | Avoids modifying generated third-party code while keeping all application lint errors visible | `5230bf5` |
 | 2026-07-11 | Phase 1 | Use the English jump-to label as the documented translation fallback | Avoids inventing unreviewed translations while resolving the fatal missing-translation check | `5230bf5` |
 | 2026-07-11 | Phase 2 | Use Garmin's official Maven artifact at the exact vendored profile version | Removes generated source while preserving byte-level FIT output and obtaining the SDK from its publisher | `851a9c9` |
-| 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | Pending commit |
+| 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | `c7f5322` |
+| 2026-07-11 | Phase 4 | Use repository-owned state behind an activity-scoped ViewModel | Preserves state across rotation, supports disk re-resolution after process death, and keeps navigation separate from model ownership | Pending commit |
 
 ## Final results
 
