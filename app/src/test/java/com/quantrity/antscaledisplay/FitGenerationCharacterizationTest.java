@@ -1,5 +1,6 @@
 package com.quantrity.antscaledisplay;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.garmin.fit.DateTime;
@@ -16,6 +17,8 @@ import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.util.Date;
 
 public class FitGenerationCharacterizationTest {
@@ -50,5 +53,13 @@ public class FitGenerationCharacterizationTest {
         try (FileInputStream input = new FileInputStream(output)) {
             assertTrue(new Decode().checkFileIntegrity(input));
         }
+        assertEquals("71b74f44bf2e59a96330997cf345ebdfdec3696c6687958b62916a1bf9803fbe", sha256(output));
+    }
+
+    private static String sha256(File file) throws Exception {
+        byte[] digest = MessageDigest.getInstance("SHA-256").digest(Files.readAllBytes(file.toPath()));
+        StringBuilder hex = new StringBuilder(digest.length * 2);
+        for (byte value : digest) hex.append(String.format("%02x", value));
+        return hex.toString();
     }
 }

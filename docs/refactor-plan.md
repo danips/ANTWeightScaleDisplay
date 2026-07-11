@@ -6,12 +6,12 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 2 — Package or isolate the Garmin FIT SDK
+- Current phase: Phase 3 — Centralize file persistence
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
 - Baseline application code: 29 Java files and 9,903 lines
-- Vendored Garmin FIT SDK: approximately 491 Java files and 77,500 lines
+- Vendored Garmin FIT SDK: 493 Java files and approximately 77,500 lines
 - Baseline lint result: 9 errors and 155 warnings
 - Baseline unit tests: 22 passing
 - Baseline unsigned release APK: 2,290,656 bytes
@@ -36,7 +36,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 
 - [x] Phase 0 — Establish a safety baseline
 - [x] Phase 1 — Fix lint and remove dead code
-- [ ] Phase 2 — Package or isolate the Garmin FIT SDK
+- [x] Phase 2 — Package or isolate the Garmin FIT SDK
 - [ ] Phase 3 — Centralize file persistence
 - [ ] Phase 4 — Move application state out of `MainActivity`
 - [ ] Phase 5 — Make metric handling data-driven
@@ -119,7 +119,7 @@ test: add regression coverage for architecture refactor
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending commit
+Commit: `5230bf5`
 
 ### Objective
 
@@ -187,28 +187,43 @@ refactor: remove dead resources and resolve lint errors
 
 ## Phase 2 — Package or isolate the Garmin FIT SDK
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending commit
 
 ### Objective
 
-Remove approximately 491 generated third-party files from the main application source tree while
+Remove 493 generated third-party files from the main application source tree while
 preserving FIT encoding behavior and licensing information.
 
 ### Tasks
 
-- [ ] Identify the exact Garmin FIT SDK version represented by the vendored source.
-- [ ] Check the SDK license and redistribution requirements.
-- [ ] Prefer an official binary artifact when one is available and reproducible.
-- [ ] If an official binary is unavailable, isolate the exact existing SDK in a dedicated Gradle
-      module or build a versioned local JAR from a documented upstream source.
-- [ ] Store a checksum and source/version reference for any committed binary.
-- [ ] Add or update `THIRD_PARTY_NOTICES.md` with the SDK source and license.
-- [ ] Replace direct source inclusion with the module or binary dependency.
-- [ ] Keep only application-owned FIT construction code in the app package.
-- [ ] Confirm R8 still retains required message/encoder classes and removes unused ones.
-- [ ] Verify the generated weight FIT file before and after the change is semantically equivalent.
+- [x] Identify the exact Garmin FIT SDK version represented by the vendored source.
+- [x] Check the SDK license and redistribution requirements.
+- [x] Prefer an official binary artifact when one is available and reproducible.
+- [x] Confirm a local module or JAR is unnecessary because the matching official artifact is
+      available from Maven Central.
+- [x] Store a checksum and source/version reference for any committed binary.
+- [x] Add or update `THIRD_PARTY_NOTICES.md` with the SDK source and license.
+- [x] Replace direct source inclusion with the module or binary dependency.
+- [x] Keep only application-owned FIT construction code in the app package.
+- [x] Confirm R8 still retains required message/encoder classes and removes unused ones.
+- [x] Verify the generated weight FIT file before and after the change is semantically equivalent.
+
+### Completion notes
+
+- Replaced 493 generated Java files for FIT Profile 21.188.0 Release with Garmin's matching official
+  `com.garmin:fit:21.188.0` Maven Central artifact.
+- Recorded Garmin's source, FIT license, Maven coordinate, and the resolved JAR SHA-256 in
+  `THIRD_PARTY_NOTICES.md`. No FIT SDK source or binary remains committed in this repository.
+- Strengthened the FIT characterization test with a deterministic file SHA-256. The Maven artifact
+  produces the byte-identical digest `71b74f44bf2e59a96330997cf345ebdfdec3696c6687958b62916a1bf9803fbe`.
+- Removed the temporary generated-source lint exclusions. Lint now reports 0 errors and 50 warnings,
+  down from 60 warnings after Phase 1.
+- The minified release build succeeds without FIT-specific keep rules. R8 retains the encoder and
+  message classes used by the upload path and reports 160 top-level FIT classes as removed.
+- The unsigned release APK is 2,282,280 bytes. A real Garmin upload was not performed locally; the
+  byte-for-byte output check demonstrates that the encoded payload is unchanged.
 
 ### Acceptance criteria
 
@@ -708,8 +723,9 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Planning | Use incremental Java refactoring instead of a Kotlin/Compose rewrite | Preserves behavior and reduces regression risk around Garmin and ANT integrations | — |
 | 2026-07-11 | Phase 3 | Preserve JSON storage before considering Room | A repository and shared atomic store provide most of the simplification without a risky data migration | — |
 | 2026-07-11 | Phase 0 | Use reflection only in persistence characterization tests | Captures current private serializer behavior without changing production persistence APIs before Phase 3 | `ea29454` |
-| 2026-07-11 | Phase 1 | Suppress lint only on the two generated FIT sources scheduled for removal | Avoids modifying generated third-party code while keeping all application lint errors visible | Pending commit |
-| 2026-07-11 | Phase 1 | Use the English jump-to label as the documented translation fallback | Avoids inventing unreviewed translations while resolving the fatal missing-translation check | Pending commit |
+| 2026-07-11 | Phase 1 | Suppress lint only on the two generated FIT sources scheduled for removal | Avoids modifying generated third-party code while keeping all application lint errors visible | `5230bf5` |
+| 2026-07-11 | Phase 1 | Use the English jump-to label as the documented translation fallback | Avoids inventing unreviewed translations while resolving the fatal missing-translation check | `5230bf5` |
+| 2026-07-11 | Phase 2 | Use Garmin's official Maven artifact at the exact vendored profile version | Removes generated source while preserving byte-level FIT output and obtaining the SDK from its publisher | Pending commit |
 
 ## Final results
 
@@ -719,7 +735,7 @@ Complete this section during Phase 10.
 |---|---:|---:|---:|
 | Application Java files | 29 | — | — |
 | Application Java lines | 9,903 | — | — |
-| Vendored FIT Java files | 491 | — | — |
+| Vendored FIT Java files | 493 | — | — |
 | Vendored FIT Java lines | ~77,500 | — | — |
 | Lint errors | 9 | — | — |
 | Lint warnings | 155 | — | — |
