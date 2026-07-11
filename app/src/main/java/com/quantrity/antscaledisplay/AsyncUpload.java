@@ -53,11 +53,9 @@ class AsyncUpload {
     private volatile boolean isCancelled = false;
 
     private static final DateFormat dtf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm'Z'", Locale.US);
-    private static final DecimalFormat df2 = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
     private static final DecimalFormat df1 = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
 
     static {
-        df2.applyPattern("#.##");
         df1.applyPattern("#.#");
     }
 
@@ -277,53 +275,14 @@ class AsyncUpload {
                             + ((user.usesCm) ? user.height_cm + " " + activity.getString(R.string.edit_user_fragment_units_tag_cm)
                             : user.height_ft + " " + activity.getString(R.string.edit_user_fragment_units_tag_ft) + user.height_in + " " + activity.getString(R.string.edit_user_fragment_units_tag_in)) + "\n");
 
-                    if (weight.weight != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_weight) + ": " + user.printMass(activity, weight.weight) + "\n");
-                    if (weight.percentFat != -1) {
-                        if (user.show_fat_mass) {
-                            body.append(activity.getString(R.string.weight_fragment_icon_desc_percentFat) + ": " + user.printMass(activity, weight.weight * weight.percentFat / 100) + "\n");
-                        } else {
-                            body.append(activity.getString(R.string.weight_fragment_icon_desc_percentFat) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), (float) weight.percentFat) + "\n");
+                    for (Metric metric : Metric.emailMetrics()) {
+                        String value = MetricFormatter.display(activity, user, weight, metric,
+                                metric == Metric.PERCENTFAT);
+                        if (!value.isEmpty()) {
+                            body.append(activity.getString(metric.getLabelRes())).append(": ")
+                                    .append(value).append("\n");
                         }
                     }
-                    if (weight.percentHydration != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_percentHydration) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), weight.percentHydration) + "\n");
-
-                    if (weight.trunkPercentFat != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_trunk_percent_fat) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), weight.trunkPercentFat) + "\n");
-                    if (weight.trunkMuscleMass != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_trunk_muscle_mass) + ": " + user.printMass(activity, weight.trunkMuscleMass) + "\n");
-                    if (weight.leftArmPercentFat != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_left_arm_percent_fat) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), weight.leftArmPercentFat) + "\n");
-                    if (weight.leftArmMuscleMass != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_left_arm_muscle_mass) + ": " + user.printMass(activity, weight.leftArmMuscleMass) + "\n");
-                    if (weight.rightArmPercentFat != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_right_arm_percent_fat) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), weight.rightArmPercentFat) + "\n");
-                    if (weight.rightArmMuscleMass != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_right_arm_muscle_mass) + ": " + user.printMass(activity, weight.rightArmMuscleMass) + "\n");
-                    if (weight.leftLegPercentFat != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_left_leg_percent_fat) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), weight.leftLegPercentFat) + "\n");
-                    if (weight.leftLegMuscleMass != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_left_leg_muscle_mass) + ": " + user.printMass(activity, weight.leftLegMuscleMass) + "\n");
-                    if (weight.rightLegPercentFat != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_right_leg_percent_fat) + ": " + String.format(activity.getString(R.string.weight_fragment_percent_tag), weight.rightLegPercentFat) + "\n");
-                    if (weight.rightLegMuscleMass != -1)
-                        body.append(activity.getString(R.string.graphs_fragment_measurement_right_leg_muscle_mass) + ": " + user.printMass(activity, weight.rightLegMuscleMass) + "\n");
-
-                    if (weight.boneMass != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_boneMass) + ": " + user.printMass(activity, weight.boneMass) + "\n");
-                    if (weight.muscleMass != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_muscleMass) + ": " + user.printMass(activity, weight.muscleMass) + "\n");
-                    if (weight.physiqueRating != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_physiqueRating) + ": " + weight.physiqueRating + "\n");
-                    if (weight.visceralFatRating != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_visceralFat) + ": " + df2.format(weight.visceralFatRating) + "\n");
-                    if (weight.metabolicAge != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_metabolicAge) + ": " + String.format(activity.getString(R.string.weight_fragment_years_tag), weight.metabolicAge) + "\n");
-                    if (weight.activeMet != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_activeMet) + ": " + String.format(activity.getString(R.string.weight_fragment_kcal_tag), weight.activeMet) + "\n");
-                    if (weight.basalMet != -1)
-                        body.append(activity.getString(R.string.weight_fragment_icon_desc_basalMet) + ": " + String.format(activity.getString(R.string.weight_fragment_kcal_tag), weight.basalMet));
 
                     Intent emailIntent = new Intent(Intent.ACTION_SEND);
                     emailIntent.setType("vnd.android.cursor.dir/email");

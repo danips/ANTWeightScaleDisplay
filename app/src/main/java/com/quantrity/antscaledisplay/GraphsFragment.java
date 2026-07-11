@@ -239,35 +239,8 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     }
 
     private void setIcon(int itemid) {
-        int resid = R.drawable.ic_weight;
-        if (itemid == R.id.graph_bmi) {
-            resid = R.drawable.ic_bmi;
-        } else if (itemid == R.id.graph_metabolicAge || itemid == R.id.graph_activeMet || itemid == R.id.graph_basalMet) {
-            resid = R.drawable.ic_metabolic;
-        } else if (itemid == R.id.graph_percentFat) {
-            resid = R.drawable.ic_percent_fat;
-        } else if (itemid == R.id.graph_percentHydration) {
-            resid = R.drawable.ic_percent_hydration;
-        } else if (itemid == R.id.graph_boneMass) {
-            resid = R.drawable.ic_bone_mass;
-        } else if (itemid == R.id.graph_muscleMass) {
-            resid = R.drawable.ic_muscle_mass;
-        } else if (itemid == R.id.graph_physiqueRating) {
-            resid = R.drawable.ic_physique_rating;
-        } else if (itemid == R.id.graph_visceralFatRating) {
-            resid = R.drawable.ic_visceral_fat_rating;
-        } else if (itemid == R.id.graph_trunkFatPercent || itemid == R.id.graph_trunkMuscleMass) {
-            resid = R.drawable.ic_trunk;
-        } else if (itemid == R.id.graph_leftArmFatPercent || itemid == R.id.graph_leftArmMuscleMass) {
-            resid = R.drawable.ic_left_arm;
-        } else if (itemid == R.id.graph_rightArmFatPercent || itemid == R.id.graph_rightArmMuscleMass) {
-            resid = R.drawable.ic_right_arm;
-        } else if (itemid == R.id.graph_leftLegFatPercent || itemid == R.id.graph_leftLegMuscleMass) {
-            resid = R.drawable.ic_left_leg;
-        } else if (itemid == R.id.graph_rightLegFatPercent || itemid == R.id.graph_rightLegMuscleMass) {
-            resid = R.drawable.ic_right_leg;
-        }
-        measurement_selection.setIcon(resid);
+        Metric metric = Metric.fromGraphId(itemid);
+        measurement_selection.setIcon(metric == null ? Metric.WEIGHT.getIconRes() : metric.getIconRes());
         turnWhite(measurement_selection.getIcon());
     }
 
@@ -302,16 +275,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
                 editor1.apply();
                 loadGraph(graph_measurement_displayed, menuItem.getItemId());
             }
-        } else if (itemId == R.id.graph_percentHydration || itemId == R.id.graph_boneMass || itemId == R.id.graph_muscleMass || itemId == R.id.graph_physiqueRating || itemId == R.id.graph_visceralFatRating || itemId == R.id.graph_metabolicAge || itemId == R.id.graph_activeMet || itemId == R.id.graph_basalMet || itemId == R.id.graph_trunkFatPercent || itemId == R.id.graph_trunkMuscleMass || itemId == R.id.graph_leftArmFatPercent || itemId == R.id.graph_leftArmMuscleMass || itemId == R.id.graph_rightArmFatPercent || itemId == R.id.graph_rightArmMuscleMass || itemId == R.id.graph_leftLegFatPercent || itemId == R.id.graph_leftLegMuscleMass || itemId == R.id.graph_rightLegFatPercent || itemId == R.id.graph_rightLegMuscleMass) {
-            if (graph_measurement_displayed != menuItem.getItemId()) {
-                SharedPreferences settings2 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor2 = settings2.edit();
-                editor2.putInt("selected_graph_measurement", menuItem.getItemId());
-                editor2.apply();
-                setIcon(menuItem.getItemId());
-                loadGraph(menuItem.getItemId(), graph_period_displayed);
-            }
-        } else if (itemId == R.id.graph_weight || itemId == R.id.graph_bmi || itemId == R.id.graph_percentFat) {
+        } else if (Metric.fromGraphId(itemId) != null) {
             if (graph_measurement_displayed != menuItem.getItemId()) {
                 SharedPreferences settings2 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor2 = settings2.edit();
@@ -324,71 +288,11 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         return false;
     }
 
-    private Entry getEntry(int item_id, Weight w) {
-        float date = w.date;
-        Entry dp = null;
-        if (item_id == R.id.graph_bmi) {
-            if ((w.weight != -1) && (w.height != -1))
-                dp = new Entry(date, (float) (w.weight * Math.pow(100 / ((float) w.height), 2)));
-        } else if (item_id == R.id.graph_percentFat) {
-            if (w.percentFat != -1) {
-                dp = new Entry(date, (float) the_user.calc_mass2(w.percentFat, w.weight, true));
-            }
-        } else if (item_id == R.id.graph_percentHydration) {
-            if (w.percentHydration != -1) dp = new Entry(date, (float) w.percentHydration);
-        } else if (item_id == R.id.graph_boneMass) {
-            if (w.boneMass != -1) dp = new Entry(date, (float) w.boneMass);
-        } else if (item_id == R.id.graph_muscleMass) {
-            if (w.muscleMass != -1) dp = new Entry(date, (float) w.muscleMass);
-        } else if (item_id == R.id.graph_physiqueRating) {
-            if (w.physiqueRating != -1) dp = new Entry(date, (float) w.physiqueRating);
-        } else if (item_id == R.id.graph_visceralFatRating) {
-            if (w.visceralFatRating != -1) dp = new Entry(date, (float) w.visceralFatRating);
-        } else if (item_id == R.id.graph_metabolicAge) {
-            if (w.metabolicAge != -1) dp = new Entry(date, (float) w.metabolicAge);
-        } else if (item_id == R.id.graph_activeMet) {
-            if (w.activeMet != -1) dp = new Entry(date, (float) w.activeMet);
-        } else if (item_id == R.id.graph_basalMet) {
-            if (w.basalMet != -1) dp = new Entry(date, (float) w.basalMet);
-        } else if (item_id == R.id.graph_trunkFatPercent) {
-            if (w.trunkPercentFat != -1) {
-                dp = new Entry(date, (float) the_user.calc_mass2(w.trunkPercentFat, w.weight, true));
-            }
-        } else if (item_id == R.id.graph_trunkMuscleMass) {
-            if (w.trunkMuscleMass != -1) dp = new Entry(date, (float) w.trunkMuscleMass);
-        } else if (item_id == R.id.graph_leftArmFatPercent) {
-            if (w.leftArmPercentFat != -1) {
-                dp = new Entry(date, (float) the_user.calc_mass2(w.leftArmPercentFat, w.weight, true));
-            }
-        } else if (item_id == R.id.graph_leftArmMuscleMass) {
-            if (w.leftArmMuscleMass != -1) dp = new Entry(date, (float) w.leftArmMuscleMass);
-        } else if (item_id == R.id.graph_rightArmFatPercent) {
-            if (w.rightArmPercentFat != -1) {
-                dp = new Entry(date, (float) the_user.calc_mass2(w.rightArmPercentFat, w.weight, true));
-            }
-        } else if (item_id == R.id.graph_rightArmMuscleMass) {
-            if (w.rightArmMuscleMass != -1) dp = new Entry(date, (float) w.rightArmMuscleMass);
-        } else if (item_id == R.id.graph_leftLegFatPercent) {
-            if (w.leftLegPercentFat != -1) {
-                dp = new Entry(date, (float) the_user.calc_mass2(w.leftLegPercentFat, w.weight, true));
-            }
-        } else if (item_id == R.id.graph_leftLegMuscleMass) {
-            if (w.leftLegMuscleMass != -1) dp = new Entry(date, (float) w.leftLegMuscleMass);
-        } else if (item_id == R.id.graph_rightLegFatPercent) {
-            if (w.rightLegPercentFat != -1) {
-                dp = new Entry(date, (float) the_user.calc_mass2(w.rightLegPercentFat, w.weight, true));
-            }
-        } else if (item_id == R.id.graph_rightLegMuscleMass) {
-            if (w.rightLegMuscleMass != -1) dp = new Entry(date, (float) w.rightLegMuscleMass);
-        } else {
-            if (w.weight != -1) dp = new Entry(date, (float) w.weight);
-        }
-        return dp;
-    }
-
     private void loadGraph(int item_id, int period_id) {
         graph_measurement_displayed = item_id;
         graph_period_displayed = period_id;
+        Metric metric = Metric.fromGraphId(item_id);
+        if (metric == null) metric = Metric.WEIGHT;
 
         graphLayout.removeAllViews();
 
@@ -433,8 +337,8 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         ArrayList<Entry> yVals = new ArrayList<>();
         for (int i = 0; i < weights.size(); i++) {
             Weight w = weights.get(i);
-            Entry dp = getEntry(item_id, w);
-            if (dp != null) yVals.add(dp);
+            double value = metric.graphValue(w, the_user);
+            if (value != -1) yVals.add(new Entry((float) w.date, (float) value));
         }
 
         if (yVals.isEmpty()) {
@@ -442,73 +346,20 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
             return;
         }
 
-        int color;
-        int color2;
+        int color = metric.getGraphColor();
+        int color2 = metric.getGraphFillColor();
         String measureFormat = "%.01f";
         boolean stones = false;
         boolean pounds = false;
-        if (item_id == R.id.graph_bmi) {
-            color = Color.parseColor("#de3450");
-            color2 = Color.argb(150, 0xde, 0x34, 0x50);
-        } else if (item_id == R.id.graph_percentFat) {
-            color = Color.parseColor("#ff9c13");
-            color2 = Color.argb(150, 0xff, 0x9c, 0x13);
-            if (the_user.show_fat_mass) {
-                measureFormat = getString((the_user.mass_unit == User.MassUnit.LB) ? R.string.edit_user_fragment_units_tag_lb : (the_user.mass_unit == User.MassUnit.ST) ? R.string.edit_user_fragment_units_tag_st : R.string.edit_user_fragment_units_tag_kg);
-                stones = (the_user.mass_unit == User.MassUnit.ST);
-                pounds = (the_user.mass_unit == User.MassUnit.LB);
-            } else {
-                measureFormat = getString(R.string.weight_fragment_percent_tag);
-            }
-        } else if (item_id == R.id.graph_percentHydration) {
-            color = Color.parseColor("#3dc4d4");
-            color2 = Color.argb(150, 0x3d, 0xc4, 0xd4);
+        Metric.Unit unit = metric.displayedUnit(the_user.show_fat_mass);
+        if (unit == Metric.Unit.MASS) {
+            measureFormat = getString((the_user.mass_unit == User.MassUnit.LB) ? R.string.edit_user_fragment_units_tag_lb : (the_user.mass_unit == User.MassUnit.ST) ? R.string.edit_user_fragment_units_tag_st : R.string.edit_user_fragment_units_tag_kg);
+            stones = (the_user.mass_unit == User.MassUnit.ST);
+            pounds = (the_user.mass_unit == User.MassUnit.LB);
+        } else if (unit == Metric.Unit.PERCENT) {
             measureFormat = getString(R.string.weight_fragment_percent_tag);
-        } else if (item_id == R.id.graph_boneMass) {
-            color = Color.parseColor("#94857d");
-            color2 = Color.argb(150, 0x94, 0x85, 0x7d);
-            measureFormat = getString((the_user.mass_unit == User.MassUnit.LB) ? R.string.edit_user_fragment_units_tag_lb : (the_user.mass_unit == User.MassUnit.ST) ? R.string.edit_user_fragment_units_tag_st : R.string.edit_user_fragment_units_tag_kg);
-            stones = (the_user.mass_unit == User.MassUnit.ST);
-            pounds = (the_user.mass_unit == User.MassUnit.LB);
-        } else if (item_id == R.id.graph_muscleMass) {
-            color = Color.parseColor("#b35fae");
-            color2 = Color.argb(150, 0xb3, 0x5f, 0xae);
-            measureFormat = getString((the_user.mass_unit == User.MassUnit.LB) ? R.string.edit_user_fragment_units_tag_lb : (the_user.mass_unit == User.MassUnit.ST) ? R.string.edit_user_fragment_units_tag_st : R.string.edit_user_fragment_units_tag_kg);
-            stones = (the_user.mass_unit == User.MassUnit.ST);
-            pounds = (the_user.mass_unit == User.MassUnit.LB);
-        } else if (item_id == R.id.graph_physiqueRating) {
-            color = Color.parseColor("#578ccf");
-            color2 = Color.argb(150, 0x57, 0x8c, 0xcf);
-        } else if (item_id == R.id.graph_visceralFatRating) {
-            color = Color.parseColor("#e06e3a");
-            color2 = Color.argb(150, 0xe0, 0x6e, 0x3a);
-        } else if (item_id == R.id.graph_metabolicAge) {
-            color = Color.parseColor("#72c250");
-            color2 = Color.argb(150, 0x72, 0xc2, 0x50);
-        } else if (item_id == R.id.graph_activeMet) {
-            color = Color.parseColor("#3BD743");
-            color2 = Color.argb(150, 0x3b, 0xd7, 0x43);
+        } else if (unit == Metric.Unit.ENERGY) {
             measureFormat = getString(R.string.weight_fragment_kcal_tag);
-        } else if (item_id == R.id.graph_basalMet) {
-            color = Color.parseColor("#d73bcf");
-            color2 = Color.argb(150, 0xd7, 0x3b, 0xcf);
-            measureFormat = getString(R.string.weight_fragment_kcal_tag);
-        } else if (item_id == R.id.graph_trunkFatPercent || item_id == R.id.graph_leftArmFatPercent || item_id == R.id.graph_rightArmFatPercent || item_id == R.id.graph_leftLegFatPercent || item_id == R.id.graph_rightLegFatPercent) {
-            color = Color.parseColor("#34a5de");
-            color2 = Color.argb(150, 0x34, 0xa5, 0xde);
-            if (the_user.show_fat_mass) {
-                measureFormat = getString((the_user.mass_unit == User.MassUnit.LB) ? R.string.edit_user_fragment_units_tag_lb : (the_user.mass_unit == User.MassUnit.ST) ? R.string.edit_user_fragment_units_tag_st : R.string.edit_user_fragment_units_tag_kg);
-                stones = (the_user.mass_unit == User.MassUnit.ST);
-                pounds = (the_user.mass_unit == User.MassUnit.LB);
-            } else {
-                measureFormat = getString(R.string.weight_fragment_percent_tag);
-            }
-        } else {
-            color = Color.parseColor("#34a5de");
-            color2 = Color.argb(150, 0x34, 0xa5, 0xde);
-            measureFormat = getString((the_user.mass_unit == User.MassUnit.LB) ? R.string.edit_user_fragment_units_tag_lb : (the_user.mass_unit == User.MassUnit.ST) ? R.string.edit_user_fragment_units_tag_st : R.string.edit_user_fragment_units_tag_kg);
-            stones = (the_user.mass_unit == User.MassUnit.ST);
-            pounds = (the_user.mass_unit == User.MassUnit.LB);
         }
 
         mChart = new LineChart(getActivity());
@@ -617,9 +468,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
                 for (Goal g : goals) {
                     if (g.uuid.equals(the_user.uuid)) {
                         if (Metric.isSameMetric(g.type, graph_measurement_displayed)) {
-                            if (((g.type == Metric.PERCENTFAT) || (g.type == Metric.TRUNKPERCENTFAT)
-                                    || (g.type == Metric.LEFTARMPERCENTFAT) || (g.type == Metric.RIGHTARMPERCENTFAT)
-                                    || (g.type == Metric.LEFTLEGPERCENTFAT) || (g.type == Metric.RIGHTLEGPERCENTFAT))
+                            if (g.type.percentageMayBeMass()
                                     && (g.show_fat_mass != the_user.show_fat_mass))
                             {
                                 continue;

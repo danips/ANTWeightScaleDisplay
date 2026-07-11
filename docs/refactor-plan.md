@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 5 — Make metric handling data-driven
+- Current phase: Phase 6 — Simplify upload orchestration
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -39,7 +39,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 - [x] Phase 2 — Package or isolate the Garmin FIT SDK
 - [x] Phase 3 — Centralize file persistence
 - [x] Phase 4 — Move application state out of `MainActivity`
-- [ ] Phase 5 — Make metric handling data-driven
+- [x] Phase 5 — Make metric handling data-driven
 - [ ] Phase 6 — Simplify upload orchestration
 - [ ] Phase 7 — Split Garmin responsibilities
 - [ ] Phase 8 — Decouple the ANT state machine
@@ -404,9 +404,9 @@ refactor: use stable fragment arguments
 
 ## Phase 5 — Make metric handling data-driven
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: `e1e4345`
 
 ### Objective
 
@@ -430,17 +430,28 @@ be expressed as loops rather than copied branches.
 
 ### Tasks
 
-- [ ] Design `MetricDefinition` or extend `Metric` without coupling pure calculations unnecessarily
+- [x] Design `MetricDefinition` or extend `Metric` without coupling pure calculations unnecessarily
       to Android UI objects.
-- [ ] Add parameterized tests covering extraction, missing values, units, and formatting for every
+- [x] Add parameterized tests covering extraction, missing values, units, and formatting for every
       metric.
-- [ ] Migrate graph menu-ID mapping and graph value extraction.
-- [ ] Migrate graph colors and axis formatting.
-- [ ] Migrate goal editor choices and goal-to-graph matching.
-- [ ] Migrate measurement cards and segmental display.
-- [ ] Migrate email/CSV measurement formatting where applicable.
-- [ ] Remove obsolete switches and duplicated unit-selection expressions only after all consumers use
+- [x] Migrate graph menu-ID mapping and graph value extraction.
+- [x] Migrate graph colors and axis formatting.
+- [x] Migrate goal editor choices and goal-to-graph matching.
+- [x] Migrate measurement cards and segmental display.
+- [x] Migrate email/CSV measurement formatting where applicable.
+- [x] Remove obsolete switches and duplicated unit-selection expressions only after all consumers use
       the shared definitions.
+
+### Implementation notes
+
+- `Metric` now owns stable IDs, resources, graph styling, unit categories, value extraction,
+  missing-value behavior, and percentage-as-mass policy without holding Android UI objects.
+- `BodySegment` pairs the fat and muscle metrics for the five segmental cards.
+- Graphs, goal progress, goal initialization, measurement cards, CSV export, and email output now
+  consume the shared definitions. Export ordering remains explicit and stable.
+- Replacing the goal-selection switch also corrected right-arm muscle goals reading right-leg
+  muscle, and stone-unit goal parsing now reads both start and end fields correctly.
+- The final unit suite, debug lint, and full minified release build all pass.
 
 ### Acceptance criteria
 
@@ -448,6 +459,14 @@ be expressed as loops rather than copied branches.
 - Adding a metric no longer requires editing several large condition chains.
 - Graph, goal, card, email, and CSV output match pre-refactor behavior.
 - Unit tests cover every metric definition.
+
+### Verification
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+./gradlew assembleRelease
+```
 
 ### Suggested commits
 

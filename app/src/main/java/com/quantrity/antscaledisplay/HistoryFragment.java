@@ -266,77 +266,21 @@ public class HistoryFragment extends Fragment implements MenuProvider {
     private void writeCSV(FileWriter fCsv, User user, SimpleDateFormat format, String filename, List<Weight> wl) {
         try {
             fCsv.append(getString(R.string.edit_user_fragment_user)).append(",");
-            fCsv.append(getString(R.string.history_fragment_date)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_weight)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_percentFat)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_percentHydration)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_muscleMass)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_physiqueRating)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_visceralFat)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_boneMass)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_metabolicAge)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_basalMet)).append(",");
-            fCsv.append(getString(R.string.weight_fragment_icon_desc_activeMet)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_trunk_percent_fat)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_trunk_muscle_mass)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_left_arm_percent_fat)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_left_arm_muscle_mass)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_right_arm_percent_fat)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_right_arm_muscle_mass)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_left_leg_percent_fat)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_left_leg_muscle_mass)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_right_leg_percent_fat)).append(",");
-            fCsv.append(getString(R.string.graphs_fragment_measurement_right_leg_muscle_mass)).append("\n");
+            fCsv.append(getString(R.string.history_fragment_date));
+            for (Metric metric : Metric.exportMetrics()) {
+                fCsv.append(",").append(getString(metric.getLabelRes()));
+            }
+            fCsv.append("\n");
 
             DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
             df.applyPattern("#.##");
             for (Weight w : wl) {
                 fCsv.append(user.name).append(",");
-                fCsv.append((w.date != -1) ? format.format(w.date) : "").append(",");
-                fCsv.append((w.weight != -1) ? df.format(w.weight) : "").append(",");
-                if (user.show_fat_mass) {
-                    fCsv.append((w.percentFat != -1) ? df.format(w.weight * w.percentFat / 100) : "").append(",");
-                } else {
-                    fCsv.append((w.percentFat != -1) ? df.format(w.percentFat) : "").append(",");
+                fCsv.append((w.date != -1) ? format.format(w.date) : "");
+                for (Metric metric : Metric.exportMetrics()) {
+                    fCsv.append(",").append(MetricFormatter.csv(df, user, w, metric));
                 }
-                fCsv.append((w.percentHydration != -1) ? df.format(w.percentHydration) : "").append(",");
-                fCsv.append((w.muscleMass != -1) ? df.format(w.muscleMass) : "").append(",");
-                fCsv.append((w.physiqueRating != -1) ? w.physiqueRating + "" : "").append(",");
-                fCsv.append((w.visceralFatRating != -1) ? df.format(w.visceralFatRating) : "").append(",");
-                fCsv.append((w.boneMass != -1) ? df.format(w.boneMass) : "").append(",");
-                fCsv.append((w.metabolicAge != -1) ? w.metabolicAge + "" : "").append(",");
-                fCsv.append((w.basalMet != -1) ? df.format(w.basalMet) : "").append(",");
-                fCsv.append((w.activeMet != -1) ? df.format(w.activeMet) : "").append(",");
-                if (user.show_fat_mass) {
-                    fCsv.append((w.trunkPercentFat != -1) ? user.printMass(getContext(), w.weight * w.trunkPercentFat / 100) : "").append(",");
-                } else {
-                    fCsv.append((w.trunkPercentFat != -1) ? df.format(w.trunkPercentFat) : "").append(",");
-                }
-                fCsv.append((w.trunkMuscleMass != -1) ? df.format(w.trunkMuscleMass) : "").append(",");
-                if (user.show_fat_mass) {
-                    fCsv.append((w.leftArmPercentFat != -1) ? df.format(w.weight * w.leftArmPercentFat / 100) : "").append(",");
-                } else {
-                    fCsv.append((w.leftArmPercentFat != -1) ? df.format(w.leftArmPercentFat) : "").append(",");
-                }
-                fCsv.append((w.leftArmMuscleMass != -1) ? df.format(w.leftArmMuscleMass) : "").append(",");
-                if (user.show_fat_mass) {
-                    fCsv.append((w.rightArmPercentFat != -1) ? df.format(w.weight * w.rightArmPercentFat / 100) : "").append(",");
-                } else {
-                    fCsv.append((w.rightArmPercentFat != -1) ? df.format(w.rightArmPercentFat) : "").append(",");
-                }
-                fCsv.append((w.rightArmMuscleMass != -1) ? df.format(w.rightArmMuscleMass) : "").append(",");
-                if (user.show_fat_mass) {
-                    fCsv.append((w.leftLegPercentFat != -1) ? df.format(w.weight * w.leftLegPercentFat / 100) : "").append(",");
-                } else {
-                    fCsv.append((w.leftLegPercentFat != -1) ? df.format(w.leftLegPercentFat) : "").append(",");
-                }
-                fCsv.append((w.leftLegMuscleMass != -1) ? df.format(w.leftLegMuscleMass) : "").append(",");
-                if (user.show_fat_mass) {
-                    fCsv.append((w.rightLegPercentFat != -1) ? df.format(w.weight * w.rightLegPercentFat / 100) : "").append(",");
-                } else {
-                    fCsv.append((w.rightLegPercentFat != -1) ? df.format(w.rightLegPercentFat) : "").append(",");
-                }
-                fCsv.append((w.rightLegMuscleMass != -1) ? df.format(w.rightLegMuscleMass) : "").append("\n");
+                fCsv.append("\n");
             }
 
             fCsv.flush();

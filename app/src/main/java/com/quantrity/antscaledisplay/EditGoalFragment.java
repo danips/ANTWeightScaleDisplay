@@ -122,94 +122,12 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
 
         if (getActivity() == null) return null;
         tmp.uuid = the_user.uuid;
-        Units units;
-        switch (sp_type.getSelectedItemPosition())
-        {
-            case 1:
-                tmp.type = Metric.BMI;
-                units = Units.NO_UNITS;
-                break;
-            case 2:
-                tmp.type = Metric.PERCENTFAT;
-                units = (the_goal.show_fat_mass) ? Units.ONE_UNIT_WEIGHT : Units.ONE_UNIT;
-                break;
-            case 3:
-                tmp.type = Metric.PERCENTHYDRATION;
-                units = Units.ONE_UNIT;
-                break;
-            case 4:
-                tmp.type = Metric.BONEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 5:
-                tmp.type = Metric.MUSCLEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 6:
-                tmp.type = Metric.PHYSIQUERATING;
-                units = Units.NO_UNITS;
-                break;
-            case 7:
-                tmp.type = Metric.VISCERALFATRATING;
-                units = Units.NO_UNITS;
-                break;
-            case 8:
-                tmp.type = Metric.METABOLICAGE;
-                units = Units.ONE_UNIT;
-                break;
-            case 9:
-                tmp.type = Metric.ACTIVEMET;
-                units = Units.ONE_UNIT;
-                break;
-            case 10:
-                tmp.type = Metric.BASALMET;
-                units = Units.ONE_UNIT;
-                break;
-            case 11:
-                tmp.type = Metric.TRUNKPERCENTFAT;
-                units = (the_goal.show_fat_mass) ? Units.ONE_UNIT_WEIGHT : Units.ONE_UNIT;
-                break;
-            case 12:
-                tmp.type = Metric.TRUNKMUSCLEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 13:
-                tmp.type = Metric.LEFTARMPERCENTFAT;
-                units = (the_goal.show_fat_mass) ? Units.ONE_UNIT_WEIGHT : Units.ONE_UNIT;
-                break;
-            case 14:
-                tmp.type = Metric.LEFTARMMUSCLEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 15:
-                tmp.type = Metric.RIGHTARMPERCENTFAT;
-                units = (the_goal.show_fat_mass) ? Units.ONE_UNIT_WEIGHT : Units.ONE_UNIT;
-                break;
-            case 16:
-                tmp.type = Metric.RIGHTARMMUSCLEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 17:
-                tmp.type = Metric.LEFTLEGPERCENTFAT;
-                units = (the_goal.show_fat_mass) ? Units.ONE_UNIT_WEIGHT : Units.ONE_UNIT;
-                break;
-            case 18:
-                tmp.type = Metric.LEFTLEGMUSCLEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 19:
-                tmp.type = Metric.RIGHTLEGPERCENTFAT;
-                units = (the_goal.show_fat_mass) ? Units.ONE_UNIT_WEIGHT : Units.ONE_UNIT;
-                break;
-            case 20:
-                tmp.type = Metric.RIGHTLEGMUSCLEMASS;
-                units = Units.ONE_UNIT_WEIGHT;
-                break;
-            case 0:
-            default:
-                tmp.type = Metric.WEIGHT;
-                units = Units.ONE_UNIT_WEIGHT;
-        }
+        tmp.type = Metric.fromGoalPosition(sp_type.getSelectedItemPosition());
+        Metric.Unit displayedUnit = tmp.type.displayedUnit(the_goal.show_fat_mass);
+        Units units = displayedUnit == Metric.Unit.MASS
+                ? (the_user.mass_unit == User.MassUnit.ST
+                ? Units.TWO_UNITS_WEIGHT : Units.ONE_UNIT_WEIGHT)
+                : displayedUnit == Metric.Unit.NONE ? Units.NO_UNITS : Units.ONE_UNIT;
 
         switch (units)
         {
@@ -226,8 +144,9 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
                 tmp.end_value = the_user.calc_mass(et_endValue10, 1, false);
                 break;
             case TWO_UNITS_WEIGHT:
-                tmp.end_value = MainActivity.parseNumber(et_endValue20) * 14 + MainActivity.parseNumber(et_endValue21);
-                tmp.end_value = the_user.calc_mass(tmp.end_value, 1, false);
+                tmp.start_value = MainActivity.parseNumber(et_startValue20) * 14
+                        + MainActivity.parseNumber(et_startValue21);
+                tmp.start_value = the_user.calc_mass(tmp.start_value, 1, false);
                 tmp.end_value = MainActivity.parseNumber(et_endValue20) * 14 + MainActivity.parseNumber(et_endValue21);
                 tmp.end_value = the_user.calc_mass(tmp.end_value, 1, false);
                 break;
@@ -663,135 +582,10 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
             sp_type.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                    the_goal.type = Metric.values()[position + 2];
-                    switch (position) {
-                        case 1:
-                            the_goal.type = Metric.BMI;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : (last.weight / Math.pow(last.height / 100, 2));
-                            break;
-                        case 2:
-                            the_goal.type = Metric.PERCENTFAT;
-                            if (the_goal.show_fat_mass)
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.percentFat * last.weight / 100;
-                            }
-                            else
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.percentFat;
-                            }
-                            break;
-                        case 3:
-                            the_goal.type = Metric.PERCENTHYDRATION;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.percentHydration;
-                            break;
-                        case 4:
-                            the_goal.type = Metric.BONEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.boneMass;
-                            break;
-                        case 5:
-                            the_goal.type = Metric.MUSCLEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.muscleMass;
-                            break;
-                        case 6:
-                            the_goal.type = Metric.PHYSIQUERATING;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.physiqueRating;
-                            break;
-                        case 7:
-                            the_goal.type = Metric.VISCERALFATRATING;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.visceralFatRating;
-                            break;
-                        case 8:
-                            the_goal.type = Metric.METABOLICAGE;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.metabolicAge;
-                            break;
-                        case 9:
-                            the_goal.type = Metric.ACTIVEMET;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.activeMet;
-                            break;
-                        case 10:
-                            the_goal.type = Metric.BASALMET;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.basalMet;
-                            break;
-                        case 11:
-                            the_goal.type = Metric.TRUNKPERCENTFAT;
-                            if (the_goal.show_fat_mass)
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.trunkPercentFat * last.weight / 100;
-                            }
-                            else
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.trunkPercentFat;
-                            }
-                            break;
-                        case 12:
-                            the_goal.type = Metric.TRUNKMUSCLEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.trunkMuscleMass;
-                            break;
-                        case 13:
-                            the_goal.type = Metric.LEFTARMPERCENTFAT;
-                            if (the_goal.show_fat_mass)
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.leftArmPercentFat * last.weight / 100;
-                            }
-                            else
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.leftArmPercentFat;
-                            }
-                            break;
-                        case 14:
-                            the_goal.type = Metric.LEFTARMMUSCLEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.leftArmMuscleMass;
-                            break;
-                        case 15:
-                            the_goal.type = Metric.RIGHTARMPERCENTFAT;
-                            if (the_goal.show_fat_mass)
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.rightArmPercentFat * last.weight / 100;
-                            }
-                            else
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.rightArmPercentFat;
-                            }
-                            break;
-                        case 16:
-                            the_goal.type = Metric.RIGHTARMMUSCLEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.rightLegMuscleMass;
-                            break;
-                        case 17:
-                            the_goal.type = Metric.LEFTLEGPERCENTFAT;
-                            if (the_goal.show_fat_mass)
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.leftLegPercentFat * last.weight / 100;
-                            }
-                            else
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.leftLegPercentFat;
-                            }
-                            break;
-                        case 18:
-                            the_goal.type = Metric.LEFTLEGMUSCLEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.leftLegMuscleMass;
-                            break;
-                        case 19:
-                            the_goal.type = Metric.RIGHTLEGPERCENTFAT;
-                            if (the_goal.show_fat_mass)
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.rightLegPercentFat * last.weight / 100;
-                            }
-                            else
-                            {
-                                the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.rightLegPercentFat;
-                            }
-                            break;
-                        case 20:
-                            the_goal.type = Metric.RIGHTLEGMUSCLEMASS;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.rightLegMuscleMass;
-                            break;
-                        case 0:
-                        default:
-                            the_goal.type = Metric.WEIGHT;
-                            the_goal.start_value = the_goal.end_value = (last == null) ? 0 : last.weight;
-                    }
+                    the_goal.type = Metric.fromGoalPosition(position);
+                    double value = last == null ? 0
+                            : the_goal.type.goalValue(last, the_goal.show_fat_mass);
+                    the_goal.start_value = the_goal.end_value = value == -1 ? 0 : value;
                     setValues();
                 }
 

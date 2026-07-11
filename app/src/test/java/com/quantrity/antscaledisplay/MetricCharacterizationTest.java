@@ -27,6 +27,7 @@ public class MetricCharacterizationTest {
             if (metric == Metric.UNDEFINED || metric == Metric.HEIGHT) continue;
             assertNotEquals(0, Metric.getGraph(metric));
             assertNotEquals(0, Metric.getRes(metric));
+            assertNotEquals(0, metric.getLabelRes());
             assertTrue(Metric.isSameMetric(metric, Metric.getGraph(metric)));
         }
     }

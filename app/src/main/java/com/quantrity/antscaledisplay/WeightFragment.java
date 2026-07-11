@@ -42,21 +42,19 @@ public class WeightFragment extends Fragment implements MenuProvider {
         View rootView = binding.getRoot();
 
         // 1. Initialize Segment Cards (Using ItemSegmentBinding)
-        setupSegment(binding.segTrunk, R.drawable.ic_trunk, getString(R.string.weight_fragment_icon_desc_trunk));
-        setupSegment(binding.segLeftArm, R.drawable.ic_left_arm, getString(R.string.weight_fragment_icon_desc_leftArm));
-        setupSegment(binding.segRightArm, R.drawable.ic_right_arm, getString(R.string.weight_fragment_icon_desc_rightArm));
-        setupSegment(binding.segLeftLeg, R.drawable.ic_left_leg, getString(R.string.weight_fragment_icon_desc_leftLeg));
-        setupSegment(binding.segRightLeg, R.drawable.ic_right_leg, getString(R.string.weight_fragment_icon_desc_rightLeg));
+        for (BodySegment segment : BodySegment.values()) {
+            setupSegment(segmentBinding(segment), segment.iconRes, getString(segment.labelRes));
+        }
 
         // 2. Initialize Grid Cards (Using ItemMetricCardBinding)
-        setupCard(binding.cardFat, R.drawable.ic_percent_fat, getString(R.string.weight_fragment_icon_desc_percentFat));
-        setupCard(binding.cardWater, R.drawable.ic_percent_hydration, getString(R.string.weight_fragment_icon_desc_percentHydration));
-        setupCard(binding.cardMuscle, R.drawable.ic_muscle_mass, getString(R.string.weight_fragment_icon_desc_muscleMass));
-        setupCard(binding.cardBone, R.drawable.ic_bone_mass, getString(R.string.weight_fragment_icon_desc_boneMass));
-        setupCard(binding.cardVisceral, R.drawable.ic_visceral_fat_rating, getString(R.string.weight_fragment_icon_desc_visceralFat));
-        setupCard(binding.cardPhysique, R.drawable.ic_physique_rating, getString(R.string.weight_fragment_icon_desc_physiqueRating));
-        setupCard(binding.cardMetabolicAge, R.drawable.ic_metabolic_age, getString(R.string.weight_fragment_icon_desc_metabolicAge));
-        setupCard(binding.cardBMR, R.drawable.ic_metabolic, getString(R.string.weight_fragment_icon_desc_basalMet));
+        setupCard(binding.cardFat, Metric.PERCENTFAT);
+        setupCard(binding.cardWater, Metric.PERCENTHYDRATION);
+        setupCard(binding.cardMuscle, Metric.MUSCLEMASS);
+        setupCard(binding.cardBone, Metric.BONEMASS);
+        setupCard(binding.cardVisceral, Metric.VISCERALFATRATING);
+        setupCard(binding.cardPhysique, Metric.PHYSIQUERATING);
+        setupCard(binding.cardMetabolicAge, Metric.METABOLICAGE);
+        setupCard(binding.cardBMR, Metric.BASALMET);
 
         binding.fab.setOnClickListener(view -> {
             MainActivity ma = (MainActivity)getActivity();
@@ -144,32 +142,18 @@ public class WeightFragment extends Fragment implements MenuProvider {
             }
 
             // Segmental Analysis (Uses helper method for ItemSegmentBinding)
-            double lastVal, currVal;
             boolean hasData = false;
-            currVal = displayUser.show_fat_mass ? displayWeight.trunkMuscleMass : displayWeight.trunkPercentFat;
-            lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.trunkMuscleMass : lastWeight.trunkPercentFat) : -1;
-            hasData |= currVal != -1;
-            updateSegmentUI(binding.segTrunk, displayWeight.trunkPercentFat, displayWeight.trunkMuscleMass, displayWeight, displayUser, lastVal, currVal);
-
-            currVal = displayUser.show_fat_mass ? displayWeight.leftArmMuscleMass : displayWeight.leftArmPercentFat;
-            lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.leftArmMuscleMass : lastWeight.leftArmPercentFat) : -1;
-            hasData |= currVal != -1;
-            updateSegmentUI(binding.segLeftArm, displayWeight.leftArmPercentFat, displayWeight.leftArmMuscleMass, displayWeight, displayUser, lastVal, currVal);
-
-            currVal = displayUser.show_fat_mass ? displayWeight.rightArmMuscleMass : displayWeight.rightArmPercentFat;
-            lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.rightArmMuscleMass : lastWeight.rightArmPercentFat) : -1;
-            hasData |= currVal != -1;
-            updateSegmentUI(binding.segRightArm, displayWeight.rightArmPercentFat, displayWeight.rightArmMuscleMass, displayWeight, displayUser, lastVal, currVal);
-
-            currVal = displayUser.show_fat_mass ? displayWeight.leftLegMuscleMass : displayWeight.leftLegPercentFat;
-            lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.leftLegMuscleMass : lastWeight.leftLegPercentFat) : -1;
-            hasData |= currVal != -1;
-            updateSegmentUI(binding.segLeftLeg, displayWeight.leftLegPercentFat, displayWeight.leftLegMuscleMass, displayWeight, displayUser, lastVal, currVal);
-
-            currVal = displayUser.show_fat_mass ? displayWeight.rightLegMuscleMass : displayWeight.rightLegPercentFat;
-            lastVal = lastWeight != null ? (displayUser.show_fat_mass ? lastWeight.rightLegMuscleMass : lastWeight.rightLegPercentFat) : -1;
-            hasData |= currVal != -1;
-            updateSegmentUI(binding.segRightLeg, displayWeight.rightLegPercentFat, displayWeight.rightLegMuscleMass, displayWeight, displayUser, lastVal, currVal);
+            for (BodySegment segment : BodySegment.values()) {
+                double percent = segment.fatMetric.value(displayWeight);
+                double muscle = segment.muscleMetric.value(displayWeight);
+                double current = displayUser.show_fat_mass ? muscle : percent;
+                double previous = lastWeight == null ? -1
+                        : (displayUser.show_fat_mass
+                        ? segment.muscleMetric.value(lastWeight) : segment.fatMetric.value(lastWeight));
+                hasData |= current != -1;
+                updateSegmentUI(segmentBinding(segment), percent, muscle, displayWeight,
+                        displayUser, previous, current);
+            }
             binding.segmentalData.setVisibility(hasData ? View.VISIBLE : View.GONE);
 
             // Metric Grid Cards (Uses helper method for ItemMetricCardBinding)
@@ -297,6 +281,17 @@ public class WeightFragment extends Fragment implements MenuProvider {
         seg.metricIcon.setImageResource(iconRes);
     }
 
+    private ItemSegmentBinding segmentBinding(BodySegment segment) {
+        switch (segment) {
+            case TRUNK: return binding.segTrunk;
+            case LEFT_ARM: return binding.segLeftArm;
+            case RIGHT_ARM: return binding.segRightArm;
+            case LEFT_LEG: return binding.segLeftLeg;
+            case RIGHT_LEG: return binding.segRightLeg;
+            default: throw new IllegalArgumentException("Unknown segment " + segment);
+        }
+    }
+
     private void updateSegmentUI(ItemSegmentBinding seg, double percent, double muscle, Weight w, User u, double lastVal, double currVal) {
         if (percent != -1) {
             String val, sub;
@@ -336,9 +331,9 @@ public class WeightFragment extends Fragment implements MenuProvider {
     }
 
     // --- Helpers for ItemMetricCardBinding (Grid) ---
-    private void setupCard(ItemMetricCardBinding card, int iconRes, String title) {
-        card.metricTitle.setText(title);
-        card.metricIcon.setImageResource(iconRes);
+    private void setupCard(ItemMetricCardBinding card, Metric metric) {
+        card.metricTitle.setText(metric.getLabelRes());
+        card.metricIcon.setImageResource(metric.getIconRes());
     }
 
     private void updateCardData(ItemMetricCardBinding card, String mainVal, String subVal, int status, double lastVal, double currVal) {
