@@ -22,3 +22,9 @@ NOTE: if ANT Radio Service or ANT USB Service are not available for your device 
 https://github.com/ant-wireless/ANT-Android-SDKs/tree/master/ANT_Android_SDK/Services
 
 WARNING: Garmin Connect eventually stops working. It is not an app's fault, it is Garmin Connect service. Even if you try to upload an activity within their website in that moment, it will not work. In such case, wait until the service is restored and upload the body composition readings from the History.
+
+## Development documentation
+
+- [Architecture and persisted-data compatibility](docs/architecture.md)
+- [Incremental refactoring and verification roadmap](docs/refactor-plan.md)
+- [Third-party notices](THIRD_PARTY_NOTICES.md)

@@ -7,11 +7,13 @@ import java.util.ArrayList;
 /** Repository-backed storage for Garmin OAuth credentials. */
 final class GarminTokenStore implements GarminAuthenticator.TokenStore {
     private final Context context;
+    private final AppRepository repository;
     private final User user;
     private final ArrayList<User> users;
 
     GarminTokenStore(Context context, User user, ArrayList<User> users) {
         this.context = context.getApplicationContext();
+        repository = AppRepository.get(this.context);
         this.user = user;
         this.users = users;
     }
@@ -38,9 +40,10 @@ final class GarminTokenStore implements GarminAuthenticator.TokenStore {
     public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
         user.garminOauth2Token = token;
         user.garminOauth2ExpiryTimestamp = expiry;
-        boolean saved = tokensOnly
-                ? User.persistGarminTokensSynchronously(context, user)
-                : User.serializeUsersSynchronously(context, users);
+        RepositoryResult<Void> result = tokensOnly
+                ? repository.updateGarminTokensSynchronously(user)
+                : repository.saveUsersSynchronously(users);
+        boolean saved = result.isSuccess();
         if (saved && !tokensOnly) GarminTokenRefreshScheduler.schedule(context, user);
         return saved;
     }

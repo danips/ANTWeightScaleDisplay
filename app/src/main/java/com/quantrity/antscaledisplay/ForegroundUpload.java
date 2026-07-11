@@ -24,8 +24,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 /** UI owner for the foreground measurement-upload workflow. */
-class AsyncUpload {
-    private static final String TAG = "AsyncUpload";
+class ForegroundUpload {
+    private static final String TAG = "ForegroundUpload";
     private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     private final WeakReference<MainActivity> activityRef;
@@ -42,12 +42,12 @@ class AsyncUpload {
     private Future<?> submittedTask;
     private volatile boolean cancelled;
 
-    AsyncUpload(MainActivity activity, Weight weight, User user, boolean tryGarmin,
+    ForegroundUpload(MainActivity activity, Weight weight, User user, boolean tryGarmin,
                 boolean tryEmail) {
         this(activity, weight, user, tryGarmin, tryEmail, new UploadCoordinator());
     }
 
-    AsyncUpload(MainActivity activity, Weight weight, User user, boolean tryGarmin,
+    ForegroundUpload(MainActivity activity, Weight weight, User user, boolean tryGarmin,
                 boolean tryEmail, UploadCoordinator coordinator) {
         activityRef = new WeakReference<>(activity);
         this.weight = weight;

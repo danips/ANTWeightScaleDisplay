@@ -183,16 +183,18 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                 if ((user.gc_user != null) && (user.gc_pass != null) && (!user.gc_user.isEmpty()) && (!user.gc_pass.isEmpty())) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_garmin_connect_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
-                        AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, true, false);
-                        au.execute();
+                        ForegroundUpload upload = new ForegroundUpload(
+                                (MainActivity) mContext, weight, user, true, false);
+                        upload.execute();
                         return true;
                     });
                 }
                 if ((user.email_to != null) && !user.email_to.isEmpty()) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_email_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
-                        AsyncUpload au = new AsyncUpload((MainActivity)mContext, weight, user, false, true);
-                        au.execute();
+                        ForegroundUpload upload = new ForegroundUpload(
+                                (MainActivity) mContext, weight, user, false, true);
+                        upload.execute();
                         return true;
                     });
                 }
@@ -267,7 +269,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
         if (item.boneMass != -1) {
             holder.boneMassTV.setText(user.printMass(mContext, item.boneMass));
-            switch (RequestWeight.getBoneMassDesc((float) item.weight, (float) item.boneMass, item.isMale)) {
+            switch (HealthRangeClassifier.getBoneMassDesc((float) item.weight, (float) item.boneMass, item.isMale)) {
                 case 0: holder.boneMassIV.setBackgroundResource(R.drawable.rounded_red_mini); break;
                 case 1: holder.boneMassIV.setBackgroundResource(R.drawable.rounded_green_mini); break;
                 default: holder.boneMassIV.setBackgroundResource(R.drawable.rounded_blue_mini);
@@ -283,7 +285,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         // BMI Color Logic
         Shader textShader;
         int c1, c2;
-        switch (RequestWeight.getBMIDesc((byte) age_then, (float) bmi, item.isMale)) {
+        switch (HealthRangeClassifier.getBMIDesc((byte) age_then, (float) bmi, item.isMale)) {
             case 0:
             case 2:
                 c1 = Color.parseColor("#f3ae1b");
@@ -313,7 +315,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                 holder.percentFatTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), (float) item.percentFat));
             }
 
-            switch (RequestWeight.getPercentFatDesc((byte) age_then, (float) item.percentFat, item.isMale)) {
+            switch (HealthRangeClassifier.getPercentFatDesc((byte) age_then, (float) item.percentFat, item.isMale)) {
                 case 0:
                 case 2: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_yellow_mini); break;
                 case 1: holder.percentFatIV.setBackgroundResource(R.drawable.rounded_green_mini); break;
@@ -325,7 +327,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
         if (item.percentHydration != -1) {
             holder.percentHydrationTV.setText(String.format(mContext.getString(R.string.weight_fragment_percent_tag), item.percentHydration));
-            switch (RequestWeight.getPercentHydrationDesc((float) item.percentHydration, item.isMale)) {
+            switch (HealthRangeClassifier.getPercentHydrationDesc((float) item.percentHydration, item.isMale)) {
                 case 0:
                 case 2: holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_yellow_mini); break;
                 case 1: holder.percentHydrationIV.setBackgroundResource(R.drawable.rounded_green_mini); break;

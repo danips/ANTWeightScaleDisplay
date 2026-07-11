@@ -64,7 +64,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         binding.fab.setOnClickListener(view -> {
             MainActivity ma = (MainActivity)getActivity();
             if (ma != null) {
-                AntWeightController rw = ma.getRequestWeight();
+                AntWeightController rw = ma.getAntWeightController();
                 if (rw != null) {
                     ma.openEditWeightFragment(rw.weight, rw.user, true);
                 } else {
@@ -80,8 +80,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     @Override
     public void onDestroyView() {
         MainActivity activity = (MainActivity) getActivity();
-        if (activity != null && activity.getRequestWeight() != null) {
-            activity.getRequestWeight().detachListener(this);
+        if (activity != null && activity.getAntWeightController() != null) {
+            activity.getAntWeightController().detachListener(this);
         }
         dismissAntProgress();
         super.onDestroyView();
@@ -92,8 +92,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     public void onResume() {
         super.onResume();
         MainActivity activity = (MainActivity) getActivity();
-        if (activity != null && activity.getRequestWeight() != null) {
-            AntWeightController controller = activity.getRequestWeight();
+        if (activity != null && activity.getAntWeightController() != null) {
+            AntWeightController controller = activity.getAntWeightController();
             controller.attachListener(this);
             if (controller.isRunning()) onAntProgress(controller.progress());
         }
@@ -104,7 +104,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         if (getActivity() == null || binding == null) return;
 
         final MainActivity mainActivity = (MainActivity) getActivity();
-        final AntWeightController rw = mainActivity.getRequestWeight();
+        final AntWeightController rw = mainActivity.getAntWeightController();
 
         mainActivity.runOnUiThread(() -> {
             if (getActivity() == null || binding == null) return;
@@ -150,7 +150,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             float bmi = (float) (displayWeight.weight / Math.pow(h / 100, 2));
             binding.bmiTV.setText(String.format(Locale.getDefault(), "%.2f", bmi));
 
-            int bmiStatus = RequestWeight.getBMIDesc((byte)displayUser.age, bmi, displayUser.isMale);
+            int bmiStatus = HealthRangeClassifier.getBMIDesc((byte)displayUser.age, bmi, displayUser.isMale);
             updateBMIStatus(binding.iconWeight, binding.bmiDescTV, bmiStatus);
 
             if (lastWeight != null) {
@@ -184,7 +184,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                 fatMain = String.format(getString(R.string.weight_fragment_percent_tag), displayWeight.percentFat);
                 fatSub = displayUser.printMass(getContext(), fatMass);
             }
-            int fatStatus = RequestWeight.getPercentFatDesc((byte) displayUser.age, (float) displayWeight.percentFat, displayUser.isMale);
+            int fatStatus = HealthRangeClassifier.getPercentFatDesc((byte) displayUser.age, (float) displayWeight.percentFat, displayUser.isMale);
             if (fatStatus == 0) {
                 fatSub = getString(R.string.fat_percent_value_0);
             } else if (fatStatus == 1) {
@@ -200,12 +200,12 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             double waterMass = displayWeight.weight * displayWeight.percentHydration / 100;
             String waterMain = String.format(getString(R.string.weight_fragment_percent_tag), displayWeight.percentHydration);
             String waterSub = displayUser.printMass(getContext(), waterMass);
-            int waterStatus = RequestWeight.getPercentHydrationDesc((float)displayWeight.percentHydration, displayUser.isMale);
+            int waterStatus = HealthRangeClassifier.getPercentHydrationDesc((float)displayWeight.percentHydration, displayUser.isMale);
             updateCardData(binding.cardWater, waterMain, waterSub, waterStatus, lastWeight != null ? lastWeight.percentHydration : -1, displayWeight.percentHydration);
 
             // Muscle & Bone
             updateCardData(binding.cardMuscle, displayUser.printMass(getContext(), displayWeight.muscleMass), null, -1, lastWeight != null ? lastWeight.muscleMass : -1, displayWeight.muscleMass);
-            int boneStatus = RequestWeight.getBoneMassDesc((float)displayWeight.weight, (float)displayWeight.boneMass, displayUser.isMale);
+            int boneStatus = HealthRangeClassifier.getBoneMassDesc((float)displayWeight.weight, (float)displayWeight.boneMass, displayUser.isMale);
             updateCardData(binding.cardBone, displayUser.printMass(getContext(), displayWeight.boneMass), null, boneStatus, lastWeight != null ? lastWeight.boneMass : -1, displayWeight.boneMass);
 
             // Other
@@ -471,7 +471,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                 return true;
             }
             if (getActivity() != null) {
-                AntWeightController rw = ((MainActivity) getActivity()).newRequestWeight(this);
+                AntWeightController rw =
+                        ((MainActivity) getActivity()).startAntWeightMeasurement(this);
                 rw.setProfile(user);
                 rw.start();
                 enableUploadButton = false;
@@ -481,8 +482,10 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             return true;
         } else if (itemId == R.id.action_weight_upload) {
             if (getActivity() != null) {
-                if (((MainActivity)getActivity()).getRequestWeight() != null) {
-                    MainActivity.uploadButton((MainActivity)getActivity(), ((MainActivity)getActivity()).getRequestWeight().weight, userToUpload);
+                if (((MainActivity)getActivity()).getAntWeightController() != null) {
+                    MainActivity.uploadButton((MainActivity)getActivity(),
+                            ((MainActivity)getActivity()).getAntWeightController().weight,
+                            userToUpload);
                 }
             }
             enableUploadButton = false;
@@ -507,8 +510,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                         .setMessage(message)
                         .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
                             MainActivity activity = (MainActivity) getActivity();
-                            if (activity != null && activity.getRequestWeight() != null) {
-                                activity.getRequestWeight().cancel();
+                            if (activity != null && activity.getAntWeightController() != null) {
+                                activity.getAntWeightController().cancel();
                             }
                         })
                         .setCancelable(false)

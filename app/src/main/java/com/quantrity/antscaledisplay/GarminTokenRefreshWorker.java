@@ -25,8 +25,10 @@ public class GarminTokenRefreshWorker extends Worker {
         String userUuid = getInputData().getString(INPUT_USER_UUID);
         if (userUuid == null || userUuid.isEmpty()) return Result.failure();
 
-        ArrayList<User> users = new ArrayList<>();
-        User.deserializeUsers(getApplicationContext(), users);
+        RepositoryResult<java.util.List<User>> loaded =
+                AppRepository.get(getApplicationContext()).loadUsers();
+        if (!loaded.isSuccess()) return Result.retry();
+        ArrayList<User> users = new ArrayList<>(loaded.value);
         User user = findUser(users, userUuid);
         if (!GarminTokenRefreshScheduler.hasRenewalCredentials(user)) {
             // The user or their Garmin connection was removed while this job was pending.

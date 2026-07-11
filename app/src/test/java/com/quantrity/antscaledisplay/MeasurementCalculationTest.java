@@ -31,11 +31,11 @@ public class MeasurementCalculationTest {
 
     @Test
     public void healthClassificationsPreserveBoundaryBehavior() {
-        assertEquals(1, RequestWeight.getPercentHydrationDesc(50, true));
-        assertEquals(1, RequestWeight.getPercentHydrationDesc(65, true));
-        assertEquals(3, RequestWeight.getBMIDesc((byte) 30, 31, true));
-        assertEquals(2, RequestWeight.getPercentFatDesc((byte) 35, 20, true));
-        assertEquals(0, RequestWeight.getBoneMassDesc(70, 2, true));
+        assertEquals(1, HealthRangeClassifier.getPercentHydrationDesc(50, true));
+        assertEquals(1, HealthRangeClassifier.getPercentHydrationDesc(65, true));
+        assertEquals(3, HealthRangeClassifier.getBMIDesc((byte) 30, 31, true));
+        assertEquals(2, HealthRangeClassifier.getPercentFatDesc((byte) 35, 20, true));
+        assertEquals(0, HealthRangeClassifier.getBoneMassDesc(70, 2, true));
     }
 
     private static Calendar utcDate(int year, int month, int day) {

@@ -74,6 +74,10 @@ public final class AppStateViewModel extends AndroidViewModel {
         return repository.upsertUser(user);
     }
 
+    RepositoryResult<Void> reloadGarminTokens(User user) {
+        return repository.reloadGarminTokens(user);
+    }
+
     Future<RepositoryResult<Void>> saveWeight(Weight weight, boolean editing) {
         return repository.upsertWeight(weight, editing);
     }

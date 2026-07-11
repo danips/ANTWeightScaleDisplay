@@ -1,18 +1,11 @@
 package com.quantrity.antscaledisplay;
 
-import android.content.Context;
-import android.util.Log;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 
 public class Goal {
-    private final static String TAG = "Goal";
-
     String uuid;
     long start_date = -1;
     long end_date = -1;
@@ -53,16 +46,6 @@ public class Goal {
         serializedObj.put("show_fat_mass", this.show_fat_mass);
 
         return serializedObj;
-    }
-
-    static void deserializeGoals(Context context, ArrayList<Goal> goalsArray) {
-        RepositoryResult<List<Goal>> result = AppRepository.get(context).loadGoals();
-        if (result.isSuccess()) goalsArray.addAll(result.value);
-        else Log.e(TAG, result.message, result.error);
-    }
-
-    static void serializeGoals(final Context context, final ArrayList<Goal> output) {
-        AppRepository.get(context).saveGoals(output);
     }
 
     static class EndDateComparator implements Comparator<Goal> {

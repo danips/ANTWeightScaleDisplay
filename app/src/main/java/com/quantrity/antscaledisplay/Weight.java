@@ -1,21 +1,14 @@
 package com.quantrity.antscaledisplay;
 
-import android.content.Context;
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.List;
 import java.util.Locale;
 
 public class Weight implements Cloneable {
-    private final static String TAG = "Weight";
-
     long date = -1;
     String uuid = null;
     int age = -1;
@@ -117,16 +110,6 @@ public class Weight implements Cloneable {
         if (this.activityLevel != -1) serializedObj.put("activityLevel", this.activityLevel);
 
         return serializedObj;
-    }
-
-    static void deserializeHistory(Context context, ArrayList<Weight> historyArray) {
-        RepositoryResult<List<Weight>> result = AppRepository.get(context).loadWeights();
-        if (result.isSuccess()) historyArray.addAll(result.value);
-        else Log.e(TAG, result.message, result.error);
-    }
-
-    static void serializeWeight(final Context context, final List<Weight> output) {
-        AppRepository.get(context).saveWeights(output);
     }
 
     static class DateComparator implements Comparator<Weight> {

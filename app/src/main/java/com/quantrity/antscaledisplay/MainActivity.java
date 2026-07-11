@@ -228,9 +228,9 @@ public class MainActivity extends AppCompatActivity
         selectItem(getString(R.string.lateral_menu_option_goals));
     }
 
-    public AntWeightController getRequestWeight() { return state.antWeightController(); }
+    public AntWeightController getAntWeightController() { return state.antWeightController(); }
 
-    public AntWeightController newRequestWeight(WeightFragment fragment) {
+    public AntWeightController startAntWeightMeasurement(WeightFragment fragment) {
         return state.newAntWeightController(fragment);
     }
 
@@ -456,7 +456,7 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
-        AntWeightController rw = getRequestWeight();
+        AntWeightController rw = getAntWeightController();
         if (rw != null) {
             if (Debug.ON) Log.v(TAG, "onPause unregisterForAntIntents");
             rw.unregisterReceivers();
@@ -467,7 +467,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        AntWeightController rw = getRequestWeight();
+        AntWeightController rw = getAntWeightController();
         if (rw != null) {
             if (Debug.ON) Log.v(TAG, "onResume registerForAntIntents " + rw.state());
             rw.registerReceivers();
@@ -493,8 +493,8 @@ public class MainActivity extends AppCompatActivity
             return;
         }
 
-        AsyncUpload au = new AsyncUpload(activity, weight, user, true, true);
-        au.execute();
+        ForegroundUpload upload = new ForegroundUpload(activity, weight, user, true, true);
+        upload.execute();
     }
 
     public static double parseNumber(EditText et) {

@@ -5,13 +5,13 @@ import android.app.Activity;
 import java.io.File;
 import java.util.ArrayList;
 
-/** Compatibility facade over the separated Garmin authentication and weight services. */
-public class GarminConnect {
+/** Composes interactive authentication and weight operations for one foreground workflow. */
+final class GarminForegroundSession {
     private final User user;
     private final GarminAuthenticator authenticator;
     private final GarminWeightService weightService;
 
-    public GarminConnect(User user, ArrayList<User> users, Activity activity) {
+    GarminForegroundSession(User user, ArrayList<User> users, Activity activity) {
         this.user = user;
         GarminHttpClient http = new GarminHttpClient(true);
         GarminTokenStore tokenStore = new GarminTokenStore(
@@ -21,20 +21,17 @@ public class GarminConnect {
         weightService = new GarminWeightService(http, authenticator);
     }
 
-    public boolean signin(User ignored) {
+    boolean signIn() {
         if (user == null) return false;
         return authenticator.signIn(user.gc_user, user.gc_pass)
                 == GarminAuthenticator.SignInResult.SUCCESS;
     }
 
-    public String uploadFitFile(File fitFile) {
+    String upload(File fitFile) {
         return weightService.upload(fitFile);
     }
 
-    public boolean downloadHistory(StringBuilder result) {
-        String history = weightService.downloadHistory();
-        if (history == null) return false;
-        result.append(history);
-        return true;
+    String downloadHistory() {
+        return weightService.downloadHistory();
     }
 }

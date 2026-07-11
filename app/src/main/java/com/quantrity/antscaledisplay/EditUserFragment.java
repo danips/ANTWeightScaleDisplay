@@ -396,7 +396,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                     garmin_refresh_work = workInfos == null
                             ? Collections.emptyList()
                             : workInfos;
-                    User.reloadGarminTokens(requireContext(), the_user);
+                    state.reloadGarminTokens(the_user);
                     updateGarminTokenInformation();
                 });
     }
@@ -408,7 +408,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             setValues(the_user);
             needs_to_sync = false;
         }
-        if (the_user != null) User.reloadGarminTokens(requireContext(), the_user);
+        if (the_user != null) state.reloadGarminTokens(the_user);
         updateGarminTokenInformation();
         super.onResume();
     }

@@ -12,7 +12,6 @@ import org.json.JSONObject;
 import java.io.Serializable;
 import java.text.NumberFormat;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
@@ -149,38 +148,6 @@ public class User {
         serializedObj.put("show_fat_mass", this.show_fat_mass);
 
         return serializedObj;
-    }
-
-    static void deserializeUsers(Context context, ArrayList<User> usersArray) {
-        RepositoryResult<List<User>> result = AppRepository.get(context).loadUsers();
-        if (result.isSuccess()) usersArray.addAll(result.value);
-        else Log.e(TAG, result.message, result.error);
-    }
-
-    static void serializeUsers(final Context context, final ArrayList<User> output) {
-        serializeUsersSynchronously(context, output);
-    }
-
-    static boolean serializeUsersSynchronously(Context context, List<User> output) {
-        RepositoryResult<Void> result = AppRepository.get(context).saveUsersSynchronously(output);
-        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-        return result.isSuccess();
-    }
-
-    /**
-     * Persist only renewed Garmin access-token fields into the latest user file. A Worker may spend
-     * time on the network, so rewriting the list it originally loaded could otherwise overwrite
-     * profile edits made while the refresh request was running.
-     */
-    static boolean persistGarminTokensSynchronously(Context context, User tokenSource) {
-        RepositoryResult<Void> result = AppRepository.get(context).updateGarminTokensSynchronously(tokenSource);
-        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-        return result.isSuccess();
-    }
-
-    static void reloadGarminTokens(Context context, User target) {
-        RepositoryResult<Void> result = AppRepository.get(context).reloadGarminTokens(target);
-        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
     }
 
     @NonNull

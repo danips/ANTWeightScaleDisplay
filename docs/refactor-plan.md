@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 8 device verification; Phase 9 implementation complete
+- Current phase: Phase 8 and Phase 10 device verification
 - Overall status: Verification pending
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -16,8 +16,6 @@ retained as an audit trail; do not delete them.
 - Baseline unit tests: 22 passing
 - Baseline unsigned release APK: 2,290,656 bytes
 - Baseline clean release build: 16 seconds with `lintVitalRelease` excluded
-
-The local `.project` modification is unrelated IDE metadata and is not part of this plan.
 
 ## Working rules
 
@@ -341,7 +339,7 @@ refactor: introduce application data repository
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending commit
+Commit: `6d90a31`
 
 ### Objective
 
@@ -792,9 +790,9 @@ refactor: adopt view binding across legacy screens
 
 ## Phase 10 — Complete final migration and regression verification
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Verification pending<br>
+Completed: —<br>
+Commit: Pending commit
 
 ### Objective
 
@@ -803,11 +801,11 @@ measure whether the refactor achieved its goals.
 
 ### Automated verification
 
-- [ ] Run all unit tests.
-- [ ] Run lint with no fatal errors.
-- [ ] Build the complete minified release without excluding lint.
-- [ ] Verify no temporary migration paths or feature flags remain unnecessarily.
-- [ ] Compare APK size, method count, build time, source-file count, and lint warning count with the
+- [x] Run all unit tests.
+- [x] Run lint with no fatal errors.
+- [x] Build the complete minified release without excluding lint.
+- [x] Verify no temporary migration paths or feature flags remain unnecessarily.
+- [x] Compare APK size, method count, build time, source-file count, and lint warning count with the
       baseline.
 
 ```bash
@@ -818,7 +816,8 @@ measure whether the refactor achieved its goals.
 
 ### Manual device verification
 
-- [ ] Test API 23, 29, 33, and current target/API 37 where devices or emulators are available.
+- [ ] Test API 23, 29, 33, target API 36, and emulator API 37 where devices or emulators are
+      available.
 - [ ] Test rotation, background/foreground transitions, and process recreation.
 - [ ] Create, edit, select, and delete users.
 - [ ] Create, edit, and delete manual measurements.
@@ -835,11 +834,47 @@ measure whether the refactor achieved its goals.
 
 ### Documentation
 
-- [ ] Add a concise architecture overview describing repository, ViewModels, Garmin, ANT, and upload
+- [x] Add a concise architecture overview describing repository, ViewModels, Garmin, ANT, and upload
       boundaries.
-- [ ] Update third-party dependency and licensing documentation.
-- [ ] Document persisted files and their compatibility policy.
-- [ ] Record final metrics and remaining technical debt below.
+- [x] Update third-party dependency and licensing documentation.
+- [x] Document persisted files and their compatibility policy.
+- [x] Record final metrics and remaining technical debt below.
+
+### Implementation notes
+
+- Removed the model-level repository compatibility methods. UI and WorkManager callers now access
+  persistence through `AppStateViewModel`, `AppRepository`, or `GarminTokenStore` as appropriate.
+- Replaced the legacy `RequestWeight`, `AsyncUpload`, and `GarminConnect` names with their actual
+  responsibilities: `HealthRangeClassifier`, `ForegroundUpload`, and `GarminForegroundSession`.
+- Kept `GarminForegroundSession` as the intentional foreground composition root for authentication,
+  token persistence, MFA UI, and weight operations; it is no longer a migration facade.
+- Added `docs/architecture.md` covering repository, UI, Garmin, upload, ANT, and persisted-data
+  boundaries, and expanded `THIRD_PARTY_NOTICES.md` to cover every direct dependency.
+- Replaced permissive ZIP extraction with `BackupArchive`. Restore now accepts only `users`,
+  `history`, and `goals`, validates every entry as a JSON array before writing, rejects duplicates
+  and path traversal, limits entry size, and uses `AtomicJsonFile` replacement. Three JVM tests cover
+  successful restore, traversal rejection, and preservation of existing data after invalid JSON.
+
+### Automated verification results
+
+- 158 unit tests pass with no failures, errors, or skips.
+- `lintDebug` passes with 0 errors and 49 warnings.
+- A clean minified `assembleRelease`, including `lintVitalRelease`, passes in 21.00 seconds.
+- The unsigned release APK is 2,289,524 bytes and contains 14,669 DEX method references.
+- A reproducible baseline build from `6e0a7fa` confirmed 14,528 DEX method references. Its release
+  required the documented `lintVitalRelease` exclusion; the final build does not.
+- `git diff --check` reports no whitespace errors.
+
+### Remaining technical debt and release gates
+
+- Complete every unchecked device and service test below before declaring the refactor release-ready.
+- Garmin credentials remain in the backward-compatible `users` JSON file. Keystore protection still
+  requires a migration and backup-recovery design.
+- Garmin history download still owns a raw foreground thread and notification lifecycle in
+  `HistoryFragment`; moving it behind a lifecycle-aware coordinator is a future cleanup, not a
+  temporary migration path.
+- Validate restoration of an actual pre-refactor backup on a representative device even though
+  fixture round trips and archive validation pass locally.
 
 ### Acceptance criteria
 
@@ -853,7 +888,7 @@ measure whether the refactor achieved its goals.
 ### Suggested commit
 
 ```text
-docs: complete architecture refactor roadmap
+refactor: finalize architecture migration
 ```
 
 ---
@@ -908,30 +943,37 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 1 | Use the English jump-to label as the documented translation fallback | Avoids inventing unreviewed translations while resolving the fatal missing-translation check | `5230bf5` |
 | 2026-07-11 | Phase 2 | Use Garmin's official Maven artifact at the exact vendored profile version | Removes generated source while preserving byte-level FIT output and obtaining the SDK from its publisher | `851a9c9` |
 | 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | `c7f5322` |
-| 2026-07-11 | Phase 4 | Use repository-owned state behind an activity-scoped ViewModel | Preserves state across rotation, supports disk re-resolution after process death, and keeps navigation separate from model ownership | Pending commit |
-| 2026-07-11 | Phase 7 | Defer Android Keystore protection until a credential migration and recovery format is designed | Avoids silently invalidating existing Garmin connections while token persistence is being structurally isolated | Pending commit |
+| 2026-07-11 | Phase 4 | Use repository-owned state behind an activity-scoped ViewModel | Preserves state across rotation, supports disk re-resolution after process death, and keeps navigation separate from model ownership | `37e242b` |
+| 2026-07-11 | Phase 7 | Defer Android Keystore protection until a credential migration and recovery format is designed | Avoids silently invalidating existing Garmin connections while token persistence is being structurally isolated | `0d694c7` |
 | 2026-07-11 | Phase 8 | Persist only protocol-complete ANT measurements | Prevents timeouts, disconnects, and partial composition sequences from being saved or automatically uploaded | `704c8bc` |
-| 2026-07-11 | Phase 9 | Keep adapter-owned snapshots and dispatch explicit replacement ranges | Avoids broad RecyclerView invalidation while preventing adapters from mutating repository-owned collections | Pending commit |
+| 2026-07-11 | Phase 9 | Keep adapter-owned snapshots and dispatch explicit replacement ranges | Avoids broad RecyclerView invalidation while preventing adapters from mutating repository-owned collections | `6d90a31` |
+| 2026-07-11 | Phase 10 | Retain a named Garmin foreground composition root instead of duplicating construction in callers | Keeps Android MFA composition at the UI boundary without preserving the old all-purpose Garmin facade | Pending commit |
+| 2026-07-11 | Phase 10 | Validate backup contents before atomic replacement | Preserves the existing archive format while rejecting traversal, unknown entries, duplicates, oversized entries, and malformed JSON | Pending commit |
 
 ## Final results
 
-Complete this section during Phase 10.
+Recorded during Phase 10.
 
 | Measure | Baseline | Final | Change |
 |---|---:|---:|---:|
-| Application Java files | 29 | — | — |
-| Application Java lines | 9,903 | — | — |
-| Vendored FIT Java files | 493 | — | — |
-| Vendored FIT Java lines | ~77,500 | — | — |
-| Lint errors | 9 | — | — |
-| Lint warnings | 155 | — | — |
-| Unit tests | 22 passing | — | — |
-| Release APK size | 2,290,656 bytes unsigned | — | — |
-| Clean release build time | 16 seconds, fatal lint excluded | — | — |
+| Application Java files | 29 | 54 | +25 (+86.2%); responsibilities split into focused classes |
+| Application Java lines | 9,903 | 9,552 | -351 (-3.5%) |
+| Vendored FIT Java files | 493 | 0 | -493 (-100%) |
+| Vendored FIT Java lines | ~77,500 | 0 | ~-77,500 (-100%) |
+| DEX method references | 14,528 rebuilt | 14,669 | +141 (+1.0%) |
+| Lint errors | 9 | 0 | -9 (-100%) |
+| Lint warnings | 155 | 49 | -106 (-68.4%) |
+| Unit tests | 22 passing | 158 passing | +136 |
+| Release APK size | 2,290,656 bytes unsigned | 2,289,524 bytes unsigned | -1,132 bytes (-0.05%) |
+| Clean release build time | 16 seconds, fatal lint excluded | 21.00 seconds, lint included | +5.00 seconds with stricter verification |
 
 ## Remaining technical debt
 
 Record deliberately deferred work here instead of expanding an active phase without review.
 
-- The 60 non-fatal lint warnings are assigned to later phases or low-risk final cleanup; see the
-  Phase 1 completion notes for their categories.
+- The remaining 49 non-fatal lint warnings are 39 autofill suggestions, 3 vector-path optimization
+  suggestions, 2 unused resources, 2 overdraw warnings, 1 unused attribute, 1 target-SDK reminder,
+  and 1 dependency-update notice. Address them only with separate UI, SDK, and dependency testing.
+- Garmin credentials still require a backward-compatible Keystore migration and recovery design.
+- Garmin history download can move from its fragment-owned thread to a lifecycle-aware coordinator.
+- Physical ANT behavior and live Garmin workflows remain release gates, as listed above.

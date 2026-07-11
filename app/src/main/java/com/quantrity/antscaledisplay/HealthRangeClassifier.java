@@ -1,8 +1,8 @@
 package com.quantrity.antscaledisplay;
 
-/** Legacy name retained for body-composition health range calculations used by the UI. */
-final class RequestWeight {
-    private RequestWeight() {}
+/** Classifies body-composition values into the health ranges rendered by the UI. */
+final class HealthRangeClassifier {
+    private HealthRangeClassifier() {}
 
     private static byte range(float[] limits, float value) {
         if (value < limits[0]) return 0;

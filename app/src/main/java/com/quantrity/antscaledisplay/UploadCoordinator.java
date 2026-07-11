@@ -33,10 +33,10 @@ final class UploadCoordinator {
             try {
                 File fitFile = fitFileFactory.create(
                         new File(activity.getFilesDir(), "weight.fit"), weight);
-                GarminConnect garmin = new GarminConnect(user,
+                GarminForegroundSession garmin = new GarminForegroundSession(user,
                         AppRepository.get(activity).usersSnapshot(), activity);
-                if (garmin.signin(user)) {
-                    garminError = garmin.uploadFitFile(fitFile);
+                if (garmin.signIn()) {
+                    garminError = garmin.upload(fitFile);
                     garminSucceeded = garminError == null;
                 } else {
                     garminError = activity.getString(R.string.weight_fragment_msg_wrong_credentials);

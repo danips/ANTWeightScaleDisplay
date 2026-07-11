@@ -4,7 +4,7 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class GarminConnectTest {
+public class GarminTokenParsingTest {
     @Test
     public void parsesMfaExpirationInLegacyGarminFormat() {
         assertEquals(

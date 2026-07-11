@@ -346,15 +346,16 @@ public class HistoryFragment extends Fragment implements MenuProvider {
         new Thread(
                 () -> {
                     if ((getActivity() == null) || (getContext() == null)) return;
-                    StringBuilder result = new StringBuilder();
                     boolean success = false;
+                    String errorMessage = "";
                     try {
                         final User user = (User) usersSpinner.getSelectedItem();
-                        GarminConnect gc = new GarminConnect(user, state.users(), getActivity());
-                        if (gc.signin(user)) {
-                            success = gc.downloadHistory(result);
+                        GarminForegroundSession garmin = new GarminForegroundSession(
+                                user, state.users(), getActivity());
+                        if (garmin.signIn()) {
+                            String history = garmin.downloadHistory();
+                            success = history != null;
                             if (success) {
-                                String history = result.toString();
                                 List<Weight> wl = state.weights();
                                 List<Weight> tmp = new ArrayList<>();
 
@@ -501,16 +502,17 @@ public class HistoryFragment extends Fragment implements MenuProvider {
                                 //success = true;
                             }
                         } else {
-                            result.append(getString(R.string.weight_fragment_msg_wrong_credentials));
+                            errorMessage = getString(
+                                    R.string.weight_fragment_msg_wrong_credentials);
                         }
                         //gc.close();
                     } catch (Exception e) {
                         Log.e(TAG, "Unable to upload the selected history entries", e);
-                        result.append("Exception: ").append(e);
+                        errorMessage = "Exception: " + e;
                     }
                     if (!success) {
                         // When the loop is finished, updates the notification
-                        mBuilder.setContentText(result.toString())
+                        mBuilder.setContentText(errorMessage)
                                 // Removes the progress bar
                                 .setProgress(0, 0, false);
                         notificationManager.notify(GARMIN_CONNECT_NOTIFICATION_ID, mBuilder.build());

@@ -35,12 +35,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
 public class UsersFragment extends Fragment implements MenuProvider {
@@ -238,83 +238,13 @@ public class UsersFragment extends Fragment implements MenuProvider {
     }
 
     static boolean unzip(Uri zipFile, String location, ContentResolver contentResolver) {
-        boolean ok = false;
-        try {
-            ZipInputStream zin = new ZipInputStream(contentResolver.openInputStream(zipFile));
-            ok = unzip(zin, location);
-        } catch (FileNotFoundException e) {
+        try (InputStream input = contentResolver.openInputStream(zipFile)) {
+            RepositoryResult<Integer> result = BackupArchive.restore(input, new File(location));
+            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+            return result.isSuccess();
+        } catch (IOException e) {
             Log.e(TAG, "Unable to open the backup archive", e);
+            return false;
         }
-        return ok;
-    }
-
-    private static boolean unzip(ZipInputStream zin, String location) {
-        boolean ok = false;
-        int size;
-        byte[] buffer = new byte[BUFFER_SIZE];
-
-        try {
-            if (!location.endsWith("/")) {
-                location += "/";
-            }
-            File f = new File(location);
-            if (!f.isDirectory()) {
-                boolean ignored = f.mkdirs();
-            } else {
-                File fdelete = new File(location + "users");
-                if (fdelete.exists()) {
-                    boolean ignored = fdelete.delete();
-                }
-                fdelete = new File(location + "history");
-                if (fdelete.exists()) {
-                    boolean ignored = fdelete.delete();
-                }
-                fdelete = new File(location + "goals");
-                if (fdelete.exists()) {
-                    boolean ignored = fdelete.delete();
-                }
-            }
-            try {
-                ZipEntry ze;
-                while ((ze = zin.getNextEntry()) != null) {
-                    String path = location + ze.getName();
-                    File unzipFile = new File(path);
-
-                    if (ze.isDirectory()) {
-                        if (!unzipFile.isDirectory()) {
-                            boolean ignored = unzipFile.mkdirs();
-                        }
-                    } else {
-                        // check for and create parent directories if they don't exist
-                        File parentDir = unzipFile.getParentFile();
-                        if (null != parentDir) {
-                            if (!parentDir.isDirectory()) {
-                                boolean ignored = parentDir.mkdirs();
-                            }
-                        }
-
-                        // unzip the file
-                        FileOutputStream out = new FileOutputStream(unzipFile, false);
-                        BufferedOutputStream fout = new BufferedOutputStream(out, BUFFER_SIZE);
-                        try {
-                            while ((size = zin.read(buffer, 0, BUFFER_SIZE)) != -1) {
-                                fout.write(buffer, 0, size);
-                            }
-
-                            zin.closeEntry();
-                            ok = true;
-                        } finally {
-                            fout.flush();
-                            fout.close();
-                        }
-                    }
-                }
-            } finally {
-                zin.close();
-            }
-        } catch (Exception e) {
-            Log.v(TAG, "Unzip exception " + e.getMessage());
-        }
-        return ok;
     }
 }
