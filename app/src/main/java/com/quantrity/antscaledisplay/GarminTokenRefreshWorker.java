@@ -33,13 +33,16 @@ public class GarminTokenRefreshWorker extends Worker {
             return Result.success();
         }
 
-        GarminConnect garminConnect = new GarminConnect(user, users, getApplicationContext());
-        GarminConnect.TokenRenewalResult renewalResult = garminConnect.renewAccessTokenInBackground();
-        if (renewalResult == GarminConnect.TokenRenewalResult.SUCCESS) {
+        GarminAuthenticator authenticator = new GarminAuthenticator(
+                new GarminHttpClient(false),
+                new GarminTokenStore(getApplicationContext(), user, users),
+                () -> null);
+        GarminAuthenticator.RenewalResult renewalResult = authenticator.renewInBackground();
+        if (renewalResult == GarminAuthenticator.RenewalResult.SUCCESS) {
             GarminTokenRefreshScheduler.scheduleAfterCurrentWorker(getApplicationContext(), user);
             return Result.success();
         }
-        if (renewalResult == GarminConnect.TokenRenewalResult.RETRY) {
+        if (renewalResult == GarminAuthenticator.RenewalResult.RETRY) {
             Log.w(TAG, "Temporary Garmin token refresh failure for user " + userUuid);
             return Result.retry();
         }

@@ -6,7 +6,7 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 7 — Split Garmin responsibilities
+- Current phase: Phase 8 — Decouple the ANT state machine
 - Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
@@ -41,7 +41,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 - [x] Phase 4 — Move application state out of `MainActivity`
 - [x] Phase 5 — Make metric handling data-driven
 - [x] Phase 6 — Simplify upload orchestration
-- [ ] Phase 7 — Split Garmin responsibilities
+- [x] Phase 7 — Split Garmin responsibilities
 - [ ] Phase 8 — Decouple the ANT state machine
 - [ ] Phase 9 — Apply View Binding consistently
 - [ ] Phase 10 — Complete final migration and regression verification
@@ -481,7 +481,7 @@ refactor: render graphs and goals from metric metadata
 
 Status: Completed<br>
 Completed: 2026-07-11<br>
-Commit: Pending
+Commit: `0e07460`
 
 ### Objective
 
@@ -553,9 +553,9 @@ refactor: simplify measurement upload orchestration
 
 ## Phase 7 — Split Garmin responsibilities
 
-Status: Pending  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending
 
 ### Objective
 
@@ -574,22 +574,47 @@ MfaCodeProvider
 
 ### Tasks
 
-- [ ] Move generic request execution, redirects, headers, cookies, and response decoding into
+- [x] Move generic request execution, redirects, headers, cookies, and response decoding into
       `GarminHttpClient`.
-- [ ] Move SSO, OAuth1 acquisition, MFA token handling, and signed OAuth2 exchange into
+- [x] Move SSO, OAuth1 acquisition, MFA token handling, and signed OAuth2 exchange into
       `GarminAuthenticator`.
-- [ ] Back `GarminTokenStore` with repository operations.
-- [ ] Move FIT upload and history download into `GarminWeightService`.
-- [ ] Represent MFA input as an injected callback/provider rather than an Activity-owned dialog in
+- [x] Back `GarminTokenStore` with repository operations.
+- [x] Move FIT upload and history download into `GarminWeightService`.
+- [x] Represent MFA input as an injected callback/provider rather than an Activity-owned dialog in
       the network class.
-- [ ] Ensure network/authentication classes do not retain an Activity.
-- [ ] Inject fake transport responses for authentication tests.
-- [ ] Test successful login, MFA, cancellation, invalid credentials, temporary server errors,
+- [x] Ensure network/authentication classes do not retain an Activity.
+- [x] Inject fake transport responses for authentication tests.
+- [x] Test successful login, MFA, cancellation, invalid credentials, temporary server errors,
       renewal, and rejected renewal credentials.
-- [ ] Preserve the existing endpoints, request signing, payloads, and retry semantics during this
+- [x] Preserve the existing endpoints, request signing, payloads, and retry semantics during this
       structural change.
-- [ ] Consider Android Keystore-backed protection for Garmin credentials only after token storage is
+- [x] Consider Android Keystore-backed protection for Garmin credentials only after token storage is
       isolated and migration behavior is defined.
+
+### Completion notes
+
+- `GarminHttpClient` owns request encoding, response decoding, timeouts, redirects, headers, and an
+  explicit cookie manager. Foreground SSO retains the existing process cookie-handler behavior;
+  background renewal does not replace it.
+- `GarminAuthenticator` owns SSO, OAuth1 acquisition, MFA branching, signed OAuth2 exchange, access
+  validation, and renewal result classification without importing Android UI classes.
+- `GarminTokenStore` is backed by the existing repository-compatible synchronous user/token
+  persistence operations and retains refresh scheduling after an interactive connection.
+- `GarminWeightService` owns FIT upload and weight-history download. `GarminConnect` remains only as
+  a compatibility facade for the two foreground callers.
+- `DialogMfaCodeProvider` contains the existing notification permission, automatic code detection,
+  manual entry, and cancellation UI behind the injected `MfaCodeProvider` interface. It holds the
+  Activity weakly.
+- WorkManager constructs the same `GarminAuthenticator` used by foreground operations with a
+  non-interactive MFA provider and repository-backed token store.
+- Fake transport tests cover successful login, MFA, cancellation, invalid credentials, temporary
+  login failure, successful background renewal, temporary renewal failure, and rejected renewal
+  credentials.
+- Keystore-backed credential protection is deliberately deferred: token storage is now isolated,
+  but a compatible migration and recovery design is required before changing the persisted format.
+- All 148 unit tests, debug lint, and the full minified release build pass.
+- Live login, MFA, upload, history download, and background renewal were not performed locally; use
+  the Garmin manual smoke-test checklist before release.
 
 ### Acceptance criteria
 
@@ -597,6 +622,14 @@ MfaCodeProvider
 - MFA UI can be replaced without changing authentication logic.
 - Background renewal uses the same authentication component as foreground renewal.
 - Existing login, upload, download, token display, and WorkManager behavior remain correct.
+
+### Verification
+
+```bash
+./gradlew testDebugUnitTest
+./gradlew lintDebug
+./gradlew assembleRelease
+```
 
 ### Suggested commits
 
@@ -814,6 +847,7 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 2 | Use Garmin's official Maven artifact at the exact vendored profile version | Removes generated source while preserving byte-level FIT output and obtaining the SDK from its publisher | `851a9c9` |
 | 2026-07-11 | Phase 3 | Keep JSON files and compatibility adapters behind one repository | Centralizes safety and concurrency without combining the refactor with a Room migration or UI rewrite | `c7f5322` |
 | 2026-07-11 | Phase 4 | Use repository-owned state behind an activity-scoped ViewModel | Preserves state across rotation, supports disk re-resolution after process death, and keeps navigation separate from model ownership | Pending commit |
+| 2026-07-11 | Phase 7 | Defer Android Keystore protection until a credential migration and recovery format is designed | Avoids silently invalidating existing Garmin connections while token persistence is being structurally isolated | Pending commit |
 
 ## Final results
 

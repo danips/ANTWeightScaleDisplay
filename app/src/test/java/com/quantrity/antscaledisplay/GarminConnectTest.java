@@ -9,13 +9,13 @@ public class GarminConnectTest {
     public void parsesMfaExpirationInLegacyGarminFormat() {
         assertEquals(
                 1_767_225_600L,
-                GarminConnect.parseMfaExpirationTimestamp("2026-01-01 00:00:00.000"));
+                GarminAuthenticator.parseMfaExpirationTimestamp("2026-01-01 00:00:00.000"));
     }
 
     @Test
     public void normalizesMillisecondMfaExpiration() {
         assertEquals(
                 1_767_225_600L,
-                GarminConnect.parseMfaExpirationTimestamp("1767225600000"));
+                GarminAuthenticator.parseMfaExpirationTimestamp("1767225600000"));
     }
 }
