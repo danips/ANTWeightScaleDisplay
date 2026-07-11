@@ -108,9 +108,7 @@ class RequestWeight {
 
             if ((antAction != null) && antAction.equals("com.dsi.ant.intent.action.ANT_RX_MESSAGE_ACTION")) {
                 byte[] antMessage = intent.getByteArrayExtra("com.dsi.ant.intent.ANT_MESSAGE");
-                assert antMessage != null;
-                int len = antMessage[0];
-                if (len != antMessage.length - 2 || antMessage.length <= 2) {
+                if (!isValidAntMessage(antMessage)) {
                     if (Debug.ON) Log.e(TAG, "Invalid message: " + messageToString(antMessage));
                     return;
                 }
@@ -1037,7 +1035,14 @@ class RequestWeight {
         }
     }
 
-    private String messageToString(byte[] message) {
+    static boolean isValidAntMessage(byte[] message) {
+        return message != null
+                && message.length > 2
+                && Byte.toUnsignedInt(message[0]) == message.length - 2;
+    }
+
+    private static String messageToString(byte[] message) {
+        if (message == null) return "null";
         StringBuilder out = new StringBuilder();
         for (byte b : message) {
             out.append(String.format("%s%02x", (out.length() == 0 ? "" : " "), b));

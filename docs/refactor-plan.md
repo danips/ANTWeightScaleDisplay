@@ -6,13 +6,16 @@ retained as an audit trail; do not delete them.
 
 ## Current status
 
-- Current phase: Phase 0 — Establish a safety baseline
-- Overall status: Not started
+- Current phase: Phase 1 — Fix lint and remove dead code
+- Overall status: In progress
 - Last updated: 2026-07-11
 - Baseline commit: `6e0a7fa`
-- Baseline application code: approximately 29 Java files and 9,900 lines
+- Baseline application code: 29 Java files and 9,903 lines
 - Vendored Garmin FIT SDK: approximately 491 Java files and 77,500 lines
-- Baseline lint result: 9 errors and 154 warnings
+- Baseline lint result: 9 errors and 155 warnings
+- Baseline unit tests: 22 passing
+- Baseline unsigned release APK: 2,290,656 bytes
+- Baseline clean release build: 16 seconds with `lintVitalRelease` excluded
 
 The local `.project` modification is unrelated IDE metadata and is not part of this plan.
 
@@ -31,7 +34,7 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 
 ## Progress
 
-- [ ] Phase 0 — Establish a safety baseline
+- [x] Phase 0 — Establish a safety baseline
 - [ ] Phase 1 — Fix lint and remove dead code
 - [ ] Phase 2 — Package or isolate the Garmin FIT SDK
 - [ ] Phase 3 — Centralize file persistence
@@ -47,9 +50,9 @@ The local `.project` modification is unrelated IDE metadata and is not part of t
 
 ## Phase 0 — Establish a safety baseline
 
-Status: Not started  
-Completed: —  
-Commit: —
+Status: Completed<br>
+Completed: 2026-07-11<br>
+Commit: Pending commit
 
 ### Objective
 
@@ -58,21 +61,35 @@ an intentional behavior change from a regression.
 
 ### Tasks
 
-- [ ] Create a dedicated refactoring branch.
-- [ ] Ensure the working tree contains no unrelated IDE changes.
-- [ ] Add sanitized fixtures for representative `users`, `history`, and `goals` files.
-- [ ] Include fixtures containing optional and legacy fields so backward compatibility is tested.
-- [ ] Add round-trip tests that load and save each fixture without losing supported data.
-- [ ] Add or expand tests for weight and body-composition calculations.
-- [ ] Add a FIT weight-file generation test that verifies the generated file can be decoded or at
+- [x] Create a dedicated refactoring branch.
+- [x] Ensure the working tree contains no unrelated IDE changes.
+- [x] Add sanitized fixtures for representative `users`, `history`, and `goals` files.
+- [x] Include fixtures containing optional and legacy fields so backward compatibility is tested.
+- [x] Add round-trip tests that load and save each fixture without losing supported data.
+- [x] Add or expand tests for weight and body-composition calculations.
+- [x] Add a FIT weight-file generation test that verifies the generated file can be decoded or at
       least validates its structure and checksum.
-- [ ] Add tests for metric extraction and unit formatting.
-- [ ] Keep the existing Garmin token status, expiration parsing, and scheduler tests.
-- [ ] Extract pure ANT message parsing functions where possible and add tests based on sanitized
+- [x] Add tests for metric extraction and unit formatting.
+- [x] Keep the existing Garmin token status, expiration parsing, and scheduler tests.
+- [x] Extract pure ANT message parsing functions where possible and add tests based on sanitized
       captured messages.
-- [ ] Document manual smoke tests for ANT measurement, Garmin authentication/upload, history
+- [x] Document manual smoke tests for ANT measurement, Garmin authentication/upload, history
       download, email sharing, graphs, goals, backup, and restore.
-- [ ] Record baseline test, lint, release-build, APK-size, and build-time results.
+- [x] Record baseline test, lint, release-build, APK-size, and build-time results.
+
+### Completion notes
+
+- Created branch `refactor/simplify-architecture` from baseline commit `6e0a7fa`.
+- Added sanitized fixtures with current and legacy user/measurement representations.
+- Persistence characterization tests intentionally use reflection against current private
+  serializers. Phase 3 should replace this with direct codec tests.
+- Added a test-only `org.json` implementation so local JVM tests exercise JSON behavior rather than
+  Android's mockable stubs.
+- Extracted only ANT envelope validation; protocol state and data-page parsing remain unchanged for
+  Phase 8.
+- `lintDebug` remains an expected failure at 9 errors and 155 warnings. No lint baseline was added.
+- A clean minified release build succeeded in 16 seconds with only the known fatal lint task
+  excluded. The unsigned APK is 2,290,656 bytes.
 
 ### Acceptance criteria
 
@@ -673,6 +690,7 @@ Add entries whenever a decision changes the implementation direction or phase or
 |---|---|---|---|---|
 | 2026-07-11 | Planning | Use incremental Java refactoring instead of a Kotlin/Compose rewrite | Preserves behavior and reduces regression risk around Garmin and ANT integrations | — |
 | 2026-07-11 | Phase 3 | Preserve JSON storage before considering Room | A repository and shared atomic store provide most of the simplification without a risky data migration | — |
+| 2026-07-11 | Phase 0 | Use reflection only in persistence characterization tests | Captures current private serializer behavior without changing production persistence APIs before Phase 3 | Pending commit |
 
 ## Final results
 
@@ -681,13 +699,14 @@ Complete this section during Phase 10.
 | Measure | Baseline | Final | Change |
 |---|---:|---:|---:|
 | Application Java files | 29 | — | — |
-| Application Java lines | ~9,900 | — | — |
+| Application Java lines | 9,903 | — | — |
 | Vendored FIT Java files | 491 | — | — |
 | Vendored FIT Java lines | ~77,500 | — | — |
 | Lint errors | 9 | — | — |
-| Lint warnings | 154 | — | — |
-| Release APK size | Record in Phase 0 | — | — |
-| Clean release build time | Record in Phase 0 | — | — |
+| Lint warnings | 155 | — | — |
+| Unit tests | 22 passing | — | — |
+| Release APK size | 2,290,656 bytes unsigned | — | — |
+| Clean release build time | 16 seconds, fatal lint excluded | — | — |
 
 ## Remaining technical debt
 

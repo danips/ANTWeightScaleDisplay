@@ -1,0 +1,36 @@
+[
+  {
+    "uuid": "user-current-001",
+    "name": "Sample Current User",
+    "isMale": false,
+    "birthdate": 631152000000,
+    "usesCm": true,
+    "mass_unit": "KG",
+    "height_cm": 168,
+    "activity_level": 3,
+    "isLifetimeAthlete": false,
+    "gc_user": "garmin-user-placeholder",
+    "gc_pass": "garmin-password-placeholder",
+    "garminOauth1Token": "oauth1-token-placeholder",
+    "garminOauth1TokenSecret": "oauth1-secret-placeholder",
+    "garminOauth1MfaToken": "mfa-token-placeholder",
+    "garminOauth1MfaExpirationTimestamp": 1893456000,
+    "garminOauth2Token": "oauth2-access-placeholder",
+    "garminOauth2ExpiryTimestamp": 1893452400,
+    "email_to": "sample@example.invalid",
+    "autoupload": true,
+    "show_fat_mass": true
+  },
+  {
+    "uuid": "user-legacy-002",
+    "name": "Sample Legacy User",
+    "isMale": true,
+    "age": 40,
+    "usesCm": false,
+    "usesKg": false,
+    "height_ft": 5,
+    "height_in": 11,
+    "activity_level": 1,
+    "isLifetimeAthlete": true
+  }
+]

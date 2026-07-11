@@ -1,0 +1,40 @@
+[
+  {
+    "date": 1783728000000,
+    "uuid": "user-current-001",
+    "age": 36,
+    "isMale": false,
+    "height": 168,
+    "weight": 64.2,
+    "trunkPercentFat": 25.1,
+    "trunkMuscleMass": 25.4,
+    "leftArmPercentFat": 27.2,
+    "leftArmMuscleMass": 2.5,
+    "rightArmPercentFat": 26.8,
+    "rightArmMuscleMass": 2.6,
+    "leftLegPercentFat": 29.1,
+    "leftLegMuscleMass": 8.1,
+    "rightLegPercentFat": 28.9,
+    "rightLegMuscleMass": 8.2,
+    "percentFat": 26.3,
+    "percentHydration": 52.4,
+    "boneMass": 2.4,
+    "muscleMass": 45.1,
+    "physiqueRating": 5,
+    "visceralFatRating": 4.5,
+    "metabolicAge": 34,
+    "activeMet": 1950,
+    "basalMet": 1390,
+    "activityLevel": 3
+  },
+  {
+    "date": 1704067200000,
+    "uuid": "user-legacy-002",
+    "age": 39,
+    "isMale": true,
+    "height": 180,
+    "weight": 80.0,
+    "percentFat": 20.0,
+    "activeMet": 1750
+  }
+]

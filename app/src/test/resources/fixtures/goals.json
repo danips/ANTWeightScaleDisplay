@@ -1,0 +1,22 @@
+[
+  {
+    "uuid": "user-current-001",
+    "start_date": 1783728000000,
+    "end_date": 1790812800000,
+    "start_value": 64.2,
+    "end_value": 61.0,
+    "type": "WEIGHT",
+    "color": -16733696,
+    "show_fat_mass": false
+  },
+  {
+    "uuid": "user-current-001",
+    "start_date": 1783728000000,
+    "end_date": 1790812800000,
+    "start_value": 16.8846,
+    "end_value": 15.0,
+    "type": "PERCENTFAT",
+    "color": -22016,
+    "show_fat_mass": true
+  }
+]
