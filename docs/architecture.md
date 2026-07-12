@@ -87,6 +87,6 @@ design and remains release-tracked technical debt.
 
 Automated tests cover persistence compatibility, metric behavior, FIT generation, Garmin
 authentication/renewal decisions, and ANT parsing/state transitions. They cannot establish behavior
-of external services or hardware. Before release, complete the device checklist in
-`docs/refactor-plan.md`, including physical ANT measurements, MFA, history download, email sharing,
-backup restoration, and a complete background token-renewal cycle.
+of external services or hardware. Before release, complete `docs/release-checklist.md`, including
+physical ANT measurements, MFA, history download, email sharing, backup restoration, and a complete
+background token-renewal cycle.
