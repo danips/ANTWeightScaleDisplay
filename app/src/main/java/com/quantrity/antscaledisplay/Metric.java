@@ -135,7 +135,8 @@ public enum Metric {
     public double graphValue(Weight weight, User user) {
         double value = value(weight);
         if (value == -1) return -1;
-        return percentageMayBeMass ? user.calc_mass2(value, weight.weight, true) : value;
+        if (!percentageMayBeMass || !user.show_fat_mass) return value;
+        return MassConverter.percentageToDisplayMass(value, weight.weight, user.mass_unit);
     }
 
     public Unit displayedUnit(boolean showFatMass) {

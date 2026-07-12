@@ -21,7 +21,6 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.EditText;
 import android.widget.Spinner;
 
 import androidx.activity.OnBackPressedCallback;
@@ -39,11 +38,8 @@ import com.dsi.ant.AntSupportChecker;
 import com.google.android.material.navigation.NavigationView;
 import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Locale;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -495,18 +491,6 @@ public class MainActivity extends AppCompatActivity
 
         ForegroundUpload upload = new ForegroundUpload(activity, weight, user, true, true);
         upload.execute();
-    }
-
-    public static double parseNumber(EditText et) {
-        NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
-        Number number;
-        try {
-            number = format.parse(et.getText().toString().trim());
-            if (number != null) return number.doubleValue();
-        } catch (ParseException e) {
-            Log.e(TAG, "Unable to parse the entered value", e);
-        }
-        return 0;
     }
 
 }

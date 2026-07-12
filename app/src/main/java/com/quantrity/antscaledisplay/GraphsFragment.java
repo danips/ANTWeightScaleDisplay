@@ -636,12 +636,15 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         public String getFormattedValue(float value) {
             if (stones)
             {
-                value *= 2.20462262f;
-                return String.format(measureFormat, Math.floor(value / 14), value % 14);
+                MassConverter.StonePounds stonePounds =
+                        MassConverter.toStonePounds(value);
+                return String.format(measureFormat,
+                        stonePounds.stones, stonePounds.pounds);
             }
             else if (pounds)
             {
-                return String.format(measureFormat, value * 2.20462262);
+                return String.format(measureFormat,
+                        MassConverter.kilogramsToPounds(value));
             }
             else
             {
@@ -673,12 +676,15 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         public void refreshContent(Entry e, Highlight highlight) {
             if (stones)
             {
-                float y = e.getY() * 2.20462262f;
-                tvContent.setText(String.format(measureFormat, y / 14, y % 14));
+                double poundsValue = MassConverter.kilogramsToPounds(e.getY());
+                tvContent.setText(String.format(measureFormat,
+                        poundsValue / MassConverter.POUNDS_PER_STONE,
+                        poundsValue % MassConverter.POUNDS_PER_STONE));
             }
             else if (pounds)
             {
-                tvContent.setText(String.format(measureFormat, e.getY() * 2.20462262));
+                tvContent.setText(String.format(measureFormat,
+                        MassConverter.kilogramsToPounds(e.getY())));
             }
             else
                 tvContent.setText(String.format(measureFormat, e.getY()));

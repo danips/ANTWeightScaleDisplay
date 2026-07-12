@@ -1,8 +1,6 @@
 package com.quantrity.antscaledisplay;
 
 import android.content.Context;
-import android.util.Log;
-import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 
@@ -10,16 +8,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.Serializable;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
 public class User {
-    private final static String TAG = "User";
-
     public enum MassUnit implements Serializable {
         KG, LB, ST;
 
@@ -173,24 +167,23 @@ public class User {
         if ((this.mass_unit == User.MassUnit.LB) ||
                 (ignore_stones && this.mass_unit == User.MassUnit.ST)) {
             format = R.string.edit_user_fragment_units_tag_lb;
-            value = mass * 2.20462262;
+            value = MassConverter.kilogramsToPounds(mass);
         } else if (this.mass_unit == User.MassUnit.ST) {
-            double lbs = mass * 2.20462262;
+            MassConverter.StonePounds stonePounds = MassConverter.toStonePounds(mass);
             if (!show_units)
             {
-                return String.format(Locale.getDefault(),"%1$.1f", Math.floor(lbs/14));
+                return String.format(Locale.getDefault(),"%1$.1f", stonePounds.stones);
             }
 
-            double divisor = (float)Math.floor(lbs / 14);
-            double remainder = lbs % 14;
-            if (divisor == 0)
+            if (stonePounds.stones == 0)
             {
                 format = R.string.edit_user_fragment_units_tag_lb;
-                value = mass * 2.20462262;
+                value = MassConverter.kilogramsToPounds(mass);
             }
             else
             {
-                return String.format(c.getString(R.string.edit_user_fragment_units_tag_st), divisor, remainder);
+                return String.format(c.getString(R.string.edit_user_fragment_units_tag_st),
+                        stonePounds.stones, stonePounds.pounds);
             }
         }
         if (show_units)
@@ -203,71 +196,4 @@ public class User {
         }
     }
 
-    double calc_mass2(double d, double weight, boolean percent)
-    {
-        if (percent)
-        {
-            if (this.show_fat_mass)
-            {
-                if (this.mass_unit == User.MassUnit.KG) {
-                    return (d * weight / 100);
-                }
-                else
-                {
-                    return (d * (2.20462262 * weight) / 100);
-                }
-            }
-            else {
-                return d;
-            }
-        }
-        else {
-            if (this.mass_unit == User.MassUnit.KG) {
-                return d;
-            } else {
-                return d / 2.20462262;
-            }
-        }
-    }
-
-    double calc_mass(double d, double weight, boolean percent)
-    {
-        if (percent)
-        {
-            if (this.show_fat_mass)
-            {
-                if (this.mass_unit == User.MassUnit.KG) {
-                    return (d * 100 /  weight);
-                }
-                else
-                {
-                    return (d * 100 / (2.20462262 * weight));
-                }
-            }
-            else {
-                return d;
-            }
-        }
-        else {
-            if (this.mass_unit == User.MassUnit.KG) {
-                return d;
-            } else {
-                return d / 2.20462262;
-            }
-        }
-    }
-
-    double calc_mass(EditText et, double weight, boolean percent)
-    {
-        NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
-        Number number;
-        try {
-            number = format.parse(et.getText().toString());
-        } catch (ParseException e) {
-            Log.e(TAG, "Unable to parse the user value", e);
-            return -1;
-        }
-        assert number != null;
-        return calc_mass(number.doubleValue(), weight, percent);
-    }
 }

@@ -43,6 +43,24 @@ public class MeasurementTextFormatterTest {
         assertTrue(body.contains("Trunk Percent Fat: 24.0 %\n"));
     }
 
+    @Test
+    public void formatsMassInStonesAndFallsBackToPoundsBelowOneStone() {
+        User user = user();
+        user.mass_unit = User.MassUnit.ST;
+
+        String body = formatter.email(strings, user, weight()).body;
+
+        assertTrue(body.contains("Weight: 10 st 1.5 lb\n"));
+        assertTrue(body.contains("Muscle Mass: 7 st 1.4 lb\n"));
+
+        Weight lightWeight = weight();
+        lightWeight.weight = 5;
+        lightWeight.muscleMass = -1;
+        body = formatter.email(strings, user, lightWeight).body;
+
+        assertTrue(body.contains("Weight: 11.0 lb\n"));
+    }
+
     private static User user() {
         User user = new User();
         user.name = "Ada";

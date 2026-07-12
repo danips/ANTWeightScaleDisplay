@@ -94,16 +94,16 @@ final class MeasurementTextFormatter {
     private String mass(Strings strings, User.MassUnit unit, double kilograms) {
         if (unit == User.MassUnit.LB) {
             return strings.format(R.string.edit_user_fragment_units_tag_lb,
-                    kilograms * 2.20462262);
+                    MassConverter.kilogramsToPounds(kilograms));
         }
         if (unit == User.MassUnit.ST) {
-            double pounds = kilograms * 2.20462262;
-            double stones = Math.floor(pounds / 14);
-            if (stones == 0) {
-                return strings.format(R.string.edit_user_fragment_units_tag_lb, pounds);
+            MassConverter.StonePounds value = MassConverter.toStonePounds(kilograms);
+            if (value.stones == 0) {
+                return strings.format(R.string.edit_user_fragment_units_tag_lb,
+                        MassConverter.kilogramsToPounds(kilograms));
             }
             return strings.format(R.string.edit_user_fragment_units_tag_st,
-                    stones, pounds % 14);
+                    value.stones, value.pounds);
         }
         return strings.format(R.string.edit_user_fragment_units_tag_kg, kilograms);
     }

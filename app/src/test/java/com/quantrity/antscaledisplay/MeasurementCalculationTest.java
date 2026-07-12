@@ -22,11 +22,44 @@ public class MeasurementCalculationTest {
     public void fatPercentageConvertsToMassForConfiguredUnits() {
         User user = new User();
         user.show_fat_mass = true;
+        Weight weight = new Weight();
+        weight.weight = 80;
+        weight.percentFat = 20;
         user.mass_unit = User.MassUnit.KG;
-        assertEquals(16.0, user.calc_mass2(20, 80, true), 0.0001);
+        assertEquals(16.0, Metric.PERCENTFAT.graphValue(weight, user), 0.0001);
 
         user.mass_unit = User.MassUnit.LB;
-        assertEquals(35.27396192, user.calc_mass2(20, 80, true), 0.0001);
+        assertEquals(35.27396192, Metric.PERCENTFAT.graphValue(weight, user), 0.0001);
+
+        user.mass_unit = User.MassUnit.ST;
+        assertEquals(35.27396192, Metric.PERCENTFAT.graphValue(weight, user), 0.0001);
+    }
+
+    @Test
+    public void percentageRemainsPercentageWhenFatMassDisplayIsDisabled() {
+        User user = new User();
+        user.show_fat_mass = false;
+        Weight weight = new Weight();
+        weight.weight = 80;
+        weight.percentFat = 20;
+
+        for (User.MassUnit unit : User.MassUnit.values()) {
+            user.mass_unit = unit;
+            assertEquals(20, Metric.PERCENTFAT.graphValue(weight, user), 0.0001);
+        }
+    }
+
+    @Test
+    public void enteredMassConvertsBackToCanonicalValues() {
+        assertEquals(80, MassConverter.toKilograms(80, User.MassUnit.KG), 0.0001);
+        assertEquals(20, MassConverter.displayMassToPercentage(
+                16, 80, User.MassUnit.KG), 0.0001);
+
+        for (User.MassUnit unit : new User.MassUnit[]{User.MassUnit.LB, User.MassUnit.ST}) {
+            assertEquals(80, MassConverter.toKilograms(176.3698096, unit), 0.0001);
+            assertEquals(20, MassConverter.displayMassToPercentage(
+                    35.27396192, 80, unit), 0.0001);
+        }
     }
 
     @Test

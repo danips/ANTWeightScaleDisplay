@@ -29,8 +29,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.quantrity.antscaledisplay.databinding.FragmentEditWeightBinding;
 
 import java.text.DecimalFormatSymbols;
-import java.text.NumberFormat;
-import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Locale;
 
@@ -489,14 +487,15 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         the_weight.age = User.calcAge(the_user.birthdate, the_weight.date);
         the_weight.isMale = the_user.isMale;
 
-        the_weight.weight = the_user.calc_mass(weightTV, the_weight.weight,false);
+        the_weight.weight = readMeasurementValue(weightTV, the_weight.weight, false);
         if (TextUtils.isEmpty(trunkPercentFatTV.getText()))
         {
             the_weight.trunkPercentFat = -1;
         }
         else
         {
-            the_weight.trunkPercentFat = the_user.calc_mass(trunkPercentFatTV, the_weight.weight, true);
+            the_weight.trunkPercentFat = readMeasurementValue(
+                    trunkPercentFatTV, the_weight.weight, true);
         }
 
         if (TextUtils.isEmpty(trunkMuscleMassTV.getText()))
@@ -505,7 +504,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.trunkMuscleMass = the_user.calc_mass(trunkMuscleMassTV, the_weight.weight, false);
+            the_weight.trunkMuscleMass = readMeasurementValue(
+                    trunkMuscleMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(leftArmPercentFatTV.getText()))
         {
@@ -513,7 +513,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.leftArmPercentFat = the_user.calc_mass(leftArmPercentFatTV, the_weight.weight, true);
+            the_weight.leftArmPercentFat = readMeasurementValue(
+                    leftArmPercentFatTV, the_weight.weight, true);
         }
         if (TextUtils.isEmpty(leftArmPercentFatTV.getText()))
         {
@@ -521,7 +522,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.leftArmMuscleMass = the_user.calc_mass(leftArmMuscleMassTV, the_weight.weight,false);
+            the_weight.leftArmMuscleMass = readMeasurementValue(
+                    leftArmMuscleMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(rightArmPercentFatTV.getText()))
         {
@@ -529,7 +531,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.rightArmPercentFat = the_user.calc_mass(rightArmPercentFatTV, the_weight.weight,true);
+            the_weight.rightArmPercentFat = readMeasurementValue(
+                    rightArmPercentFatTV, the_weight.weight, true);
         }
         if (TextUtils.isEmpty(rightArmMuscleMassTV.getText()))
         {
@@ -537,7 +540,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.rightArmMuscleMass = the_user.calc_mass(rightArmMuscleMassTV, the_weight.weight,false);
+            the_weight.rightArmMuscleMass = readMeasurementValue(
+                    rightArmMuscleMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(leftLegPercentFatTV.getText()))
         {
@@ -545,7 +549,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.leftLegPercentFat = the_user.calc_mass(leftLegPercentFatTV, the_weight.weight,true);
+            the_weight.leftLegPercentFat = readMeasurementValue(
+                    leftLegPercentFatTV, the_weight.weight, true);
         }
         if (TextUtils.isEmpty(leftLegMuscleMassTV.getText()))
         {
@@ -553,7 +558,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.leftLegMuscleMass = the_user.calc_mass(leftLegMuscleMassTV, the_weight.weight,false);
+            the_weight.leftLegMuscleMass = readMeasurementValue(
+                    leftLegMuscleMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(rightLegPercentFatTV.getText()))
         {
@@ -561,7 +567,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.rightLegPercentFat = the_user.calc_mass(rightLegPercentFatTV, the_weight.weight,true);
+            the_weight.rightLegPercentFat = readMeasurementValue(
+                    rightLegPercentFatTV, the_weight.weight, true);
         }
         if (TextUtils.isEmpty(rightLegMuscleMassTV.getText()))
         {
@@ -569,7 +576,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.rightLegMuscleMass = the_user.calc_mass(rightLegMuscleMassTV, the_weight.weight,false);
+            the_weight.rightLegMuscleMass = readMeasurementValue(
+                    rightLegMuscleMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(percentFatTV.getText()))
         {
@@ -577,12 +585,10 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.percentFat = the_user.calc_mass(percentFatTV, the_weight.weight,true);
+            the_weight.percentFat = readMeasurementValue(
+                    percentFatTV, the_weight.weight, true);
         }
 
-
-        NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
-        Number number;
 
         if (TextUtils.isEmpty(percentHydrationTV.getText()))
         {
@@ -590,14 +596,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            try {
-                number = format.parse(percentHydrationTV.getText().toString());
-                assert number != null;
-                the_weight.percentHydration = number.doubleValue();
-            } catch (ParseException e) {
-                Log.e(TAG, "Unable to parse hydration percentage", e);
-                the_weight.percentHydration = -1;
-            }
+            the_weight.percentHydration = LocalizedNumberParser.parseOrDefault(
+                    percentHydrationTV.getText(), -1);
         }
         if (TextUtils.isEmpty(boneMassTV.getText()))
         {
@@ -605,7 +605,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.boneMass = the_user.calc_mass(boneMassTV, the_weight.weight, false);
+            the_weight.boneMass = readMeasurementValue(
+                    boneMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(muscleMassTV.getText()))
         {
@@ -613,7 +614,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.muscleMass = the_user.calc_mass(muscleMassTV, the_weight.weight, false);
+            the_weight.muscleMass = readMeasurementValue(
+                    muscleMassTV, the_weight.weight, false);
         }
         if (TextUtils.isEmpty(physiqueRatingTV.getText()))
         {
@@ -621,7 +623,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.physiqueRating = Integer.parseInt(physiqueRatingTV.getText().toString());
+            the_weight.physiqueRating = (int) LocalizedNumberParser.parseOrDefault(
+                    physiqueRatingTV.getText(), -1);
         }
         if (TextUtils.isEmpty(visceralFatRatingTV.getText()))
         {
@@ -630,14 +633,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         else
         {
 
-            try {
-                number = format.parse(visceralFatRatingTV.getText().toString());
-                assert number != null;
-                the_weight.visceralFatRating = number.doubleValue();
-            } catch (ParseException e) {
-                Log.e(TAG, "Unable to parse visceral fat rating", e);
-                the_weight.visceralFatRating = -1;
-            }
+            the_weight.visceralFatRating = LocalizedNumberParser.parseOrDefault(
+                    visceralFatRatingTV.getText(), -1);
         }
         if (TextUtils.isEmpty(metabolicAgeTV.getText()))
         {
@@ -645,7 +642,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.metabolicAge = Integer.parseInt(metabolicAgeTV.getText().toString());
+            the_weight.metabolicAge = (int) LocalizedNumberParser.parseOrDefault(
+                    metabolicAgeTV.getText(), -1);
         }
         if (TextUtils.isEmpty(activeMetTV.getText()))
         {
@@ -653,7 +651,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.activeMet = MainActivity.parseNumber(activeMetTV);
+            the_weight.activeMet = LocalizedNumberParser.parseOrDefault(activeMetTV.getText(), 0);
         }
         if (TextUtils.isEmpty(basalMetTV.getText()))
         {
@@ -661,10 +659,24 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
         else
         {
-            the_weight.basalMet = MainActivity.parseNumber(basalMetTV);
+            the_weight.basalMet = LocalizedNumberParser.parseOrDefault(basalMetTV.getText(), 0);
         }
 
 
         return true;
+    }
+
+    private double readMeasurementValue(EditText input, double bodyKilograms,
+                                        boolean percentageMayBeMass) {
+        LocalizedNumberParser.Result parsed =
+                LocalizedNumberParser.parse(input.getText().toString());
+        if (!parsed.isValid()) return -1;
+        double value = parsed.value();
+        if (!percentageMayBeMass) {
+            return MassConverter.toKilograms(value, the_user.mass_unit);
+        }
+        if (!the_user.show_fat_mass) return value;
+        return MassConverter.displayMassToPercentage(
+                value, bodyKilograms, the_user.mass_unit);
     }
 }

@@ -107,23 +107,24 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         switch (units)
         {
             case NO_UNITS:
-                tmp.start_value = MainActivity.parseNumber(et_startValue00);
-                tmp.end_value = MainActivity.parseNumber(et_endValue00);
+                tmp.start_value = readNumber(et_startValue00);
+                tmp.end_value = readNumber(et_endValue00);
                 break;
             case ONE_UNIT:
-                tmp.start_value = MainActivity.parseNumber(et_startValue10);
-                tmp.end_value = MainActivity.parseNumber(et_endValue10);
+                tmp.start_value = readNumber(et_startValue10);
+                tmp.end_value = readNumber(et_endValue10);
                 break;
             case ONE_UNIT_WEIGHT:
-                tmp.start_value = the_user.calc_mass(et_startValue10, 1, false);
-                tmp.end_value = the_user.calc_mass(et_endValue10, 1, false);
+                tmp.start_value = MassConverter.toKilograms(
+                        readNumber(et_startValue10), the_user.mass_unit);
+                tmp.end_value = MassConverter.toKilograms(
+                        readNumber(et_endValue10), the_user.mass_unit);
                 break;
             case TWO_UNITS_WEIGHT:
-                tmp.start_value = MainActivity.parseNumber(et_startValue20) * 14
-                        + MainActivity.parseNumber(et_startValue21);
-                tmp.start_value = the_user.calc_mass(tmp.start_value, 1, false);
-                tmp.end_value = MainActivity.parseNumber(et_endValue20) * 14 + MainActivity.parseNumber(et_endValue21);
-                tmp.end_value = the_user.calc_mass(tmp.end_value, 1, false);
+                tmp.start_value = MassConverter.stonePoundsToKilograms(
+                        readNumber(et_startValue20), readNumber(et_startValue21));
+                tmp.end_value = MassConverter.stonePoundsToKilograms(
+                        readNumber(et_endValue20), readNumber(et_endValue21));
                 break;
 
             default:
@@ -212,25 +213,25 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
             case RIGHTLEGPERCENTFAT:
                 if (the_goal.show_fat_mass) {
                     if (the_user.mass_unit == User.MassUnit.LB) {
-                        et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value * 2.20462262));
-                        et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value * 2.20462262));
+                        et_startValue10.setText(String.format(Locale.getDefault(),"%.1f",
+                                MassConverter.kilogramsToPounds(the_goal.start_value)));
+                        et_endValue10.setText(String.format(Locale.getDefault(),"%.1f",
+                                MassConverter.kilogramsToPounds(the_goal.end_value)));
                         tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                         tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                         units = Units.ONE_UNIT_WEIGHT;
                     } else if (the_user.mass_unit == User.MassUnit.ST) {
-                        double lbs = the_goal.start_value * 2.20462262;
-                        double divisor = (float)Math.floor(lbs / 14);
-                        double remainder = lbs % 14;
-                        et_startValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
-                        et_startValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
+                        MassConverter.StonePounds start =
+                                MassConverter.toStonePounds(the_goal.start_value);
+                        et_startValue20.setText(String.format(Locale.getDefault(),"%.0f", start.stones));
+                        et_startValue21.setText(String.format(Locale.getDefault(),"%.1f", start.pounds));
                         tv_startValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                         tv_startValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
 
-                        lbs = the_goal.end_value * 2.20462262;
-                        divisor = (float)Math.floor(lbs / 14);
-                        remainder = lbs % 14;
-                        et_endValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
-                        et_endValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
+                        MassConverter.StonePounds end =
+                                MassConverter.toStonePounds(the_goal.end_value);
+                        et_endValue20.setText(String.format(Locale.getDefault(),"%.0f", end.stones));
+                        et_endValue21.setText(String.format(Locale.getDefault(),"%.1f", end.pounds));
                         tv_endValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                         tv_endValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                         units = Units.TWO_UNITS_WEIGHT;
@@ -262,25 +263,25 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
             case WEIGHT:
             default:
                 if (the_user.mass_unit == User.MassUnit.LB) {
-                    et_startValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.start_value * 2.20462262));
-                    et_endValue10.setText(String.format(Locale.getDefault(),"%.1f", the_goal.end_value * 2.20462262));
+                    et_startValue10.setText(String.format(Locale.getDefault(),"%.1f",
+                            MassConverter.kilogramsToPounds(the_goal.start_value)));
+                    et_endValue10.setText(String.format(Locale.getDefault(),"%.1f",
+                            MassConverter.kilogramsToPounds(the_goal.end_value)));
                     tv_startValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                     tv_endValue10.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                     units = Units.ONE_UNIT_WEIGHT;
                 } else if (the_user.mass_unit == User.MassUnit.ST) {
-                    double lbs = the_goal.start_value * 2.20462262;
-                    double divisor = (float)Math.floor(lbs / 14);
-                    double remainder = lbs % 14;
-                    et_startValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
-                    et_startValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
+                    MassConverter.StonePounds start =
+                            MassConverter.toStonePounds(the_goal.start_value);
+                    et_startValue20.setText(String.format(Locale.getDefault(),"%.0f", start.stones));
+                    et_startValue21.setText(String.format(Locale.getDefault(),"%.1f", start.pounds));
                     tv_startValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                     tv_startValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
 
-                    lbs = the_goal.end_value * 2.20462262;
-                    divisor = (float)Math.floor(lbs / 14);
-                    remainder = lbs % 14;
-                    et_endValue20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
-                    et_endValue21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
+                    MassConverter.StonePounds end =
+                            MassConverter.toStonePounds(the_goal.end_value);
+                    et_endValue20.setText(String.format(Locale.getDefault(),"%.0f", end.stones));
+                    et_endValue21.setText(String.format(Locale.getDefault(),"%.1f", end.pounds));
                     tv_endValue20.setText(getResources().getString(R.string.weight_edit_fragment_st_tag));
                     tv_endValue21.setText(getResources().getString(R.string.weight_edit_fragment_lb_tag));
                     units = Units.TWO_UNITS_WEIGHT;
@@ -363,7 +364,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
                     } else if (the_user.mass_unit == User.MassUnit.LB) {
                         units = 1;
                         tv_Value10.setText(R.string.weight_edit_fragment_lb_tag);
-                        value *= 2.20462262;
+                        value = MassConverter.kilogramsToPounds(value);
                     } else {
                         units = 1;
                         tv_Value10.setText(R.string.weight_edit_fragment_kg_tag);
@@ -392,7 +393,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
                 } else if (the_user.mass_unit == User.MassUnit.LB) {
                     units = 1;
                     tv_Value10.setText(R.string.weight_edit_fragment_lb_tag);
-                    value *= 2.20462262;
+                    value = MassConverter.kilogramsToPounds(value);
                 } else {
                     units = 1;
                     tv_Value10.setText(R.string.weight_edit_fragment_kg_tag);
@@ -411,11 +412,9 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
                 ll_0unit.setVisibility(View.GONE);
                 ll_1unit.setVisibility(View.GONE);
                 ll_2unit.setVisibility(View.VISIBLE);
-                double lbs = value * 2.20462262;
-                double divisor = (float)Math.floor(lbs / 14);
-                double remainder = lbs % 14;
-                et_Value20.setText(String.format(Locale.getDefault(),"%.0f", divisor));
-                et_Value21.setText(String.format(Locale.getDefault(),"%.1f", remainder));
+                MassConverter.StonePounds stonePounds = MassConverter.toStonePounds(value);
+                et_Value20.setText(String.format(Locale.getDefault(),"%.0f", stonePounds.stones));
+                et_Value21.setText(String.format(Locale.getDefault(),"%.1f", stonePounds.pounds));
                 break;
             case 1:
             default:
@@ -427,6 +426,10 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
         }
 
 
+    }
+
+    private static double readNumber(EditText input) {
+        return LocalizedNumberParser.parseOrDefault(input.getText(), 0);
     }
 
     private void resetValues() {
