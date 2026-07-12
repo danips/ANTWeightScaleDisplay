@@ -3,30 +3,58 @@ package com.quantrity.antscaledisplay;
 import org.json.JSONArray;
 
 import java.io.ByteArrayOutputStream;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.HashSet;
+import java.util.Arrays;
+import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
+import java.util.zip.Deflater;
 
 /** Validates and restores app-created data archives without trusting ZIP entry paths. */
 final class BackupArchive {
     private static final int BUFFER_SIZE = 8192;
     private static final int MAX_ENTRY_BYTES = 50 * 1024 * 1024;
-    private static final Set<String> DATA_FILES = new HashSet<>();
-
-    static {
-        DATA_FILES.add("users");
-        DATA_FILES.add("history");
-        DATA_FILES.add("goals");
-    }
+    private static final List<String> DATA_FILES =
+            Arrays.asList("users", "history", "goals");
 
     private BackupArchive() {}
 
+    /** Creates an archive and closes the supplied output stream. */
+    static RepositoryResult<Integer> create(OutputStream output, File directory) {
+        if (output == null) return failure("Could not open backup destination", null);
+        byte[] buffer = new byte[BUFFER_SIZE];
+        try (ZipOutputStream archive = new ZipOutputStream(new BufferedOutputStream(output))) {
+            archive.setLevel(Deflater.BEST_COMPRESSION);
+            for (String name : DATA_FILES) {
+                File source = new File(directory, name);
+                if (!source.isFile() || !source.canRead()) {
+                    return failure("Could not read backup source: " + name, null);
+                }
+                archive.putNextEntry(new ZipEntry(name));
+                try (InputStream input = new BufferedInputStream(
+                        new FileInputStream(source), BUFFER_SIZE)) {
+                    int count;
+                    while ((count = input.read(buffer)) != -1) archive.write(buffer, 0, count);
+                }
+                archive.closeEntry();
+            }
+            archive.finish();
+            return RepositoryResult.success(DATA_FILES.size());
+        } catch (Exception exception) {
+            return failure("Could not create backup archive", exception);
+        }
+    }
+
+    /** Restores an archive and closes the supplied input stream. */
     static RepositoryResult<Integer> restore(InputStream input, File directory) {
         if (input == null) {
             return failure("Could not open backup archive", null);

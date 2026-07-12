@@ -36,6 +36,9 @@ import androidx.work.WorkManager;
 
 import com.quantrity.antscaledisplay.databinding.FragmentEditUserBinding;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -88,16 +91,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
-                    boolean ok = false;
                     if (getActivity() != null && uri != null) {
-                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
-                    }
-
-                    if (ok && getActivity() != null) {
-                        Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
-                        ((MainActivity) getActivity()).reloadDB();
-                        getActivity().invalidateOptionsMenu();
-                        ((MainActivity) getActivity()).closeEditUserFragment(null);
+                        restoreBackup(uri);
                     }
                 }
             }
@@ -111,6 +106,35 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
         builder.setMessage(msg)
                 .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.cancel()).create().show();
+    }
+
+    private void restoreBackup(Uri uri) {
+        if (getActivity() == null) return;
+        android.content.ContentResolver resolver = getActivity().getContentResolver();
+        File directory = getActivity().getFilesDir();
+        new Thread(() -> {
+            RepositoryResult<Integer> result;
+            try {
+                InputStream input = resolver.openInputStream(uri);
+                result = BackupArchive.restore(input, directory);
+            } catch (IOException exception) {
+                result = RepositoryResult.failure("Unable to open the backup archive", exception);
+            }
+            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+            RepositoryResult<Integer> completed = result;
+            if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                if (!completed.isSuccess()) {
+                    Toast.makeText(getActivity(), completed.message, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Toast.makeText(getActivity(),
+                        R.string.history_fragment_action_database_restore_ok,
+                        Toast.LENGTH_LONG).show();
+                ((MainActivity) getActivity()).reloadDB();
+                getActivity().invalidateOptionsMenu();
+                ((MainActivity) getActivity()).closeEditUserFragment(null);
+            });
+        }, "backup-archive-restore").start();
     }
 
     private User checkValues() {

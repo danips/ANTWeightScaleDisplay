@@ -28,10 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.quantrity.antscaledisplay.databinding.FragmentUsersBinding;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -39,14 +36,9 @@ import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
-import java.util.zip.Deflater;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 public class UsersFragment extends Fragment implements MenuProvider {
     private final static String TAG = "UsersFragment";
-
-    private static final int BUFFER_SIZE = 8192;
 
     private String dst;
 
@@ -90,21 +82,9 @@ public class UsersFragment extends Fragment implements MenuProvider {
             result -> {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Intent data = result.getData();
-                    boolean ok = false;
                     Uri uri = data.getData();
                     if (getActivity() != null && uri != null) {
-                        ok = UsersFragment.unzip(uri, getActivity().getFilesDir().toString(), getActivity().getContentResolver());
-                    }
-
-                    if (ok && getActivity() != null) {
-                        Toast.makeText(getActivity(), getString(R.string.history_fragment_action_database_restore_ok), Toast.LENGTH_LONG).show();
-
-                        //Recargar base de datos
-                        ((MainActivity) getActivity()).reloadDB();
-                        getActivity().invalidateOptionsMenu();
-                        if (mAdapter != null) {
-                            mAdapter.replaceAll(state.users());
-                        }
+                        restoreBackup(uri);
                     }
                 }
             }
@@ -185,68 +165,48 @@ public class UsersFragment extends Fragment implements MenuProvider {
         });
     }
 
-    private void saveBackup() {
-        ZipOutputStream out;
-        try {
-            out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(dst)));
-            saveBackup(out);
-        } catch (FileNotFoundException e) {
-            Log.e(TAG, "Unable to create the backup archive", e);
-        }
-    }
-
     private void saveBackup(ParcelFileDescriptor destFileDesc) {
-        FileOutputStream fileOutputStream = new FileOutputStream(destFileDesc.getFileDescriptor());
-        ZipOutputStream zipOutputStream = new ZipOutputStream(fileOutputStream);
-        saveBackup(zipOutputStream);
-    }
-
-    private void saveBackup(ZipOutputStream out) {
         if (getActivity() == null) return;
-        BufferedInputStream origin;
-        out.setLevel(Deflater.BEST_COMPRESSION);
-        try {
-            byte[] buffer = new byte[BUFFER_SIZE];
-            for (File file : AppRepository.get(getActivity()).dataFiles()) {
-                FileInputStream fi = new FileInputStream(file);
-                origin = new BufferedInputStream(fi, BUFFER_SIZE);
-                try {
-                    ZipEntry entry = new ZipEntry(file.getName());
-                    out.putNextEntry(entry);
-                    int count;
-                    while ((count = origin.read(buffer, 0, BUFFER_SIZE)) != -1) {
-                        out.write(buffer, 0, count);
-                    }
-                } catch (IOException e) {
-                    Log.e(TAG, "Unable to add a file to the backup archive", e);
-                } finally {
-                    origin.close();
-                }
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Unable to save the backup archive", e);
-        } finally {
-            try {
-                out.close();
-            } catch (IOException e) {
-                Log.e(TAG, "Unable to close the backup archive", e);
-            }
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() ->
-                        Toast.makeText(getActivity(), String.format(getString(R.string.history_fragment_action_database_backup_ok), dst), Toast.LENGTH_LONG).show()
-                );
-            }
-        }
+        File directory = getActivity().getFilesDir();
+        new Thread(() -> {
+            RepositoryResult<Integer> result = BackupArchive.create(
+                    new FileOutputStream(destFileDesc.getFileDescriptor()), directory);
+            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+            if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                if (result.isSuccess()) Toast.makeText(getActivity(), String.format(
+                        getString(R.string.history_fragment_action_database_backup_ok), dst),
+                        Toast.LENGTH_LONG).show();
+                else Toast.makeText(getActivity(), result.message, Toast.LENGTH_LONG).show();
+            });
+        }, "backup-archive-create").start();
     }
 
-    static boolean unzip(Uri zipFile, String location, ContentResolver contentResolver) {
-        try (InputStream input = contentResolver.openInputStream(zipFile)) {
-            RepositoryResult<Integer> result = BackupArchive.restore(input, new File(location));
+    private void restoreBackup(Uri uri) {
+        if (getActivity() == null) return;
+        ContentResolver resolver = getActivity().getContentResolver();
+        File directory = getActivity().getFilesDir();
+        new Thread(() -> {
+            RepositoryResult<Integer> result;
+            try {
+                InputStream input = resolver.openInputStream(uri);
+                result = BackupArchive.restore(input, directory);
+            } catch (IOException exception) {
+                result = RepositoryResult.failure("Unable to open the backup archive", exception);
+            }
             if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-            return result.isSuccess();
-        } catch (IOException e) {
-            Log.e(TAG, "Unable to open the backup archive", e);
-            return false;
-        }
+            RepositoryResult<Integer> completed = result;
+            if (getActivity() != null) getActivity().runOnUiThread(() -> {
+                if (!completed.isSuccess()) {
+                    Toast.makeText(getActivity(), completed.message, Toast.LENGTH_LONG).show();
+                    return;
+                }
+                Toast.makeText(getActivity(),
+                        R.string.history_fragment_action_database_restore_ok,
+                        Toast.LENGTH_LONG).show();
+                ((MainActivity) getActivity()).reloadDB();
+                getActivity().invalidateOptionsMenu();
+                if (mAdapter != null) mAdapter.replaceAll(state.users());
+            });
+        }, "backup-archive-restore").start();
     }
 }

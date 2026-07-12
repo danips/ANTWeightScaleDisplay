@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 7 — Complete the backup archive boundary
+- Current phase: Phase 8 — Simplify navigation and user selection
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -68,7 +68,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 4 — Simplify goal value editing
 - [x] Phase 5 — Extract graph definitions and calculations
 - [x] Phase 6 — Clarify repository write completion and failures
-- [ ] Phase 7 — Complete the backup archive boundary
+- [x] Phase 7 — Complete the backup archive boundary
 - [ ] Phase 8 — Simplify navigation and user selection
 - [ ] Phase 9 — Final cleanup and regression verification
 
@@ -659,10 +659,10 @@ application cannot silently present an in-memory change as saved after disk pers
 
 ## Phase 7 — Complete the backup archive boundary
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 7 changes are in the working tree)
 
 ### Objective
 
@@ -671,17 +671,17 @@ data is written to or restored from an archive.
 
 ### Tasks
 
-- [ ] Characterize archive entry names and content produced by the current `UsersFragment` exporter.
-- [ ] Add backup-creation tests and create→restore round-trip tests for all three data files.
-- [ ] Add failure tests for unreadable sources and output errors.
-- [ ] Add `BackupArchive.create(...)` with explicit success/failure results.
-- [ ] Reuse one supported-entry definition for creation and restoration.
-- [ ] Move compression level, buffering, entry creation, and stream ownership decisions out of
+- [x] Characterize archive entry names and content produced by the current `UsersFragment` exporter.
+- [x] Add backup-creation tests and create→restore round-trip tests for all three data files.
+- [x] Add failure tests for unreadable sources and output errors.
+- [x] Add `BackupArchive.create(...)` with explicit success/failure results.
+- [x] Reuse one supported-entry definition for creation and restoration.
+- [x] Move compression level, buffering, entry creation, and stream ownership decisions out of
       `UsersFragment`.
-- [ ] Keep document-picker launch and Toast/dialog presentation in `UsersFragment`.
-- [ ] Ensure streams and file descriptors are closed exactly once by their documented owner.
-- [ ] Remove the legacy static `UsersFragment.unzip(...)` wrapper if no compatibility caller remains.
-- [ ] Confirm pre-refactor archives still restore successfully.
+- [x] Keep document-picker launch and Toast/dialog presentation in `UsersFragment`.
+- [x] Ensure streams and file descriptors are closed exactly once by their documented owner.
+- [x] Remove the legacy static `UsersFragment.unzip(...)` wrapper if no compatibility caller remains.
+- [x] Confirm pre-refactor archives still restore successfully.
 
 ### Acceptance criteria
 
@@ -698,10 +698,29 @@ data is written to or restored from an archive.
 
 ### Completion notes
 
-- Archive API: —
-- Stream ownership decision: —
-- Compatibility results: —
-- Follow-up work: —
+- Archive API: `BackupArchive.create(OutputStream, File)` writes exactly `users`, `history`, and
+  `goals` with best compression and returns the entry count or an explicit failure.
+  `BackupArchive.restore(InputStream, File)` uses the same ordered supported-entry definition and
+  retains the existing path, duplicate, size, JSON, and atomic-write validation.
+- Stream ownership decision: passing a stream transfers ownership to `BackupArchive`; create and
+  restore close it exactly once through their ZIP stream. Picker code opens the descriptor-backed
+  stream and does not wrap or close it a second time. Archive creation and restore now run on named
+  background threads rather than blocking the main thread.
+- Compatibility results: existing restore tests for legacy entry names still pass. New tests create
+  all three entries and restore them byte-for-byte, reject missing sources and duplicate entries,
+  report destination write failures, and verify the transferred output is closed.
+- UI boundary: `UsersFragment` contains no ZIP classes or compression logic and the legacy static
+  `unzip(...)` wrapper was removed. Both the users screen and legacy edit-user restore action retain
+  their document picker and result presentation.
+- Size impact: `UsersFragment` decreased from approximately 246 to 212 lines. The consolidated
+  `BackupArchive` grew from 78 to 107 lines and production Java increased from 9,605 after Phase 6
+  to 9,617 lines while adding the complete tested creation boundary.
+- Automated verification: 103 declared `@Test` methods produce 203 test executions with zero
+  failures, errors, or skips. `lintDebug` reports no issues; the minified release build passes and
+  produces a 2,309,932-byte unsigned APK.
+- Manual checks: document-provider creation and restoration of an actual user archive remain
+  deferred to `docs/release-checklist.md`; no device was available.
+- Follow-up work: Phase 8 will replace localized-title navigation and consolidate user selection.
 
 ---
 
