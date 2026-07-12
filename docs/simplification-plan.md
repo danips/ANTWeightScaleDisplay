@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 8 — Simplify navigation and user selection
+- Current phase: Phase 9 — Final cleanup and regression verification
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -69,7 +69,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 5 — Extract graph definitions and calculations
 - [x] Phase 6 — Clarify repository write completion and failures
 - [x] Phase 7 — Complete the backup archive boundary
-- [ ] Phase 8 — Simplify navigation and user selection
+- [x] Phase 8 — Simplify navigation and user selection
 - [ ] Phase 9 — Final cleanup and regression verification
 
 ---
@@ -726,10 +726,10 @@ data is written to or restored from an archive.
 
 ## Phase 8 — Simplify navigation and user selection
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 8 changes are in the working tree)
 
 ### Objective
 
@@ -738,19 +738,19 @@ the custom searchable user selector without introducing a full navigation rewrit
 
 ### Tasks
 
-- [ ] Add navigation characterization tests where practical and document manual back-stack behavior.
-- [ ] Change drawer selection to dispatch by stable menu resource ID rather than localized title text.
-- [ ] Centralize destination-to-fragment, title, and checked-position mapping in one small definition.
-- [ ] Replace public Activity helpers used only for navigation with a narrow host contract or Fragment
+- [x] Add navigation characterization tests where practical and document manual back-stack behavior.
+- [x] Change drawer selection to dispatch by stable menu resource ID rather than localized title text.
+- [x] Centralize destination-to-fragment, title, and checked-position mapping in one small definition.
+- [x] Replace public Activity helpers used only for navigation with a narrow host contract or Fragment
       Result API, choosing whichever produces fewer lifecycle-sensitive paths.
-- [ ] Keep ANT controller access through the Activity-scoped ViewModel rather than through Activity
+- [x] Keep ANT controller access through the Activity-scoped ViewModel rather than through Activity
       getters where practical.
-- [ ] Inventory `SpinnerDialog`, `ArrayAdapterWithContainsFilter`, and `OnSpinerItemClick` usage.
-- [ ] Correct the `OnSpinerItemClick` spelling if the interface remains.
-- [ ] Prefer an existing Material searchable selection pattern if it can preserve behavior with less
+- [x] Inventory `SpinnerDialog`, `ArrayAdapterWithContainsFilter`, and `OnSpinerItemClick` usage.
+- [x] Correct the `OnSpinerItemClick` spelling if the interface remains.
+- [x] Prefer an existing Material searchable selection pattern if it can preserve behavior with less
       code; otherwise consolidate the custom selector into one component.
-- [ ] Ensure user selection persists by UUID and updates weight, history, graphs, and goals.
-- [ ] Remove obsolete Activity methods, casts, imports, and resources after migration.
+- [x] Ensure user selection persists by UUID and updates weight, history, graphs, and goals.
+- [x] Remove obsolete Activity methods, casts, imports, and resources after migration.
 
 ### Acceptance criteria
 
@@ -768,10 +768,33 @@ the custom searchable user selector without introducing a full navigation rewrit
 
 ### Completion notes
 
-- Navigation mechanism selected: —
-- User-selector implementation: —
-- Activity helpers removed: —
-- Follow-up work: —
+- Navigation mechanism selected: `NavigationDestination` maps each stable drawer menu ID to its title
+  resource and Fragment class/factory. `MainActivity` dispatches directly from `MenuItem.getItemId()`;
+  translated title text is never used as control flow. Existing edit-screen replacement and back
+  behavior remain unchanged, while Activity recreation continues to rely on FragmentManager restore.
+- User-selector implementation: `UserSpinnerController` is the single setup path for empty,
+  one-user, normal, and large user lists. It uses the standard action-bar spinner and enables the
+  existing filtered dialog above ten users. `SpinnerDialog` and
+  `ArrayAdapterWithContainsFilter` therefore remain a focused searchable-picker pair; the callback
+  was corrected from `OnSpinerItemClick` to package-private `OnSpinnerItemClick`.
+- Host boundary: `AppHost` centralizes routine edit navigation, shared user-spinner setup, reload,
+  messaging, and mutation-error handling. Fragments no longer repeatedly cast their Activity for
+  these operations. ANT controller lookup/start moved from public Activity helpers to the existing
+  Activity-scoped `AppStateViewModel`.
+- Selection compatibility: the repository continues to persist selected users by UUID. All four
+  measurement/history/graph/goal spinner listeners still update the same ViewModel selection and
+  refresh their own presentation.
+- Tests added: `NavigationDestinationTest` verifies unique stable IDs, title resources, unknown-ID
+  rejection, and every destination-to-Fragment mapping.
+- Size impact: `MainActivity` decreased from approximately 521 to 388 lines. Focused host,
+  destination, and selector components make production Java 9,635 lines versus 9,617 after Phase 7.
+- Automated verification: 105 declared `@Test` methods produce 205 test executions with zero
+  failures, errors, or skips. `lintDebug` reports no issues; the minified release build passes and
+  produces a 2,310,092-byte unsigned APK.
+- Manual checks: locale navigation, back behavior, rotation, and small/large selector interaction
+  remain deferred to `docs/release-checklist.md`; no device was available.
+- Follow-up work: Phase 9 will perform final cleanup, architecture documentation, measurements, and
+  clean-build verification.
 
 ---
 
@@ -854,6 +877,7 @@ Add one entry whenever implementation differs from this plan or a choice affects
 | 2026-07-12 | 3 | Keep writable metric access in `EditableWeightMetric` | `Metric` remains the read-only domain definition used across the application, while editor-only setters, precision, input, and unit policies stay out of the persistence model. |
 | 2026-07-12 | 5 | Keep graph periods as viewport definitions | The legacy `time_limit` was calculated and logged but never filtered data. Keeping all points preserves panning behavior while removing dead code. |
 | 2026-07-12 | 6 | Retain optimistic state and surface persistence failure | Rolling state back safely across serialized queued mutations would require versioned snapshots. Visible completion errors are deterministic and prevent silent data-loss claims. |
+| 2026-07-12 | 8 | Retain the filtered spinner dialog behind one controller | It preserves keyboard and large-list behavior without adding a Material dependency or a second selection path; all list sizes now share one setup component. |
 
 ## Blockers and risks
 

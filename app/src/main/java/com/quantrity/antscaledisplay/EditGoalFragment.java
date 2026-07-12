@@ -279,13 +279,13 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
 
     @Override public boolean onMenuItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == R.id.action_editgoal_cancel) {
-            if (getActivity() != null) ((MainActivity) getActivity()).closeEditGoalFragment(null);
+            if (getActivity() != null) AppHost.from(this).closeEditGoalFragment(null);
             return true;
         }
         if (item.getItemId() == R.id.action_editgoal_done) {
             Goal result = validatedGoal();
             if (result != null && getActivity() != null) {
-                ((MainActivity) getActivity()).closeEditGoalFragment(result);
+                AppHost.from(this).closeEditGoalFragment(result);
             }
             return true;
         }

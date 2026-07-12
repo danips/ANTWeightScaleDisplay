@@ -79,7 +79,7 @@ public class GoalsFragment extends Fragment implements MenuProvider {
         // Inflate the menu items for use in the action bar
         menuInflater.inflate(R.menu.fragment_goals_menu, menu);
         if (getActivity() != null)
-            ((MainActivity) getActivity()).addUsersSpinner(menu, oisListener);
+            AppHost.from(this).addUsersSpinner(menu, oisListener);
     }
 
     @Override
@@ -87,7 +87,7 @@ public class GoalsFragment extends Fragment implements MenuProvider {
         // Handle presses on the action bar items
         if (menuItem.getItemId() == R.id.action_add_goal) {
             if (getActivity() != null)
-                ((MainActivity) getActivity()).openEditGoalFragment(null);
+                AppHost.from(this).openEditGoalFragment(null);
             return true;
         }
         return false;
@@ -95,12 +95,11 @@ public class GoalsFragment extends Fragment implements MenuProvider {
 
     void deleteGoal(Goal goal) {
         state.deleteGoal(goal, result -> {
-            MainActivity activity = (MainActivity) getActivity();
-            if (activity != null) activity.handleMutationFailure(result);
+            if (getActivity() != null) AppHost.from(this).handleMutationFailure(result);
         });
     }
 
     void editGoal(Goal goal) {
-        if (getActivity() != null) ((MainActivity) getActivity()).openEditGoalFragment(goal);
+        if (getActivity() != null) AppHost.from(this).openEditGoalFragment(goal);
     }
 }

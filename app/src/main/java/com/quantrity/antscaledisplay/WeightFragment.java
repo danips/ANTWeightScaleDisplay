@@ -71,13 +71,12 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         for (Metric metric : CARD_METRICS) setupCard(cardBinding(metric), metric);
 
         binding.fab.setOnClickListener(view -> {
-            MainActivity ma = (MainActivity)getActivity();
-            if (ma != null) {
-                AntWeightController rw = ma.getAntWeightController();
+            if (getActivity() != null) {
+                AntWeightController rw = state.antWeightController();
                 if (rw != null) {
-                    ma.openEditWeightFragment(rw.weight, rw.user, true);
+                    AppHost.from(this).openEditWeightFragment(rw.weight, rw.user, true);
                 } else {
-                    ma.openEditWeightFragment(null, null, false);
+                    AppHost.from(this).openEditWeightFragment(null, null, false);
                 }
             }
         });
@@ -88,10 +87,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
 
     @Override
     public void onDestroyView() {
-        MainActivity activity = (MainActivity) getActivity();
-        if (activity != null && activity.getAntWeightController() != null) {
-            activity.getAntWeightController().detachListener(this);
-        }
+        AntWeightController controller = state.antWeightController();
+        if (controller != null) controller.detachListener(this);
         dismissAntProgress();
         super.onDestroyView();
         presentationFactory = null;
@@ -101,9 +98,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     @Override
     public void onResume() {
         super.onResume();
-        MainActivity activity = (MainActivity) getActivity();
-        if (activity != null && activity.getAntWeightController() != null) {
-            AntWeightController controller = activity.getAntWeightController();
+        AntWeightController controller = state.antWeightController();
+        if (controller != null) {
             controller.attachListener(this);
             if (controller.isRunning()) onAntProgress(controller.progress());
         }
@@ -114,7 +110,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         if (getActivity() == null || binding == null) return;
 
         final MainActivity mainActivity = (MainActivity) getActivity();
-        final AntWeightController rw = mainActivity.getAntWeightController();
+        final AntWeightController rw = state.antWeightController();
 
         mainActivity.runOnUiThread(() -> {
             if (getActivity() == null || binding == null) return;
@@ -336,7 +332,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
         menuInflater.inflate(R.menu.fragment_weight_menu, menu);
         if (getActivity() != null)
-            usersSpinner = ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
+            usersSpinner = AppHost.from(this).addUsersSpinner(menu, oisListener);
         if (!enableUploadButton) {
             MenuItem upload = menu.findItem(R.id.action_weight_upload);
             upload.setVisible(false);
@@ -361,12 +357,11 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             User user = null;
             if (usersSpinner != null) user = (User)usersSpinner.getSelectedItem();
             if ((user == null) && (getActivity() != null)) {
-                ((MainActivity)getActivity()).openEditUserFragment(null);
+                AppHost.from(this).openEditUserFragment(null);
                 return true;
             }
             if (getActivity() != null) {
-                AntWeightController rw =
-                        ((MainActivity) getActivity()).startAntWeightMeasurement(this);
+                AntWeightController rw = state.newAntWeightController(this);
                 rw.setProfile(user);
                 rw.start();
                 enableUploadButton = false;
@@ -376,9 +371,10 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             return true;
         } else if (itemId == R.id.action_weight_upload) {
             if (getActivity() != null) {
-                if (((MainActivity)getActivity()).getAntWeightController() != null) {
+                AntWeightController controller = state.antWeightController();
+                if (controller != null) {
                     MainActivity.uploadButton((MainActivity)getActivity(),
-                            ((MainActivity)getActivity()).getAntWeightController().weight,
+                            controller.weight,
                             userToUpload);
                 }
             }
@@ -403,9 +399,9 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                 antProgressDialog = new AlertDialog.Builder(requireContext())
                         .setMessage(message)
                         .setNegativeButton(android.R.string.cancel, (dialog, which) -> {
-                            MainActivity activity = (MainActivity) getActivity();
-                            if (activity != null && activity.getAntWeightController() != null) {
-                                activity.getAntWeightController().cancel();
+                            AntWeightController controller = state.antWeightController();
+                            if (getActivity() != null && controller != null) {
+                                controller.cancel();
                             }
                         })
                         .setCancelable(false)
@@ -462,8 +458,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         if (!isAdded()) return;
         requireActivity().runOnUiThread(() -> {
             dismissAntProgress();
-            MainActivity activity = (MainActivity) getActivity();
-            if (activity != null) activity.showMessage(
+            if (getActivity() != null) AppHost.from(this).showMessage(
                     getString(R.string.repository_save_error, message));
         });
     }

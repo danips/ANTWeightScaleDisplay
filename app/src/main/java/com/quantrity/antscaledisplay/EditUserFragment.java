@@ -130,9 +130,9 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 Toast.makeText(getActivity(),
                         R.string.history_fragment_action_database_restore_ok,
                         Toast.LENGTH_LONG).show();
-                ((MainActivity) getActivity()).reloadDB();
+                AppHost.from(this).reloadDB();
                 getActivity().invalidateOptionsMenu();
-                ((MainActivity) getActivity()).closeEditUserFragment(null);
+                AppHost.from(this).closeEditUserFragment(null);
             });
         }, "backup-archive-restore").start();
     }
@@ -421,8 +421,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                             ? Collections.emptyList()
                             : workInfos;
                     state.reloadGarminTokens(the_user, result -> {
-                        MainActivity activity = (MainActivity) getActivity();
-                        if (activity == null || activity.handleMutationFailure(result)) return;
+                        if (getActivity() == null
+                                || AppHost.from(this).handleMutationFailure(result)) return;
                         updateGarminTokenInformation();
                     });
                 });
@@ -437,8 +437,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         }
         if (the_user != null) {
             state.reloadGarminTokens(the_user, result -> {
-                MainActivity activity = (MainActivity) getActivity();
-                if (activity == null || activity.handleMutationFailure(result)) return;
+                if (getActivity() == null
+                        || AppHost.from(this).handleMutationFailure(result)) return;
                 updateGarminTokenInformation();
             });
         } else updateGarminTokenInformation();
@@ -546,12 +546,12 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         int itemId = menuItem.getItemId();
         if (itemId == R.id.action_edituser_cancel) {
             if (getActivity() != null)
-                ((MainActivity) getActivity()).closeEditUserFragment(null);
+                AppHost.from(this).closeEditUserFragment(null);
             return true;
         } else if (itemId == R.id.action_edituser_done) {
             User user;
             if (((user = checkValues()) != null) && (getActivity() != null)) {
-                ((MainActivity) getActivity()).closeEditUserFragment(user);
+                AppHost.from(this).closeEditUserFragment(user);
             }
             return true;
         } else if (itemId == R.id.action_database_restore) {
@@ -576,10 +576,11 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 the_user.garminOauth2ExpiryTimestamp = -1;
                 GarminTokenRefreshScheduler.cancel(getActivity(), the_user);
                 state.saveUser(the_user, result -> {
-                    MainActivity activity = (MainActivity) getActivity();
-                    if (activity == null || activity.handleMutationFailure(result)) return;
+                    if (getActivity() == null
+                            || AppHost.from(this).handleMutationFailure(result)) return;
                     updateGarminTokenInformation();
-                    Toast.makeText(activity, R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(requireActivity(), R.string.gc_token_cleared,
+                            Toast.LENGTH_SHORT).show();
                 });
             }
         }

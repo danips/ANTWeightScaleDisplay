@@ -24,7 +24,7 @@ public class SpinnerDialog {
     final ArrayList<String> items;
     final Activity context;
     final String dTitle;
-    OnSpinerItemClick onSpinerItemClick;
+    OnSpinnerItemClick onSpinnerItemClick;
     AlertDialog alertDialog;
     int pos;
     int style;
@@ -39,8 +39,8 @@ public class SpinnerDialog {
         this.dTitle = dialogTitle;
     }
 
-    void bindOnSpinnerListener(OnSpinerItemClick onSpinnerItemClick1) {
-        this.onSpinerItemClick = onSpinnerItemClick1;
+    void bindOnSpinnerListener(OnSpinnerItemClick listener) {
+        this.onSpinnerItemClick = listener;
     }
 
     void showSpinnerDialog() {
@@ -67,7 +67,7 @@ public class SpinnerDialog {
                     pos = j;
                 }
             }
-            onSpinerItemClick.onClick(t.getText().toString(), pos);
+            onSpinnerItemClick.onClick(t.getText().toString(), pos);
             closeSpinnerDialog();
         });
 

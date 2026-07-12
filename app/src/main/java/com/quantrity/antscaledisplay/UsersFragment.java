@@ -146,7 +146,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
             return true;
         } else if (itemId == R.id.action_adduser) {//Open the edit user fragment with values resetted
             if (getActivity() != null)
-                ((MainActivity) getActivity()).openEditUserFragment(null);
+                AppHost.from(this).openEditUserFragment(null);
             return true;
         }
         return false;
@@ -154,14 +154,13 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
     void editUser(User user) {
         if (getActivity() != null)
-            ((MainActivity) getActivity()).openEditUserFragment(user);
+            AppHost.from(this).openEditUserFragment(user);
     }
 
     void deleteUser(User user) {
         GarminTokenRefreshScheduler.cancel(requireContext(), user);
         state.deleteUser(user, result -> {
-            MainActivity activity = (MainActivity) getActivity();
-            if (activity != null) activity.handleMutationFailure(result);
+            if (getActivity() != null) AppHost.from(this).handleMutationFailure(result);
         });
     }
 
@@ -203,7 +202,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
                 Toast.makeText(getActivity(),
                         R.string.history_fragment_action_database_restore_ok,
                         Toast.LENGTH_LONG).show();
-                ((MainActivity) getActivity()).reloadDB();
+                AppHost.from(this).reloadDB();
                 getActivity().invalidateOptionsMenu();
                 if (mAdapter != null) mAdapter.replaceAll(state.users());
             });

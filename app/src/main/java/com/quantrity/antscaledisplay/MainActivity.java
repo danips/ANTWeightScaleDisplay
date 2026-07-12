@@ -1,6 +1,5 @@
 package com.quantrity.antscaledisplay;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -13,14 +12,11 @@ import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import androidx.activity.OnBackPressedCallback;
@@ -42,16 +38,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements NavigationView.OnNavigationItemSelectedListener, AppHost {
     private static final String TAG = "MainActivity";
-    private static final int NAV_POS_WEIGHT = 0;
-    private static final int NAV_POS_GOALS = 1;
-    private static final int NAV_POS_GRAPHS = 2;
-    private static final int NAV_POS_HISTORY = 3;
-    private static final int NAV_POS_USERS = 4;
-
     private NavigationView navigationView;
     private AppStateViewModel state;
+    private UserSpinnerController userSpinnerController;
     private ActivityMainBinding binding;
 
     private void loadDB() {
@@ -92,6 +83,7 @@ public class MainActivity extends AppCompatActivity
         navigationView = binding.navView;
         navigationView.setNavigationItemSelectedListener(this);
         state = new ViewModelProvider(this).get(AppStateViewModel.class);
+        userSpinnerController = new UserSpinnerController(this, state);
 
         // Handle Back Press using OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -136,7 +128,7 @@ public class MainActivity extends AppCompatActivity
         if (!state.isLoaded()) new Thread(this::loadDB).start();
 
         if (savedInstanceState == null) {
-            selectItem(getString(R.string.lateral_menu_option_weight));
+            navigate(NavigationDestination.WEIGHT);
         }
     }
 
@@ -149,7 +141,7 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, euf).commit();
 
         // update selected item and title, then close the drawer
-        navigationView.getMenu().getItem(NAV_POS_USERS).setChecked(true);
+        navigationView.getMenu().findItem(R.id.nav_users).setChecked(true);
         setTitle(getString(R.string.lateral_menu_option_users));
     }
 
@@ -161,7 +153,7 @@ public class MainActivity extends AppCompatActivity
             });
         }
         dismissKeyboard();
-        selectItem(getString(R.string.lateral_menu_option_users));
+        navigate(NavigationDestination.USERS);
     }
 
     public void openEditWeightFragment(Weight weight, User user, boolean edit) {
@@ -178,7 +170,7 @@ public class MainActivity extends AppCompatActivity
             getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, ewf, "EditWeightFragmentTag").commit();
 
             // update selected item and title, then close the drawer
-            navigationView.getMenu().getItem(NAV_POS_WEIGHT).setChecked(true);
+            navigationView.getMenu().findItem(R.id.nav_weight).setChecked(true);
             setTitle(getString(R.string.weight_edit_fragment_edit_weight));
         }
     }
@@ -194,9 +186,9 @@ public class MainActivity extends AppCompatActivity
         dismissKeyboard();
 
         if (edit)
-            selectItem(getString(R.string.lateral_menu_option_history));
+            navigate(NavigationDestination.HISTORY);
         else
-            selectItem(getString(R.string.lateral_menu_option_weight));
+            navigate(NavigationDestination.WEIGHT);
     }
 
     public void openEditGoalFragment(Goal goal) {
@@ -214,93 +206,25 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, egf).commit();
 
         // update selected item and title, then close the drawer
-        navigationView.getMenu().getItem(NAV_POS_GOALS).setChecked(true);
+        navigationView.getMenu().findItem(R.id.nav_goals).setChecked(true);
         setTitle(getString(R.string.lateral_menu_option_goals));
     }
 
     public void closeEditGoalFragment(Goal goal) {
         if (goal != null) state.saveGoal(goal, this::handleMutationFailure);
         dismissKeyboard();
-        selectItem(getString(R.string.lateral_menu_option_goals));
+        navigate(NavigationDestination.GOALS);
     }
 
-    public AntWeightController getAntWeightController() { return state.antWeightController(); }
-
-    boolean handleMutationFailure(RepositoryResult<Void> result) {
+    public boolean handleMutationFailure(RepositoryResult<Void> result) {
         if (result.isSuccess()) return false;
         Log.e(TAG, result.message, result.error);
         showMessage(getString(R.string.repository_save_error, result.message));
         return true;
     }
 
-    public AntWeightController startAntWeightMeasurement(WeightFragment fragment) {
-        return state.newAntWeightController(fragment);
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private final View.OnTouchListener spinnerOnTouch = (v, event) -> {
-        if (event.getAction() == MotionEvent.ACTION_UP) {
-            showSearch((Spinner)v);
-            return true;
-        }
-        return false;
-    };
-    private final View.OnKeyListener spinnerOnKey = (v, keyCode, event) -> {
-        if (keyCode == KeyEvent.KEYCODE_DPAD_CENTER) {
-            showSearch((Spinner)v);
-            return true;
-        }
-        return false;
-    };
-
-    private void showSearch(final Spinner v)
-    {
-        final ArrayList<User> mUsersArray = state.users();
-        ArrayList<String> items=new ArrayList<>();
-        for (User user : mUsersArray) {
-            items.add(user.toString());
-        }
-        final SpinnerDialog spinnerDialog;
-        spinnerDialog = new SpinnerDialog(MainActivity.this, items, getString(R.string.edit_user_fragment_user));
-        spinnerDialog.setCancellable(true);
-        spinnerDialog.setShowKeyboard(true);
-
-
-        spinnerDialog.bindOnSpinnerListener((item, position) -> {
-            state.selectUser(mUsersArray.get(position));
-            v.setSelection(position);
-            spinnerDialog.closeSpinnerDialog();
-        });
-        spinnerDialog.showSpinnerDialog();
-    }
-
     public Spinner addUsersSpinner(Menu menu, AdapterView.OnItemSelectedListener oisListener) {
-        MenuItem mSpinnerItem = menu.findItem(R.id.action_select_user);
-
-        ArrayList<User> mUsersArray = state.users();
-        if (!mUsersArray.isEmpty()) {
-            Spinner spinner = (Spinner)mSpinnerItem.getActionView();
-            // Check for null to avoid NPE on setAdapter
-            if (spinner != null) {
-                final ArrayAdapter<User> adapter = new ArrayAdapter<>(this, R.layout.fragment_weight_user_spinner_item, mUsersArray);
-                adapter.setDropDownViewResource(R.layout.fragment_weight_user_spinner_dropdown_item);
-                spinner.setAdapter(adapter);
-
-                if (mUsersArray.size() > 1) {
-                    spinner.setSelection(mUsersArray.indexOf(state.selectedUser()), false);
-                    if (mUsersArray.size() > 10) {
-                        spinner.setOnTouchListener(spinnerOnTouch);
-                        spinner.setOnKeyListener(spinnerOnKey);
-                    }
-                } else mSpinnerItem.setVisible(false);
-                spinner.setOnItemSelectedListener(oisListener);
-            }
-            return spinner;
-        } else {
-            if (Debug.ON) Log.v(TAG, "mUsersArray.size() = 0; " + mUsersArray.size());
-            mSpinnerItem.setVisible(false);
-            return null;
-        }
+        return userSpinnerController.attach(menu, oisListener);
     }
 
     @Override
@@ -311,58 +235,19 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        if (item.getTitle() != null) {
-            return selectItem(item.getTitle().toString());
-        }
-        return false;
+        NavigationDestination destination = NavigationDestination.fromMenuId(item.getItemId());
+        return destination != null && navigate(destination);
     }
 
-    private boolean selectItem(String item) {
-        // update the main content by replacing fragments
-        Fragment fragment = null;
-        Fragment current_fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
-        int pos = NAV_POS_WEIGHT;
-
-        if (item.equals(getString(R.string.lateral_menu_option_weight))) {
-            if (!(current_fragment instanceof WeightFragment))
-            {
-                //pos = NAV_POS_WEIGHT;
-                fragment = new WeightFragment();
-            }
-        } else if (item.equals(getString(R.string.lateral_menu_option_users))) {
-            if (!(current_fragment instanceof UsersFragment))
-            {
-                pos = NAV_POS_USERS;
-                fragment = new UsersFragment();
-            }
-        } else if (item.equals(getString(R.string.lateral_menu_option_history))) {
-            if (!(current_fragment instanceof HistoryFragment))
-            {
-                pos = NAV_POS_HISTORY;
-                fragment = new HistoryFragment();
-            }
-        } else if (item.equals(getString(R.string.lateral_menu_option_graphs))) {
-            if (!(current_fragment instanceof GraphsFragment)) {
-                pos = NAV_POS_GRAPHS;
-                fragment = new GraphsFragment();
-            }
-        } else if (item.equals(getString(R.string.lateral_menu_option_goals))) {
-            if (!(current_fragment instanceof GoalsFragment)) {
-                pos = NAV_POS_GOALS;
-                fragment = new GoalsFragment();
-            }
-        } else {
-            return false;
+    private boolean navigate(NavigationDestination destination) {
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+        if (!destination.matches(current)) {
+            getSupportFragmentManager().beginTransaction()
+                    .replace(R.id.content_frame, destination.createFragment()).commit();
+            setTitle(destination.titleResource);
+            navigationView.getMenu().findItem(destination.menuId).setChecked(true);
         }
-        // update selected item and title, then close the drawer
-        if (fragment != null) {
-            getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, fragment).commit();
-            setTitle(item);
-            navigationView.getMenu().getItem(pos).setChecked(true);
-        }
-
         binding.drawerLayout.closeDrawer(GravityCompat.START);
-
         return true;
     }
 
@@ -423,7 +308,7 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    void showMessage(String msg) {
+    public void showMessage(String msg) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(msg)
                 .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.dismiss()).create().show();
@@ -459,7 +344,7 @@ public class MainActivity extends AppCompatActivity
     protected void onPause() {
         super.onPause();
 
-        AntWeightController rw = getAntWeightController();
+        AntWeightController rw = state.antWeightController();
         if (rw != null) {
             if (Debug.ON) Log.v(TAG, "onPause unregisterForAntIntents");
             rw.unregisterReceivers();
@@ -470,7 +355,7 @@ public class MainActivity extends AppCompatActivity
     protected void onResume() {
         super.onResume();
 
-        AntWeightController rw = getAntWeightController();
+        AntWeightController rw = state.antWeightController();
         if (rw != null) {
             if (Debug.ON) Log.v(TAG, "onResume registerForAntIntents " + rw.state());
             rw.registerReceivers();

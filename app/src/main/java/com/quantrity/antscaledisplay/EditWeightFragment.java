@@ -256,7 +256,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 }
                 if ((the_user = state.selectedUser()) == null)
                 {
-                    ((MainActivity)getActivity()).closeEditWeightFragment(null, null, edit, false);
+                    AppHost.from(this).closeEditWeightFragment(null, null, edit, false);
                     return;
                 }
             }
@@ -304,7 +304,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         // Inflate the menu items for use in the action bar
         menuInflater.inflate(R.menu.fragment_edit_weight_menu, menu);
         if (getActivity() != null) {
-            ((MainActivity) getActivity()).addUsersSpinner(menu, oisListener);
+            AppHost.from(this).addUsersSpinner(menu, oisListener);
         }
     }
 
@@ -314,11 +314,11 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         int itemId = menuItem.getItemId();
         if (itemId == R.id.action_editweight_cancel) {
             if (getActivity() != null)
-                ((MainActivity) getActivity()).closeEditWeightFragment(null, null, edit, false);
+                AppHost.from(this).closeEditWeightFragment(null, null, edit, false);
             return true;
         } else if (itemId == R.id.action_editweight_done) {
             if (checkValues() && (getActivity() != null)) {
-                ((MainActivity) getActivity()).closeEditWeightFragment(the_weight, the_user, edit,
+                AppHost.from(this).closeEditWeightFragment(the_weight, the_user, edit,
                         !the_weight.equals(old_weight));
             }
             return true;

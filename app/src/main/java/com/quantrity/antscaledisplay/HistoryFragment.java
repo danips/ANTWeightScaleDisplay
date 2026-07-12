@@ -137,7 +137,7 @@ public class HistoryFragment extends Fragment implements MenuProvider,
 
     void editWeight(Weight weight, User user) {
         if (getActivity() != null) {
-            ((MainActivity) getActivity()).openEditWeightFragment(weight, user, true);
+            AppHost.from(this).openEditWeightFragment(weight, user, true);
         }
     }
 
@@ -170,7 +170,7 @@ public class HistoryFragment extends Fragment implements MenuProvider,
         // Inflate the menu items for use in the action bar
         menuInflater.inflate(R.menu.fragment_history_menu, menu);
         if (getActivity() != null) {
-            usersSpinner = ((MainActivity) getActivity()).addUsersSpinner(menu, oisListener);
+            usersSpinner = AppHost.from(this).addUsersSpinner(menu, oisListener);
         }
         downloadMI = menu.findItem(R.id.action_download_history);
         downloadMI.setVisible(false);
@@ -324,13 +324,11 @@ public class HistoryFragment extends Fragment implements MenuProvider,
 
     @Override
     public void onHistoryDownloadFailed(String message) {
-        MainActivity activity = (MainActivity) getActivity();
-        if (activity != null) activity.showMessage(message);
+        if (getActivity() != null) AppHost.from(this).showMessage(message);
     }
 
     private boolean showMutationFailure(RepositoryResult<Void> result) {
-        MainActivity activity = (MainActivity) getActivity();
-        return activity != null && activity.handleMutationFailure(result);
+        return getActivity() != null && AppHost.from(this).handleMutationFailure(result);
     }
 
 }

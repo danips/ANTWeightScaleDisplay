@@ -175,7 +175,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         menuInflater.inflate(R.menu.fragment_graphs_menu, menu);
 
         if (getActivity() != null)
-            ((MainActivity)getActivity()).addUsersSpinner(menu, oisListener);
+            AppHost.from(this).addUsersSpinner(menu, oisListener);
 
         period_selection = menu.findItem(R.id.action_graph_param_time);
         period_items = period_selection.getSubMenu();
