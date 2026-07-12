@@ -26,5 +26,6 @@ WARNING: Garmin Connect eventually stops working. It is not an app's fault, it i
 ## Development documentation
 
 - [Architecture and persisted-data compatibility](docs/architecture.md)
+- [Code simplification plan and progress](docs/simplification-plan.md)
 - [Release verification checklist](docs/release-checklist.md)
 - [Third-party notices](THIRD_PARTY_NOTICES.md)

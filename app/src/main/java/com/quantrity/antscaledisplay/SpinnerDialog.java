@@ -7,6 +7,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -16,27 +17,20 @@ import com.quantrity.antscaledisplay.databinding.ItemsViewBinding;
 
 import java.util.ArrayList;
 
-/**
- * Created by Md Farhan Raja on 2/23/2017.
- */
-
-public class SpinnerDialog {
-    final ArrayList<String> items;
-    final Activity context;
-    final String dTitle;
-    OnSpinnerItemClick onSpinnerItemClick;
-    AlertDialog alertDialog;
-    int pos;
-    int style;
-    boolean cancellable=false;
-    boolean showKeyboard=false;
-    final boolean useContainsFilter=false;
+final class SpinnerDialog {
+    private final ArrayList<String> items;
+    private final Activity context;
+    private final String title;
+    private OnSpinnerItemClick onSpinnerItemClick;
+    private AlertDialog alertDialog;
+    private boolean cancellable;
+    private boolean showKeyboard;
 
 
     public SpinnerDialog(Activity activity, ArrayList<String> items, String dialogTitle) {
         this.items = items;
         this.context = activity;
-        this.dTitle = dialogTitle;
+        this.title = dialogTitle;
     }
 
     void bindOnSpinnerListener(OnSpinnerItemClick listener) {
@@ -46,28 +40,23 @@ public class SpinnerDialog {
     void showSpinnerDialog() {
         AlertDialog.Builder adb = new AlertDialog.Builder(context);
         DialogLayoutBinding binding = DialogLayoutBinding.inflate(context.getLayoutInflater());
-        binding.spinerTitle.setText(dTitle);
+        binding.spinerTitle.setText(title);
         final ListView listView = binding.list;
         final EditText searchBox = binding.searchBox;
-        if(isShowKeyboard()){
-            showKeyboard(searchBox);
-        }
-        final ArrayAdapterWithContainsFilter adapter = new ArrayAdapterWithContainsFilter(context, R.layout.items_view, items);
+        if (showKeyboard) showKeyboard(searchBox);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(context, R.layout.items_view, items);
         listView.setAdapter(adapter);
         adb.setView(binding.getRoot());
         alertDialog = adb.create();
-        if (alertDialog.getWindow() != null) {
-            alertDialog.getWindow().getAttributes().windowAnimations = style;
-        }
-
         listView.setOnItemClickListener((adapterView, view, i, l) -> {
             TextView t = ItemsViewBinding.bind(view).text1;
+            int position = 0;
             for (int j = 0; j < items.size(); j++) {
                 if (t.getText().toString().equalsIgnoreCase(items.get(j))) {
-                    pos = j;
+                    position = j;
                 }
             }
-            onSpinnerItemClick.onClick(t.getText().toString(), pos);
+            onSpinnerItemClick.onClick(t.getText().toString(), position);
             closeSpinnerDialog();
         });
 
@@ -84,20 +73,16 @@ public class SpinnerDialog {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                if(isUseContainsFilter()){
-                    adapter.getContainsFilter(searchBox.getText().toString());
-                } else {
-                    adapter.getFilter().filter(searchBox.getText().toString());
-                }
+                adapter.getFilter().filter(searchBox.getText().toString());
             }
         });
 
-        alertDialog.setCancelable(isCancellable());
-        alertDialog.setCanceledOnTouchOutside(isCancellable());
+        alertDialog.setCancelable(cancellable);
+        alertDialog.setCanceledOnTouchOutside(cancellable);
         alertDialog.show();
     }
 
-    public void closeSpinnerDialog() {
+    void closeSpinnerDialog() {
         hideKeyboard();
         if (alertDialog != null) {
             alertDialog.dismiss();
@@ -117,24 +102,11 @@ public class SpinnerDialog {
                 ,200);
     }
 
-    private boolean isCancellable() {
-        return cancellable;
-    }
-
-    public void setCancellable(boolean cancellable) {
+    void setCancellable(boolean cancellable) {
         this.cancellable = cancellable;
     }
 
-    private boolean isShowKeyboard() {
-        return showKeyboard;
-    }
-
-    private boolean isUseContainsFilter() {
-        return useContainsFilter;
-    }
-
-
-    public void setShowKeyboard(boolean showKeyboard) {
+    void setShowKeyboard(boolean showKeyboard) {
         this.showKeyboard = showKeyboard;
     }
 }

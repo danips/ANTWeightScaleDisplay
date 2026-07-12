@@ -16,6 +16,11 @@ Run these checks from the repository root:
 Expected result: all unit tests pass, Android lint reports no issues, and the complete minified
 release build succeeds, including `lintVitalRelease`.
 
+Final simplification verification on 2026-07-12: 205 test executions passed, lint reported no
+issues, and the minified unsigned release APK built successfully. Device, ANT, Garmin, document
+provider, locale, rotation, and process-recreation items below remain intentionally unchecked
+because no representative device, scale, or authenticated Garmin account was available.
+
 ## Android lifecycle and compatibility
 
 - [ ] Smoke-test API 23, 29, 33, and 37 where devices or emulators are available.

@@ -10,8 +10,8 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 
 ## Current status
 
-- Overall status: In progress
-- Current phase: Phase 9 — Final cleanup and regression verification
+- Overall status: Completed (automated scope; manual release checks deferred)
+- Current phase: Complete
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -70,7 +70,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 6 — Clarify repository write completion and failures
 - [x] Phase 7 — Complete the backup archive boundary
 - [x] Phase 8 — Simplify navigation and user selection
-- [ ] Phase 9 — Final cleanup and regression verification
+- [x] Phase 9 — Final cleanup and regression verification
 
 ---
 
@@ -800,10 +800,10 @@ the custom searchable user selector without introducing a full navigation rewrit
 
 ## Phase 9 — Final cleanup and regression verification
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 9 changes are in the working tree)
 
 ### Objective
 
@@ -812,18 +812,20 @@ complete all automated and manual release gates.
 
 ### Tasks
 
-- [ ] Run lint and remove resources, methods, fields, imports, and suppressions confirmed unused.
-- [ ] Remove stale comments and commented-out code in touched classes.
-- [ ] Normalize names in touched code only; avoid a repository-wide cosmetic rename.
-- [ ] Review class responsibilities and ensure no new helper became an unrelated catch-all.
-- [ ] Compare production Java/XML line counts with the Phase 0 baseline.
-- [ ] Compare the largest production classes with their baseline sizes.
-- [ ] Update `docs/architecture.md` with the final measurement presentation, conversion, graph, write,
+- [x] Run lint and remove resources, methods, fields, imports, and suppressions confirmed unused.
+- [x] Remove stale comments and commented-out code in touched classes.
+- [x] Normalize names in touched code only; avoid a repository-wide cosmetic rename.
+- [x] Review class responsibilities and ensure no new helper became an unrelated catch-all.
+- [x] Compare production Java/XML line counts with the Phase 0 baseline.
+- [x] Compare the largest production classes with their baseline sizes.
+- [x] Update `docs/architecture.md` with the final measurement presentation, conversion, graph, write,
       backup, and navigation boundaries.
-- [ ] Update `README.md` links if this plan is intended to remain as maintained documentation.
-- [ ] Run every automated verification command from a clean checkout or clean build state.
+- [x] Update `README.md` links if this plan is intended to remain as maintained documentation.
+- [x] Run every automated verification command from a clean checkout or clean build state.
 - [ ] Complete the applicable items in `docs/release-checklist.md` on representative devices.
-- [ ] Record any deliberately deferred work below.
+      Deferred because no device, ANT scale, document provider, or authenticated Garmin account was
+      available; the checklist explicitly records the verified automated scope.
+- [x] Record any deliberately deferred work below.
 
 ### Acceptance criteria
 
@@ -843,24 +845,50 @@ complete all automated and manual release gates.
 
 ### Final measurements
 
-- Production Java lines: —
-- Production XML lines: —
-- Unit tests: —
-- Lint result: —
-- Release APK size: —
-- Largest classes before/after: —
-- Net files added/removed: —
+- Production Java lines: 9,566, down 154 from the 9,720-line Phase 0 baseline.
+- Production XML lines: 7,558, up 3 from the 7,555-line baseline for explicit validation/write-error
+  messages; no layouts were added.
+- Unit tests: 105 declared `@Test` methods / 205 executions, up from 63 / 163; zero failures, errors,
+  or skips.
+- Lint result: `No issues found.`
+- Release APK size: 2,309,588 bytes; SHA-256
+  `beaeda0e9ad4f9ddfb9214d8b75da61d368fa4b9179ac6e0ed014a9817356372`.
+- Largest classes before/after: `GraphsFragment` 693→504, `EditWeightFragment` 670→363,
+  `EditGoalFragment` 634→294, `WeightFragment` 582→482, and `MainActivity` 512→388 lines.
+  `EditUserFragment` increased 552→588 and `AppRepository` 473→501 because they now surface
+  asynchronous persistence/archive completion; those responsibilities are bounded by dedicated
+  repository and archive components.
+- Net files added/removed: 20 added and 2 removed under production source/resources/tests relative
+  to `52a2af0`. Added files are focused definitions/controllers/tests; removed files are the
+  misspelled spinner callback and superseded filter adapter.
 
 ### Deferred work
 
-- —
+- Physical ANT measurement success/failure/recreation cases.
+- Live Garmin MFA, upload, history download, and a full background token-renewal cycle.
+- Document-provider backup creation plus restoration of an actual pre-refactor archive.
+- API/locale/rotation/process-recreation and small/large user-selector device checks.
+- Garmin credential encryption remains separately tracked compatibility-sensitive debt.
 
 ### Completion notes
 
-- Automated verification: —
-- Manual verification: —
-- Documentation updates: —
-- Final release recommendation: —
+- Automated verification: from a clean Gradle build state,
+  `./gradlew clean testDebugUnitTest lintDebug assembleRelease` passed in 26 seconds with 80 tasks;
+  205 tests passed, lint found no issues, and `lintVitalRelease` plus minification succeeded.
+  `git diff --check` also passes.
+- Cleanup: removed the unused `ArrayAdapterWithContainsFilter`, dead selector mode/style fields,
+  obsolete comments, and redundant visibility/accessor code. Touched names now use the corrected
+  spinner spelling and focused camel-case conventions.
+- Responsibility review: conversion, presentation, editors, graph calculations, repository writes,
+  backup archives, navigation, and user selection each have a narrowly scoped boundary; no helper
+  owns unrelated application state.
+- Manual verification: deferred items are preserved unchecked in `docs/release-checklist.md`; no
+  manual result is implied by automated coverage.
+- Documentation updates: `docs/architecture.md` now documents every final boundary,
+  `docs/release-checklist.md` records the automated result and manual limitations, and `README.md`
+  links this maintained plan.
+- Final release recommendation: code is ready for device/external-service validation, but do not
+  publish until the applicable manual release checklist is completed.
 
 ---
 
