@@ -51,6 +51,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Set;
 
 public class GraphsFragment extends Fragment implements OnChartGestureListener, MenuProvider {
     private final static String TAG = "GraphsFragment";
@@ -131,76 +132,14 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     }
 
     private void updateActionBar() {
-        boolean hasWeight = false,
-                hasTrunkPercentFat = false,
-                hasTrunkMuscleMass = false,
-                hasLeftArmPercentFat = false,
-                hasLeftArmMuscleMass = false,
-                hasRightArmPercentFat = false,
-                hasRightArmMuscleMass = false,
-                hasLeftLegPercentFat = false,
-                hasLeftLegMuscleMass = false,
-                hasRightLegPercentFat = false,
-                hasRightLegMuscleMass = false,
-                hasPercentFat = false,
-                hasPercentHydration = false,
-                hasBoneMass = false,
-                hasMuscleMass = false,
-                hasPhysiqueRating = false,
-                hasVisceralFat = false,
-                hasMetabolicAge = false,
-                hasActiveMet = false,
-                hasBasalMet = false;
-        for (Weight w : weights) {
-            if (!hasWeight) hasWeight = (w.weight != -1);
-            if (!hasTrunkPercentFat) hasTrunkPercentFat = (w.trunkPercentFat != -1);
-            if (!hasTrunkMuscleMass) hasTrunkMuscleMass = (w.trunkMuscleMass != -1);
-            if (!hasLeftArmPercentFat) hasLeftArmPercentFat = (w.leftArmPercentFat != -1);
-            if (!hasLeftArmMuscleMass) hasLeftArmMuscleMass = (w.leftArmMuscleMass != -1);
-            if (!hasRightArmPercentFat) hasRightArmPercentFat = (w.rightArmPercentFat != -1);
-            if (!hasRightArmMuscleMass) hasRightArmMuscleMass = (w.rightArmMuscleMass != -1);
-            if (!hasLeftLegPercentFat) hasLeftLegPercentFat = (w.leftLegPercentFat != -1);
-            if (!hasLeftLegMuscleMass) hasLeftLegMuscleMass = (w.leftLegMuscleMass != -1);
-            if (!hasRightLegPercentFat) hasRightLegPercentFat = (w.rightLegPercentFat != -1);
-            if (!hasRightLegMuscleMass) hasRightLegMuscleMass = (w.rightLegMuscleMass != -1);
-            if (!hasPercentFat) hasPercentFat = (w.percentFat != -1);
-            if (!hasPercentHydration) hasPercentHydration = (w.percentHydration != -1);
-            if (!hasBoneMass) hasBoneMass = (w.boneMass != -1);
-            if (!hasMuscleMass) hasMuscleMass = (w.muscleMass != -1);
-            if (!hasPhysiqueRating) hasPhysiqueRating = (w.physiqueRating != -1);
-            if (!hasVisceralFat) hasVisceralFat = (w.visceralFatRating != -1);
-            if (!hasMetabolicAge) hasMetabolicAge = (w.metabolicAge != -1);
-            if (!hasActiveMet) hasActiveMet = (w.activeMet != -1);
-            if (!hasBasalMet) hasBasalMet = (w.basalMet != -1);
+        Set<Metric> available = MeasurementPresentationFactory.availableMetrics(weights);
+        if (measurement_items != null) {
+            for (int i = 0; i < measurement_items.size(); i++) {
+                Metric metric = Metric.fromGraphId(measurement_items.getItem(i).getItemId());
+                measurement_items.getItem(i).setVisible(metric != null && available.contains(metric));
+            }
         }
-        measurement_items.getItem(0).setVisible(hasWeight);
-        measurement_items.getItem(1).setVisible(hasWeight);
-        measurement_items.getItem(2).setVisible(hasPercentFat);
-        measurement_items.getItem(3).setVisible(hasPercentHydration);
-        measurement_items.getItem(4).setVisible(hasBoneMass);
-        measurement_items.getItem(5).setVisible(hasMuscleMass);
-        measurement_items.getItem(6).setVisible(hasPhysiqueRating);
-        measurement_items.getItem(7).setVisible(hasVisceralFat);
-        measurement_items.getItem(8).setVisible(hasMetabolicAge);
-        measurement_items.getItem(9).setVisible(hasActiveMet);
-        measurement_items.getItem(10).setVisible(hasBasalMet);
-        measurement_items.getItem(11).setVisible(hasTrunkPercentFat);
-        measurement_items.getItem(12).setVisible(hasTrunkMuscleMass);
-        measurement_items.getItem(13).setVisible(hasLeftArmPercentFat);
-        measurement_items.getItem(14).setVisible(hasLeftArmMuscleMass);
-        measurement_items.getItem(15).setVisible(hasRightArmPercentFat);
-        measurement_items.getItem(16).setVisible(hasRightArmMuscleMass);
-        measurement_items.getItem(17).setVisible(hasLeftLegPercentFat);
-        measurement_items.getItem(18).setVisible(hasLeftLegMuscleMass);
-        measurement_items.getItem(19).setVisible(hasRightLegPercentFat);
-        measurement_items.getItem(20).setVisible(hasRightLegMuscleMass);
-
-        measurement_selection.setVisible(hasWeight || hasPercentFat || hasPercentHydration || hasBoneMass || hasMuscleMass
-                || hasPhysiqueRating || hasVisceralFat || hasMetabolicAge || hasActiveMet
-                || hasBasalMet || hasTrunkPercentFat || hasTrunkMuscleMass || hasLeftArmPercentFat
-                || hasLeftArmMuscleMass || hasRightArmPercentFat || hasRightArmMuscleMass
-                || hasLeftLegPercentFat || hasLeftLegMuscleMass || hasRightLegPercentFat
-                || hasRightLegMuscleMass);
+        measurement_selection.setVisible(!available.isEmpty());
 
 
         if (weights.size() > 1) {

@@ -27,10 +27,15 @@ import com.quantrity.antscaledisplay.databinding.ItemMetricCardBinding;
 import com.quantrity.antscaledisplay.databinding.ItemSegmentBinding;
 
 import java.util.ArrayList;
-import java.util.Locale;
 
 public class WeightFragment extends Fragment implements MenuProvider, AntWeightListener {
     //private static final String TAG = "WeightFragment";
+
+    private static final Metric[] CARD_METRICS = {
+            Metric.PERCENTFAT, Metric.PERCENTHYDRATION, Metric.MUSCLEMASS, Metric.BONEMASS,
+            Metric.VISCERALFATRATING, Metric.PHYSIQUERATING, Metric.METABOLICAGE,
+            Metric.BASALMET
+    };
 
     private FragmentWeightBinding binding;
     private boolean enableUploadButton = false;
@@ -38,12 +43,23 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     private Spinner usersSpinner;
     private AppStateViewModel state;
     private AlertDialog antProgressDialog;
+    private MeasurementPresentationFactory presentationFactory;
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         binding = FragmentWeightBinding.inflate(inflater, container, false);
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
+        presentationFactory = new MeasurementPresentationFactory(
+                new MeasurementPresentationFactory.Strings() {
+                    @Override public String get(int resourceId) {
+                        return WeightFragment.this.getString(resourceId);
+                    }
+
+                    @Override public String format(int resourceId, Object... arguments) {
+                        return WeightFragment.this.getString(resourceId, arguments);
+                    }
+                });
         View rootView = binding.getRoot();
 
         // 1. Initialize Segment Cards (Using ItemSegmentBinding)
@@ -52,14 +68,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         }
 
         // 2. Initialize Grid Cards (Using ItemMetricCardBinding)
-        setupCard(binding.cardFat, Metric.PERCENTFAT);
-        setupCard(binding.cardWater, Metric.PERCENTHYDRATION);
-        setupCard(binding.cardMuscle, Metric.MUSCLEMASS);
-        setupCard(binding.cardBone, Metric.BONEMASS);
-        setupCard(binding.cardVisceral, Metric.VISCERALFATRATING);
-        setupCard(binding.cardPhysique, Metric.PHYSIQUERATING);
-        setupCard(binding.cardMetabolicAge, Metric.METABOLICAGE);
-        setupCard(binding.cardBMR, Metric.BASALMET);
+        for (Metric metric : CARD_METRICS) setupCard(cardBinding(metric), metric);
 
         binding.fab.setOnClickListener(view -> {
             MainActivity ma = (MainActivity)getActivity();
@@ -85,6 +94,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         }
         dismissAntProgress();
         super.onDestroyView();
+        presentationFactory = null;
         binding = null;
     }
 
@@ -144,137 +154,31 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                 }
             }
 
-            // Main Weight
-            binding.weightTV.setText(displayUser.printMass(getContext(), displayWeight.weight));
-            float h = (float) displayUser.height_cm;
-            float bmi = (float) (displayWeight.weight / Math.pow(h / 100, 2));
-            binding.bmiTV.setText(String.format(Locale.getDefault(), "%.2f", bmi));
-
-            int bmiStatus = HealthRangeClassifier.getBMIDesc((byte)displayUser.age, bmi, displayUser.isMale);
-            updateBMIStatus(binding.iconWeight, binding.bmiDescTV, bmiStatus);
-
-            if (lastWeight != null) {
-                updateTrendIcon(displayWeight.weight, lastWeight.weight, binding.weightIVmini);
-            }
+            MeasurementPresentationFactory.MetricDisplay weightDisplay =
+                    presentationFactory.metric(Metric.WEIGHT, displayUser, displayWeight,
+                            lastWeight, displayUser.age, displayUser.isMale);
+            MeasurementPresentationFactory.MetricDisplay bmiDisplay =
+                    presentationFactory.bmi(displayUser, displayWeight, displayUser.height_cm,
+                            displayUser.age, displayUser.isMale);
+            binding.weightTV.setText(weightDisplay.primaryText);
+            binding.bmiTV.setText(bmiDisplay.available ? bmiDisplay.primaryText : "-");
+            updateBMIStatus(binding.iconWeight, binding.bmiDescTV, bmiDisplay);
+            updateTrend(binding.weightIVmini, weightDisplay);
 
             // Segmental Analysis (Uses helper method for ItemSegmentBinding)
             boolean hasData = false;
             for (BodySegment segment : BodySegment.values()) {
-                double percent = segment.fatMetric.value(displayWeight);
-                double muscle = segment.muscleMetric.value(displayWeight);
-                double current = displayUser.show_fat_mass ? muscle : percent;
-                double previous = lastWeight == null ? -1
-                        : (displayUser.show_fat_mass
-                        ? segment.muscleMetric.value(lastWeight) : segment.fatMetric.value(lastWeight));
-                hasData |= current != -1;
-                updateSegmentUI(segmentBinding(segment), percent, muscle, displayWeight,
-                        displayUser, previous, current);
+                MeasurementPresentationFactory.SegmentDisplay display =
+                        presentationFactory.segment(segment, displayUser, displayWeight, lastWeight);
+                hasData |= display.currentValue != -1;
+                updateSegmentUI(segmentBinding(segment), display);
             }
             binding.segmentalData.setVisibility(hasData ? View.VISIBLE : View.GONE);
 
-            // Metric Grid Cards (Uses helper method for ItemMetricCardBinding)
-
-            // Fat
-            double fatMass = displayWeight.weight * displayWeight.percentFat / 100;
-            String fatMain, fatSub;
-            if (displayUser.show_fat_mass) {
-                fatMain = displayUser.printMass(getContext(), fatMass);
-                fatSub = String.format(getString(R.string.weight_fragment_percent_tag), displayWeight.percentFat);
-            } else {
-                fatMain = String.format(getString(R.string.weight_fragment_percent_tag), displayWeight.percentFat);
-                fatSub = displayUser.printMass(getContext(), fatMass);
-            }
-            int fatStatus = HealthRangeClassifier.getPercentFatDesc((byte) displayUser.age, (float) displayWeight.percentFat, displayUser.isMale);
-            if (fatStatus == 0) {
-                fatSub = getString(R.string.fat_percent_value_0);
-            } else if (fatStatus == 1) {
-                fatSub = getString(R.string.fat_percent_value_1);
-            } else if (fatStatus == 2) {
-                fatSub = getString(R.string.fat_percent_value_2);
-            } else if (fatStatus == 3) {
-                fatSub = getString(R.string.fat_percent_value_3);
-            }
-            updateCardData(binding.cardFat, fatMain, fatSub, fatStatus, lastWeight != null ? lastWeight.percentFat : -1, displayWeight.percentFat);
-
-            // Water
-            double waterMass = displayWeight.weight * displayWeight.percentHydration / 100;
-            String waterMain = String.format(getString(R.string.weight_fragment_percent_tag), displayWeight.percentHydration);
-            String waterSub = displayUser.printMass(getContext(), waterMass);
-            int waterStatus = HealthRangeClassifier.getPercentHydrationDesc((float)displayWeight.percentHydration, displayUser.isMale);
-            updateCardData(binding.cardWater, waterMain, waterSub, waterStatus, lastWeight != null ? lastWeight.percentHydration : -1, displayWeight.percentHydration);
-
-            // Muscle & Bone
-            updateCardData(binding.cardMuscle, displayUser.printMass(getContext(), displayWeight.muscleMass), null, -1, lastWeight != null ? lastWeight.muscleMass : -1, displayWeight.muscleMass);
-            int boneStatus = HealthRangeClassifier.getBoneMassDesc((float)displayWeight.weight, (float)displayWeight.boneMass, displayUser.isMale);
-            updateCardData(binding.cardBone, displayUser.printMass(getContext(), displayWeight.boneMass), null, boneStatus, lastWeight != null ? lastWeight.boneMass : -1, displayWeight.boneMass);
-
-            // Other
-            if (displayWeight.visceralFatRating != -1) {
-                int s;
-                String subVal;
-                if (displayWeight.visceralFatRating < 13) {
-                    s = 1;
-                    subVal = getString(R.string.visceral_fat_sub13);
-                } else {
-                    s = 3;
-                    subVal = getString(R.string.visceral_fat_plus13);
-                }
-                updateCardData(binding.cardVisceral, String.format(Locale.getDefault(),"%.2f", displayWeight.visceralFatRating), subVal, s, lastWeight != null ? lastWeight.visceralFatRating : -1, displayWeight.visceralFatRating);
-            } else {
-                //resetCard(binding.cardVisceral);
-                binding.cardVisceral.metricCard.setVisibility(View.GONE);
-            }
-
-            if (displayWeight.physiqueRating != -1) {
-                String desc = "";
-                int status = -1;
-                if (displayWeight.physiqueRating == 1) {
-                    desc = getString(R.string.physique_rating_1);
-                    status = 2;
-                } else if (displayWeight.physiqueRating == 2) {
-                    desc = getString(R.string.physique_rating_2);
-                    status = 2;
-                } else if (displayWeight.physiqueRating == 3) {
-                    desc = getString(R.string.physique_rating_3);
-                    status = 2;
-                } else if (displayWeight.physiqueRating == 4) {
-                    desc = getString(R.string.physique_rating_4);
-                    status = 1;
-                } else if (displayWeight.physiqueRating == 5) {
-                    desc = getString(R.string.physique_rating_5);
-                    status = 1;
-                } else if (displayWeight.physiqueRating == 6) {
-                    desc = getString(R.string.physique_rating_6);
-                    status = 1;
-                } else if (displayWeight.physiqueRating == 7) {
-                    desc = getString(R.string.physique_rating_7);
-                    status = 2;
-                } else if (displayWeight.physiqueRating == 8) {
-                    desc = getString(R.string.physique_rating_8);
-                    status = 1;
-                } else if (displayWeight.physiqueRating == 9) {
-                    desc = getString(R.string.physique_rating_9);
-                    status = 1;
-                }
-                updateCardData(binding.cardPhysique, String.valueOf(displayWeight.physiqueRating), desc, status, lastWeight != null ? lastWeight.physiqueRating : -1, displayWeight.physiqueRating);
-            } else {
-                //resetCard(binding.cardPhysique);
-                binding.cardPhysique.metricCard.setVisibility(View.GONE);
-            }
-
-            if (displayWeight.metabolicAge != -1) {
-                int s = (displayWeight.metabolicAge <= displayUser.age) ? 1 : 3;
-                updateCardData(binding.cardMetabolicAge, String.format(getString(R.string.weight_fragment_years_tag), displayWeight.metabolicAge), null, s, lastWeight != null ? lastWeight.metabolicAge : -1, displayWeight.metabolicAge);
-            } else {
-                //resetCard(binding.cardMetabolicAge);
-                binding.cardMetabolicAge.metricCard.setVisibility(View.GONE);
-            }
-
-            if (displayWeight.basalMet != -1) {
-                updateCardData(binding.cardBMR, String.format(getString(R.string.weight_fragment_kcal_tag), displayWeight.basalMet), null, -1, lastWeight != null ? lastWeight.basalMet : -1, displayWeight.basalMet);
-            } else {
-                //resetCard(binding.cardBMR);
-                binding.cardBMR.metricCard.setVisibility(View.GONE);
+            for (Metric metric : CARD_METRICS) {
+                updateCardData(cardBinding(metric), presentationFactory.metric(
+                        metric, displayUser, displayWeight, lastWeight,
+                        displayUser.age, displayUser.isMale));
             }
 
             if ((rw != null) && (displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
@@ -307,18 +211,12 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         }
     }
 
-    private void updateSegmentUI(ItemSegmentBinding seg, double percent, double muscle, Weight w, User u, double lastVal, double currVal) {
-        if (percent != -1) {
-            String val, sub;
-            if (u.show_fat_mass) {
-                val = u.printMass(getContext(), w.weight * percent / 100);
-            } else {
-                val = String.format(getString(R.string.weight_fragment_percent_tag), percent);
-            }
-            sub = (muscle != -1) ? u.printMass(getContext(), muscle) : "";
-            seg.metricValue.setText(val);
-            if (!sub.isEmpty()) {
-                seg.metricSubValue.setText(sub);
+    private void updateSegmentUI(ItemSegmentBinding seg,
+                                 MeasurementPresentationFactory.SegmentDisplay display) {
+        if (display.available) {
+            seg.metricValue.setText(display.primaryText);
+            if (!display.secondaryText.isEmpty()) {
+                seg.metricSubValue.setText(display.secondaryText);
                 seg.metricSubValue.setVisibility(View.VISIBLE);
             } else {
                 seg.metricSubValue.setVisibility(View.GONE);
@@ -326,11 +224,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             // Segments are Blue by default
             seg.metricIcon.setBackgroundResource(R.drawable.rounded_blue);
 
-            if (lastVal != -1) {
-                updateTrendIcon(currVal, lastVal, seg.metricTrend);
-            } else {
-                seg.metricTrend.setVisibility(View.INVISIBLE);
-            }
+            updateTrend(seg.metricTrend, display.currentValue, display.previousValue);
         } else {
             seg.metricValue.setText("-");
             seg.metricSubValue.setVisibility(View.GONE);
@@ -343,6 +237,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         seg.metricValue.setText("-");
         seg.metricSubValue.setVisibility(View.GONE);
         seg.metricIcon.setBackgroundResource(R.drawable.rounded_grey);
+        seg.metricTrend.setVisibility(View.INVISIBLE);
     }
 
     // --- Helpers for ItemMetricCardBinding (Grid) ---
@@ -351,22 +246,32 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         card.metricIcon.setImageResource(metric.getIconRes());
     }
 
-    private void updateCardData(ItemMetricCardBinding card, String mainVal, String subVal, int status, double lastVal, double currVal) {
-        card.metricValue.setText(mainVal);
-        if (subVal != null && !subVal.isEmpty()) {
-            card.metricSubValue.setText(subVal);
+    private ItemMetricCardBinding cardBinding(Metric metric) {
+        switch (metric) {
+            case PERCENTFAT: return binding.cardFat;
+            case PERCENTHYDRATION: return binding.cardWater;
+            case MUSCLEMASS: return binding.cardMuscle;
+            case BONEMASS: return binding.cardBone;
+            case VISCERALFATRATING: return binding.cardVisceral;
+            case PHYSIQUERATING: return binding.cardPhysique;
+            case METABOLICAGE: return binding.cardMetabolicAge;
+            case BASALMET: return binding.cardBMR;
+            default: throw new IllegalArgumentException("Unsupported card metric " + metric);
+        }
+    }
+
+    private void updateCardData(ItemMetricCardBinding card,
+                                MeasurementPresentationFactory.MetricDisplay display) {
+        card.metricValue.setText(display.available ? display.primaryText : "-");
+        if (!display.secondaryText.isEmpty()) {
+            card.metricSubValue.setText(display.secondaryText);
             card.metricSubValue.setVisibility(View.VISIBLE);
         } else {
             card.metricSubValue.setVisibility(View.GONE);
         }
-        updateIconBackground(card.metricIcon, status);
-
-        if (lastVal != -1) {
-            updateTrendIcon(currVal, lastVal, card.metricTrend);
-        } else {
-            card.metricTrend.setVisibility(View.INVISIBLE);
-        }
-        card.metricCard.setVisibility(currVal != -1 ? View.VISIBLE : View.GONE);
+        updateIconBackground(card.metricIcon, display.status);
+        updateTrend(card.metricTrend, display.currentValue, display.previousValue);
+        card.metricCard.setVisibility(display.available ? View.VISIBLE : View.GONE);
     }
 
     private void resetCard(ItemMetricCardBinding card) {
@@ -384,46 +289,35 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         binding.weightIVmini.setVisibility(View.INVISIBLE);
         binding.iconWeight.setBackgroundResource(R.drawable.rounded_blue);
 
-        resetSegment(binding.segTrunk);
-        resetSegment(binding.segLeftArm);
-        resetSegment(binding.segRightArm);
-        resetSegment(binding.segLeftLeg);
-        resetSegment(binding.segRightLeg);
-
-        resetCard(binding.cardFat);
-        resetCard(binding.cardWater);
-        resetCard(binding.cardMuscle);
-        resetCard(binding.cardBone);
-        resetCard(binding.cardVisceral);
-        resetCard(binding.cardPhysique);
-        resetCard(binding.cardMetabolicAge);
-        resetCard(binding.cardBMR);
+        for (BodySegment segment : BodySegment.values()) resetSegment(segmentBinding(segment));
+        for (Metric metric : CARD_METRICS) resetCard(cardBinding(metric));
     }
 
-    private void updateIconBackground(ImageView iv, int status) {
-        if (status == 1) iv.setBackgroundResource(R.drawable.rounded_green);
-        else if (status == 3) iv.setBackgroundResource(R.drawable.rounded_red);
-        else if (status == 0 || status == 2) iv.setBackgroundResource(R.drawable.rounded_yellow);
+    private void updateIconBackground(ImageView iv, MeasurementPresentationFactory.Status status) {
+        if (status == MeasurementPresentationFactory.Status.HEALTHY) {
+            iv.setBackgroundResource(R.drawable.rounded_green);
+        } else if (status == MeasurementPresentationFactory.Status.DANGER) {
+            iv.setBackgroundResource(R.drawable.rounded_red);
+        } else if (status == MeasurementPresentationFactory.Status.WARNING) {
+            iv.setBackgroundResource(R.drawable.rounded_yellow);
+        }
         else iv.setBackgroundResource(R.drawable.rounded_blue);
     }
 
-    private void updateBMIStatus(ImageView iv, TextView tv,int status) {
-        if (status == 1) {
-            iv.setBackgroundResource(R.drawable.rounded_green);
-            tv.setText(R.string.bmi_value_1);
-        } else if (status == 3) {
-            iv.setBackgroundResource(R.drawable.rounded_red);
-            tv.setText(R.string.bmi_value_3);
-        } else if (status == 0) {
-            iv.setBackgroundResource(R.drawable.rounded_yellow);
-            tv.setText(R.string.bmi_value_0);
-        } else if (status == 2) {
-            iv.setBackgroundResource(R.drawable.rounded_yellow);
-            tv.setText(R.string.bmi_value_2);
-        } else {
-            iv.setBackgroundResource(R.drawable.rounded_blue);
-            tv.setText("");
-        }
+    private void updateBMIStatus(ImageView icon, TextView description,
+                                 MeasurementPresentationFactory.MetricDisplay display) {
+        updateIconBackground(icon, display.status);
+        description.setText(display.secondaryText);
+    }
+
+    private void updateTrend(ImageView view,
+                             MeasurementPresentationFactory.MetricDisplay display) {
+        updateTrend(view, display.currentValue, display.previousValue);
+    }
+
+    private void updateTrend(ImageView view, double current, double previous) {
+        if (current != -1 && previous != -1) updateTrendIcon(current, previous, view);
+        else view.setVisibility(View.INVISIBLE);
     }
 
     private void updateTrendIcon(double now, double last, ImageView iv) {

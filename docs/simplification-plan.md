@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 2 — Introduce reusable measurement presentation models
+- Current phase: Phase 3 — Simplify manual measurement editing
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -63,7 +63,7 @@ When work begins, update the status above and add the branch name and baseline v
 
 - [x] Phase 0 — Record the baseline
 - [x] Phase 1 — Centralize number parsing and mass conversion
-- [ ] Phase 2 — Introduce reusable measurement presentation models
+- [x] Phase 2 — Introduce reusable measurement presentation models
 - [ ] Phase 3 — Simplify manual measurement editing
 - [ ] Phase 4 — Simplify goal value editing
 - [ ] Phase 5 — Extract graph definitions and calculations
@@ -234,10 +234,10 @@ not read views, and view parsing must not know domain rules.
 
 ## Phase 2 — Introduce reusable measurement presentation models
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 2 changes are in the working tree)
 
 ### Objective
 
@@ -265,24 +265,24 @@ second list of left/right arm, left/right leg, and trunk fields.
 
 ### Tasks
 
-- [ ] Characterize visible values, missing-value behavior, trend indicators, and health colors on the
+- [x] Characterize visible values, missing-value behavior, trend indicators, and health colors on the
       current-weight and history screens.
-- [ ] Add tests for presentation of every `Metric` with available and `-1` missing values.
-- [ ] Add tests for fat percentage versus fat-mass preference.
-- [ ] Add tests for all `BodySegment` mappings.
-- [ ] Define a UI-independent status type for normal, warning, high-risk, low-risk, and unavailable
+- [x] Add tests for presentation of every `Metric` with available and `-1` missing values.
+- [x] Add tests for fat percentage versus fat-mass preference.
+- [x] Add tests for all `BodySegment` mappings.
+- [x] Define a UI-independent status type for normal, warning, high-risk, low-risk, and unavailable
       states as required by current behavior.
-- [ ] Implement the measurement presentation factory using `Metric`, `MetricFormatter`,
-      `HealthRangeClassifier`, and the conversion API from Phase 1.
-- [ ] Replace the metric-specific rendering branches in `WeightFragment` with iteration over binding
+- [x] Implement the measurement presentation factory using `Metric`, `HealthRangeClassifier`, and
+      the conversion API from Phase 1.
+- [x] Replace the metric-specific rendering branches in `WeightFragment` with iteration over binding
       definitions or a small binding map.
-- [ ] Replace repeated value formatting and status classification in `HistoryAdapter` with the same
+- [x] Replace repeated value formatting and status classification in `HistoryAdapter` with the same
       presentation factory.
-- [ ] Replace the 20 metric-availability booleans in `GraphsFragment` with iteration over `Metric`
+- [x] Replace the 20 metric-availability booleans in `GraphsFragment` with iteration over `Metric`
       definitions.
-- [ ] Ensure RecyclerView binding resets every optional view so recycled rows cannot retain stale
+- [x] Ensure RecyclerView binding resets every optional view so recycled rows cannot retain stale
       values, colors, or visibility.
-- [ ] Keep layout changes minimal; reusable binding definitions are sufficient if dynamic layouts
+- [x] Keep layout changes minimal; reusable binding definitions are sufficient if dynamic layouts
       would alter the existing appearance.
 
 ### Acceptance criteria
@@ -302,10 +302,36 @@ second list of left/right arm, left/right leg, and trunk fields.
 
 ### Completion notes
 
-- Presentation types introduced: —
-- Classes/branches removed: —
-- Layout changes: —
-- Follow-up work: —
+- Presentation types introduced: `MeasurementPresentationFactory.MetricDisplay`,
+  `SegmentDisplay`, and `Status`. The factory depends only on domain values and a replaceable string
+  interface, so all formatting and classification logic runs in local JVM tests.
+- Status compatibility: normal and compact status values are both carried by the model because the
+  existing large cards and compact history rows intentionally render bone mass, physique rating,
+  visceral fat, and metabolic age differently. The migration preserves both presentations instead
+  of silently choosing one.
+- Formatting ownership: the factory owns on-screen measurement formatting through its replaceable
+  string interface. The now-unused Android display method was removed from `MetricFormatter`, which
+  is narrowed to canonical CSV formatting.
+- `WeightFragment`: the eight metric cards and five body segments now render by iterating definition
+  lists. Metric formatting, descriptions, availability, status, and trend values no longer live in
+  per-metric branches. The class decreased from 582 to 476 lines.
+- `HistoryAdapter`: repeated metric formatting and health classification now use the shared factory;
+  every optional value clears its text, visibility, and icon state during binding. Segment rows are
+  mapped through `BodySegment`, correcting the old left/right leg row checks that accidentally used
+  arm fat fields. The class decreased from 431 to 423 lines despite adding reusable binding helpers.
+- `GraphsFragment`: metric visibility is derived from `Metric` definitions and menu resource IDs,
+  replacing 20 availability flags and positional assignments. The class decreased from 693 to 638
+  lines.
+- Tests added: `MeasurementPresentationFactoryTest` covers every graph metric with present/missing
+  values, percentage/fat-mass preference, large/compact status compatibility, current-height BMI,
+  every explicit body-segment mapping, and data-driven graph availability.
+- Automated verification: 77 declared `@Test` methods produced 177 test executions with zero
+  failures, errors, or skips. `lintDebug` and the complete minified release build pass.
+- Layout changes: none; existing XML and view bindings were retained.
+- Manual checks: deferred to the applicable display, segment, graph, and unit-system items in
+  `docs/release-checklist.md`; no emulator or physical device was available in this phase.
+- Follow-up work: Phase 3 can reuse the same `Metric` definitions while replacing repeated manual
+  editor parsing and assignment.
 
 ---
 
