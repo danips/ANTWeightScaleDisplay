@@ -79,7 +79,7 @@ When work begins, update the status above and add the branch name and baseline v
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 0 changes are in the working tree)
+Commit: `f4f406e` (committed with Phase 1)
 
 ### Objective
 
@@ -152,7 +152,7 @@ Establish reproducible behavior and size measurements before simplifying product
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 0 and Phase 1 changes are in the working tree)
+Commit: `f4f406e`
 
 ### Objective
 
@@ -237,7 +237,7 @@ not read views, and view parsing must not know domain rules.
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 2 changes are in the working tree)
+Commit: `954922e`
 
 ### Objective
 
@@ -340,7 +340,7 @@ second list of left/right arm, left/right leg, and trunk fields.
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 3 changes are in the working tree)
+Commit: `6744244`
 
 ### Objective
 
@@ -416,7 +416,7 @@ small table of editable metric bindings.
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 4 changes are in the working tree)
+Commit: `7b95327`
 
 ### Objective
 
@@ -504,7 +504,7 @@ avoids custom view lifecycle and XML inflation complexity.
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 5 changes are in the working tree)
+Commit: `9fb2e1d`
 
 ### Objective
 
@@ -587,7 +587,7 @@ can be tested on the local JVM.
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 6 changes are in the working tree)
+Commit: `24a99fb`
 
 ### Objective
 
@@ -662,7 +662,7 @@ application cannot silently present an in-memory change as saved after disk pers
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 7 changes are in the working tree)
+Commit: `8ff7997`
 
 ### Objective
 
@@ -729,7 +729,7 @@ data is written to or restored from an archive.
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 8 changes are in the working tree)
+Commit: `e10de63`
 
 ### Objective
 
@@ -803,7 +803,7 @@ the custom searchable user selector without introducing a full navigation rewrit
 Status: Completed<br>
 Started: 2026-07-12<br>
 Completed: 2026-07-12<br>
-Commit: Pending (Phase 9 changes are in the working tree)
+Commit: `1e7fd56`
 
 ### Objective
 
