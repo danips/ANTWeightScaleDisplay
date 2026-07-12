@@ -49,7 +49,6 @@ import com.quantrity.antscaledisplay.databinding.CustomMarkerViewBinding;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Set;
 
@@ -70,7 +69,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
     private SubMenu period_items;
 
     private LineChart mChart;
-    private ArrayList<Entry> oData;
+    private List<GraphPoint> graphPoints;
     private boolean averageShowing = false;
     private final CountDownTimer cdt = new CountDownTimer(100, 100) {
         @Override
@@ -78,11 +77,12 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
 
         @Override
         public void onFinish() {
+            if (mChart == null || graphPoints == null || graphPoints.isEmpty()) return;
             ViewPortHandler handler = mChart.getViewPortHandler();
             MPPointD topLeft = mChart.getValuesByTouchPoint(handler.contentLeft(), handler.contentTop(), YAxis.AxisDependency.LEFT);
             MPPointD bottomRight = mChart.getValuesByTouchPoint(handler.contentRight(), handler.contentBottom(), YAxis.AxisDependency.LEFT);
-            double end = Math.min(bottomRight.x, oData.get(oData.size() - 1).getX());
-            addAverage((float)end, (float)(end - topLeft.x), oData);
+            double end = Math.min(bottomRight.x, graphPoints.get(graphPoints.size() - 1).x);
+            addAverage(end - topLeft.x, end);
         }
     };
 
@@ -145,9 +145,10 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         if (weights.size() > 1) {
             long period = weights.get(0).date - weights.get(weights.size() - 1).date;
             period_selection.setVisible(period > 604800000L);
-            period_items.getItem(1).setVisible(period > 2592000000L);
-            period_items.getItem(2).setVisible(period > 15552000000L);
-            period_items.getItem(3).setVisible(period > 31536000000L);
+            for (int i = 0; i < period_items.size(); i++) {
+                GraphPeriod graphPeriod = GraphPeriod.fromMenuId(period_items.getItem(i).getItemId());
+                period_items.getItem(i).setVisible(graphPeriod.isAvailable(period));
+            }
         } else period_selection.setVisible(false);
     }
 
@@ -212,15 +213,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         int itemId = menuItem.getItemId();
         if (getActivity() == null) return false;
 
-        if (itemId == R.id.graph_time_week || itemId == R.id.graph_time_two_weeks || itemId == R.id.graph_time_six_weeks || itemId == R.id.graph_time_two_months || itemId == R.id.graph_time_four_months || itemId == R.id.graph_time_half_year || itemId == R.id.graph_time_year || itemId == R.id.graph_time_two_years || itemId == R.id.graph_time_always) {
-            if (graph_period_displayed != menuItem.getItemId()) {
-                SharedPreferences settings1 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor1 = settings1.edit();
-                editor1.putInt("selected_graph_period", menuItem.getItemId());
-                editor1.apply();
-                loadGraph(graph_measurement_displayed, menuItem.getItemId());
-            }
-        } else if (itemId == R.id.graph_time_month) {
+        if (GraphPeriod.isPeriodMenuId(itemId)) {
             if (graph_period_displayed != menuItem.getItemId()) {
                 SharedPreferences settings1 = getActivity().getSharedPreferences(getActivity().getPackageName() + "_preferences", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor1 = settings1.edit();
@@ -246,58 +239,17 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         graph_period_displayed = period_id;
         Metric metric = Metric.fromGraphId(item_id);
         if (metric == null) metric = Metric.WEIGHT;
+        GraphPeriod period = GraphPeriod.fromMenuId(period_id);
 
         graphLayout.removeAllViews();
-
-        //Establish the date limit
-        Calendar date_limit = Calendar.getInstance();
-        float window = 0;
-        if (period_id == R.id.graph_time_week) {
-            date_limit.add(Calendar.DAY_OF_MONTH, -7);
-            window = 7;
-        } else if (period_id == R.id.graph_time_two_weeks) {
-            date_limit.add(Calendar.DAY_OF_MONTH, -14);
-            window = 14;
-        } else if (period_id == R.id.graph_time_month) {
-            date_limit.add(Calendar.MONTH, -1);
-            window = 365f / 12f;
-        } else if (period_id == R.id.graph_time_six_weeks) {
-            date_limit.add(Calendar.DAY_OF_MONTH, -42);
-            window = 7 * 6;
-        } else if (period_id == R.id.graph_time_two_months) {
-            date_limit.add(Calendar.MONTH, -2);
-            window = 365f / 6f;
-        } else if (period_id == R.id.graph_time_four_months) {
-            date_limit.add(Calendar.MONTH, -4);
-            window = 365f / 4f;
-        } else if (period_id == R.id.graph_time_half_year) {
-            date_limit.add(Calendar.MONTH, -6);
-            window = 365f / 2f;
-        } else if (period_id == R.id.graph_time_year) {
-            date_limit.add(Calendar.YEAR, -1);
-            window = 365;
-        } else if (period_id == R.id.graph_time_two_years) {
-            date_limit.add(Calendar.YEAR, -2);
-            window = 365 * 2;
-        } else {
-            if (!weights.isEmpty()) {
-                date_limit.setTimeInMillis(weights.get(weights.size() - 1).date);
-                window = (float) (weights.get(0).date - weights.get(weights.size() - 1).date) / (1000 * 24 * 3600);
-            }
-        }
-        long time_limit = date_limit.getTimeInMillis();
-
-        ArrayList<Entry> yVals = new ArrayList<>();
-        for (int i = 0; i < weights.size(); i++) {
-            Weight w = weights.get(i);
-            double value = metric.graphValue(w, the_user);
-            if (value != -1) yVals.add(new Entry((float) w.date, (float) value));
-        }
-
-        if (yVals.isEmpty()) {
+        graphPoints = GraphSeriesBuilder.rawPoints(weights, metric, the_user);
+        if (graphPoints.isEmpty()) {
             if (Debug.ON) Log.v(TAG, "(data.size() == 0) CLEAR GRAPH");
             return;
         }
+        double oldest = graphPoints.get(0).x;
+        double newest = graphPoints.get(graphPoints.size() - 1).x;
+        float window = period.windowDays((long) oldest, (long) newest);
 
         int color = metric.getGraphColor();
         int color2 = metric.getGraphFillColor();
@@ -353,46 +305,12 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         mChart.setMarker(mv); // Set the marker to the chart
 
 
-        if (oData != null)
-        {
-            oData.clear();
-        }
-        oData = new ArrayList<>();
-        ArrayList<Entry> oRollingAvg = new ArrayList<>();
-        double rollingAvg = 0;
-        double windowMillis = (window * 86400000) / 365 * 30 ;//604800000L;
-        double deltaTime;
-        double lastSaved = 0;
-        float previousTime = 0;
-        for (int i = 0; i < yVals.size(); i++) {
-            Entry current = yVals.get(yVals.size() - i - 1);
-            oData.add(current);
-            if (previousTime == 0)
-            {
-                rollingAvg = current.getY();
-                oRollingAvg.add(new Entry(current.getX(), (float)rollingAvg));
-                lastSaved = current.getX();
-            }
-            else
-            {
-                deltaTime = current.getX() - previousTime;
-                double coeff = Math.exp(-1.0 * (deltaTime / windowMillis));
-                rollingAvg = (1.0 - coeff) * current.getY() + coeff * rollingAvg;
-            }
-            if ((current.getX() - lastSaved) >= windowMillis) {
-                oRollingAvg.add(new Entry(current.getX(), (float) rollingAvg));
-                lastSaved = current.getX();
-            }
-            previousTime = current.getX();
-        }
-        if (oRollingAvg.get(oRollingAvg.size() - 1).getX() != previousTime)
-        {
-            oRollingAvg.add(new Entry(previousTime, (float) rollingAvg));
-        }
+        ArrayList<Entry> dataEntries = entries(graphPoints);
+        ArrayList<Entry> rollingEntries = entries(GraphSeriesBuilder.rollingAverage(
+                graphPoints, period.rollingWindowMillis((long) oldest, (long) newest)));
+        addAverage(window * GraphPeriod.DAY_MILLIS, newest);
 
-        addAverage(oData.get(oData.size() - 1).getX(), window * 86400000, oData);
-
-        LineDataSet rollingAvgSeries = new LineDataSet(oRollingAvg, null);
+        LineDataSet rollingAvgSeries = new LineDataSet(rollingEntries, null);
         rollingAvgSeries.setDrawCircles(false);
         rollingAvgSeries.setDrawValues(false);
         float[] hsv = new float[3];
@@ -402,7 +320,7 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         rollingAvgSeries.setColor(Color.HSVToColor(hsv));
         rollingAvgSeries.setMode(LineDataSet.Mode.CUBIC_BEZIER);
 
-        LineDataSet series = new LineDataSet(oData, null);
+        LineDataSet series = new LineDataSet(dataEntries, null);
         series.setCircleColor(color);
         series.setCircleHoleColor(color);
         series.setCircleRadius(2f);
@@ -416,32 +334,18 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         dataSets.add(series);
 
         if (getActivity() != null) {
-            ArrayList<Goal> goals = state.goals();
-            if ((goals != null) && (!goals.isEmpty())) {
-                for (Goal g : goals) {
-                    if (g.uuid.equals(the_user.uuid)) {
-                        if (Metric.isSameMetric(g.type, graph_measurement_displayed)) {
-                            if (g.type.percentageMayBeMass()
-                                    && (g.show_fat_mass != the_user.show_fat_mass))
-                            {
-                                continue;
-                            }
-                            Entry g1 = new Entry(g.start_date, (float) g.start_value);
-                            Entry g2;
-                            g2 = new Entry(g.end_date, (float) g.end_value);
-                            ArrayList<Entry> oGoal = new ArrayList<>();
-                            oGoal.add(g1);
-                            oGoal.add(g2);
-                            LineDataSet goal = new LineDataSet(oGoal, null);
-                            goal.setColor(g.color);
-                            goal.setLineWidth(1f);
-                            goal.enableDashedLine(8f, 5f, 0f);
-                            goal.setDrawCircles(false);
-                            goal.setDrawValues(false);
-                            dataSets.add(goal);
-                        }
-                    }
-                }
+            for (GraphSeriesBuilder.GoalSeries goalPoints : GraphSeriesBuilder.goalSeries(
+                    state.goals(), the_user.uuid, metric, the_user.show_fat_mass)) {
+                ArrayList<Entry> goalEntries = new ArrayList<>();
+                goalEntries.add(entry(goalPoints.start));
+                goalEntries.add(entry(goalPoints.end));
+                LineDataSet goalDataSet = new LineDataSet(goalEntries, null);
+                goalDataSet.setColor(goalPoints.color);
+                goalDataSet.setLineWidth(1f);
+                goalDataSet.enableDashedLine(8f, 5f, 0f);
+                goalDataSet.setDrawCircles(false);
+                goalDataSet.setDrawValues(false);
+                dataSets.add(goalDataSet);
             }
         }
 
@@ -454,65 +358,28 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         mChart.getLegend().setEnabled(false);
 
         // now modify viewport
-        float data_window = (oData.get(oData.size() - 1).getX() - oData.get(0).getX())/(1000*24*3600);
-        if (Debug.ON) {
-            Log.v(TAG, "from " + oData.get(0).getX() + " to " + oData.get(oData.size() - 1).getX());
-            Log.v(TAG, "time_limit " + time_limit);
-            Log.v(TAG, "new calc " + (oData.get(oData.size() - 1).getX() - oData.get(0).getX()));
-            Log.v(TAG, "window " + window);
-            Log.v(TAG, "zoom " + (data_window / window));
-        }
+        float data_window = (float) ((newest - oldest) / GraphPeriod.DAY_MILLIS);
         mChart.zoom((data_window/window),1,0,0);
 
-        mChart.moveViewToX(oData.get(oData.size() - 1).getX());
+        mChart.moveViewToX((float) newest);
 
         mChart.setOnChartGestureListener(this);
     }
 
-    private void addAverage(float end, float span, ArrayList<Entry> oData)
-    {
-        if (mChart != null)
-        {
-            //Log.v(TAG, "end=" + end + " span=" + span);
-            double avgOnScreen = 0;
-            float onScreenX = end - span;
-            //Log.v(TAG, "span="+span+ " onScreenX=" + onScreenX + " last=" + end);
-            boolean firstOnScreen = true;
-            for (int i = 0; i < oData.size() - 1; i++) {
-                if (oData.get(i + 1).getX() >= onScreenX)
-                {
-                    //Log.v(TAG, "X="+ oData.get(i).getX() + " Y=" + oData.get(i).getY() + " // X2="+ oData.get(i + 1).getX() + " Y2=" + oData.get(i + 1).getY());
-                    float xIni, yIni;
-                    if (firstOnScreen && (oData.get(i).getX() < onScreenX))
-                    {
-                        //Log.v(TAG, "hHHHHHHHHHHHH editting first INSIDE");
-                        xIni = onScreenX;
-                        yIni = ((oData.get(i + 1).getY() - oData.get(i).getY()) / (oData.get(i + 1).getX() - oData.get(i).getX())) * (xIni - oData.get(i).getX()) + oData.get(i).getY();
-                        firstOnScreen = false;
-                    }
-                    else
-                    {
-                        xIni = oData.get(i).getX();
-                        yIni = oData.get(i).getY();
-                    }
+    private static ArrayList<Entry> entries(List<GraphPoint> points) {
+        ArrayList<Entry> entries = new ArrayList<>();
+        for (GraphPoint point : points) entries.add(entry(point));
+        return entries;
+    }
 
-                    if (oData.get(i + 1).getX() <= end) {
-                        double inc = (oData.get(i + 1).getY() + yIni) * (oData.get(i + 1).getX() - xIni) / (2 * span);
-                        avgOnScreen += inc;
-                        //Log.v(TAG, "A.- X="+ xIni + " Y=" + yIni + " // X2="+ oData.get(i + 1).getX() + " Y2=" + oData.get(i + 1).getY() + " INC=" + inc);
-                    }
-                    else
-                    {
-                        float yEnd = ((oData.get(i + 1).getY() - oData.get(i).getY()) / (oData.get(i + 1).getX() - oData.get(i).getX())) * (end - oData.get(i).getX()) + oData.get(i).getY();
-                        double inc = (yEnd + yIni) * (end - xIni) / (2 * span);
-                        avgOnScreen += inc;
-                        break;
-                    }
-                }
-            }
+    private static Entry entry(GraphPoint point) {
+        return new Entry((float) point.x, (float) point.y);
+    }
 
-            //Log.v(TAG, "avgOnScreen " + avgOnScreen);
-            LimitLine average = new LimitLine((float) avgOnScreen, "Average");
+    private void addAverage(double span, double end) {
+        if (mChart != null) {
+            double averageValue = GraphSeriesBuilder.visibleAverage(graphPoints, end - span, end);
+            LimitLine average = new LimitLine((float) averageValue, "Average");
             average.setLineColor(Color.WHITE);
             average.setTextColor(Color.WHITE);
             average.setLineWidth(3f);
@@ -526,7 +393,6 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
             leftAxis.addLimitLine(average);
             mChart.invalidate();
             averageShowing = true;
-
         }
     }
 

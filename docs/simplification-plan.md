@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 5 — Extract graph definitions and calculations
+- Current phase: Phase 6 — Clarify repository write completion and failures
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -66,7 +66,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 2 — Introduce reusable measurement presentation models
 - [x] Phase 3 — Simplify manual measurement editing
 - [x] Phase 4 — Simplify goal value editing
-- [ ] Phase 5 — Extract graph definitions and calculations
+- [x] Phase 5 — Extract graph definitions and calculations
 - [ ] Phase 6 — Clarify repository write completion and failures
 - [ ] Phase 7 — Complete the backup archive boundary
 - [ ] Phase 8 — Simplify navigation and user selection
@@ -501,10 +501,10 @@ avoids custom view lifecycle and XML inflation complexity.
 
 ## Phase 5 — Extract graph definitions and calculations
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 5 changes are in the working tree)
 
 ### Objective
 
@@ -522,23 +522,23 @@ can be tested on the local JVM.
 
 ### Tasks
 
-- [ ] Characterize period selection, initial zoom, rolling average, visible average, missing metrics,
+- [x] Characterize period selection, initial zoom, rolling average, visible average, missing metrics,
       goal overlays, and fat-mass filtering.
-- [ ] Investigate the currently calculated but unused `time_limit` in `GraphsFragment` and record
+- [x] Investigate the currently calculated but unused `time_limit` in `GraphsFragment` and record
       whether periods are intended to filter data or only define viewport/average windows.
-- [ ] Add tests capturing the chosen `time_limit` behavior before changing it.
-- [ ] Define `GraphPeriod` entries for every current menu period.
-- [ ] Replace duplicated period menu recognition and calendar/window conditionals with `GraphPeriod`
+- [x] Add tests capturing the chosen `time_limit` behavior before changing it.
+- [x] Define `GraphPeriod` entries for every current menu period.
+- [x] Replace duplicated period menu recognition and calendar/window conditionals with `GraphPeriod`
       lookup.
-- [ ] Extract raw metric-point generation.
-- [ ] Extract and test exponential rolling-average generation, including one-point and sparse series.
-- [ ] Extract and test visible-window trapezoidal averaging, including partial boundary segments.
-- [ ] Extract goal-series filtering by user, metric, dates, and fat-mass preference.
-- [ ] Reuse Phase 1 formatting for axis labels and marker values.
-- [ ] Keep chart colors, gestures, datasets, viewport calls, and Android resources in the fragment or a
+- [x] Extract raw metric-point generation.
+- [x] Extract and test exponential rolling-average generation, including one-point and sparse series.
+- [x] Extract and test visible-window trapezoidal averaging, including partial boundary segments.
+- [x] Extract goal-series filtering by user, metric, dates, and fat-mass preference.
+- [x] Reuse Phase 1 formatting for axis labels and marker values.
+- [x] Keep chart colors, gestures, datasets, viewport calls, and Android resources in the fragment or a
       narrowly scoped chart renderer.
-- [ ] Remove dead date-limit calculations and debug logging after behavior is established.
-- [ ] Ensure timers and chart references remain view-lifecycle safe.
+- [x] Remove dead date-limit calculations and debug logging after behavior is established.
+- [x] Ensure timers and chart references remain view-lifecycle safe.
 
 ### Acceptance criteria
 
@@ -556,10 +556,29 @@ can be tested on the local JVM.
 
 ### Completion notes
 
-- `time_limit` decision: —
-- Components introduced: —
-- Approximate fragment lines removed: —
-- Follow-up work: —
+- `time_limit` decision: the calculated timestamp was only logged and never used to select points.
+  Periods therefore continue to define the initial viewport, visible-average span, and rolling
+  smoothing window; all valid historical points remain in the chart so users can pan beyond the
+  initial viewport. The dead calendar calculation and its debug logging were removed.
+- Components introduced: `GraphPeriod` maps all ten menu IDs to viewport and legacy availability
+  rules. `GraphPoint` is the chart-independent point type. `GraphSeriesBuilder` owns raw metric
+  extraction, exponential rolling averages, trapezoidal visible averages with interpolated
+  boundaries, and goal filtering by user, metric, dates, and fat-mass representation.
+- Tests added: `GraphCalculationsTest` covers every period, non-filtering behavior, missing metrics,
+  fat-mass conversion, empty/one-point/sparse rolling series, full and partial visible averages,
+  goal filtering, and the existing menu availability thresholds.
+- Approximate fragment lines removed: `GraphsFragment` decreased from 638 to 504 lines and contains
+  no rolling or interpolation arithmetic. The three focused production components add 157 lines,
+  so production Java increased from 9,503 after Phase 4 to 9,526 lines while moving calculations
+  into independently tested code.
+- Lifecycle safety: the delayed average timer is cancelled in `onDestroyView`, chart references are
+  cleared, and its callback now exits when the chart or point series is unavailable.
+- Automated verification: 95 declared `@Test` methods produced 195 test executions with zero
+  failures, errors, or skips. `lintDebug` reports `No issues found`; the minified release build
+  passes and produces a 2,307,812-byte unsigned APK.
+- Manual checks: deferred to `docs/release-checklist.md`; no emulator or physical device was
+  available.
+- Follow-up work: Phase 6 will make repository mutation completion and failures explicit.
 
 ---
 
@@ -792,6 +811,7 @@ Add one entry whenever implementation differs from this plan or a choice affects
 | 2026-07-12 | 1 | Use a small parser result instead of `OptionalDouble` | `OptionalDouble` requires API 24, while the application supports API 23; the custom result preserves validation without desugaring or a minimum-SDK change. |
 | 2026-07-12 | 1 | Reject partially parsed numeric input | Accepting a numeric prefix from otherwise invalid text can silently save unintended values; strict complete parsing is deterministic and covered by tests. |
 | 2026-07-12 | 3 | Keep writable metric access in `EditableWeightMetric` | `Metric` remains the read-only domain definition used across the application, while editor-only setters, precision, input, and unit policies stay out of the persistence model. |
+| 2026-07-12 | 5 | Keep graph periods as viewport definitions | The legacy `time_limit` was calculated and logged but never filtered data. Keeping all points preserves panning behavior while removing dead code. |
 
 ## Blockers and risks
 
