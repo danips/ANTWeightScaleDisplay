@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d roků</string>
 	<string name="weight_process_msg_error">Chyba</string>
 	<string name="weight_process_msg_problem_bind">Není vyvolána služba ANT</string>
-	<string name="weight_process_msg_problem_event">Zaznamenána tato událost : %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Analýza tělesné kompozice není umožněna</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Váha není připravena.\nZkuste to později.</string>
 	<string name="weight_process_msg_problem_timeout">Váha nenalezena</string>

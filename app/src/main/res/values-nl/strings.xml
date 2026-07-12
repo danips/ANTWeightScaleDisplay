@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d jaar</string>
 	<string name="weight_process_msg_error">Error</string>
 	<string name="weight_process_msg_problem_bind">Onmogelijk om verbinding te maken met ANT</string>
-	<string name="weight_process_msg_problem_event">Event happened: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Samenstellings analyse niet beschikbaar</string>
 	<string name="weight_process_msg_problem_scale_not_ready">ANT+ weegschaal niet klaar. \nProbeer later opnieuw.</string>
 	<string name="weight_process_msg_problem_timeout">ANT+ weegschaal niet gevonden</string>

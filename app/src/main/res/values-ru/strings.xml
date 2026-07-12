@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d лет</string>
 	<string name="weight_process_msg_error">Ошибка</string>
 	<string name="weight_process_msg_problem_bind">Невозможно привязать весы ANT+</string>
-	<string name="weight_process_msg_problem_event">Произошло событие: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Анализ состава не доступен</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Весы ANT+ не готовы.\nПопробуйте еще раз.</string>
 	<string name="weight_process_msg_problem_timeout">Весы ANT+ не найдены</string>

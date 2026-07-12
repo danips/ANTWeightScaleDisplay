@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d Jahre</string>
 	<string name="weight_process_msg_error">Fehler</string>
 	<string name="weight_process_msg_problem_bind">Keine Verbindung zum ANT+ service</string>
-	<string name="weight_process_msg_problem_event">Ereignis: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Die Analyse ist nicht verfügbar</string>
 	<string name="weight_process_msg_problem_scale_not_ready">ANT+ Waage nicht betriebsbereit.\nVersuch es später noch einmal.</string>
 	<string name="weight_process_msg_problem_timeout">ANT+ Waage nicht gefunden</string>

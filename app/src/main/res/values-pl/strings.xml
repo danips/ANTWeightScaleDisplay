@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d lat</string>
 	<string name="weight_process_msg_error">Błąd</string>
 	<string name="weight_process_msg_problem_bind">Nie można nawiązać połączenia z serwisem ANT</string>
-	<string name="weight_process_msg_problem_event">Ilość zdarzeń: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Analiza niedostępna</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Waga nie gotowa. \nSpróbuj później.</string>
 	<string name="weight_process_msg_problem_timeout">Waga ANT+ nie znaleziona</string>

@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d έτη</string>
 	<string name="weight_process_msg_error">Σφάλμα</string>
 	<string name="weight_process_msg_problem_bind">Αδυμαμία σύνδεσης με ΑΝΤ+ service</string>
-	<string name="weight_process_msg_problem_event">Έγινε κάποιο συμβάν: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Η ανάλυση Σύνθεσης δεν είναι διαθέσιμη</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Η ζυγαριά ΑΝΤ+ δεν είναι έτοιμη. \nΠροσπαθήστε αργότερα.</string>
 	<string name="weight_process_msg_problem_timeout">Η ζυγαριά ΑΝΤ+ δεν βρέθηκε</string>

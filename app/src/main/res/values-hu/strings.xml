@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> év</string>
 	<string name="weight_process_msg_error">Hiba</string>
 	<string name="weight_process_msg_problem_bind">Az ANT szolgáltatás nem elérhető</string>
-	<string name="weight_process_msg_problem_event">Valami történt: <xliff:g id="event">%1$s</xliff:g></string>
 	<string name="weight_process_msg_problem_not_barefoot">A testelemzés nem elérhető</string>
 	<string name="weight_process_msg_problem_scale_not_ready">A mérleged nem válaszol.\nPróbáld újra.</string>
 	<string name="weight_process_msg_problem_timeout">Nem található ANT+ mérleg</string>

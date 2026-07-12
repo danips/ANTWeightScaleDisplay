@@ -167,7 +167,6 @@
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> років</string>
     <string name="weight_process_msg_error">Помилка</string>
     <string name="weight_process_msg_problem_bind">Не вдалося зв\'язатися зі службою ANT</string>
-    <string name="weight_process_msg_problem_event">Сталася подія: <xliff:g id="event">%1$s</xliff:g></string>
     <string name="weight_process_msg_problem_not_barefoot">Аналіз складу тіла недоступний</string>
     <string name="weight_process_msg_problem_scale_not_ready">Вага ANT+ не готова.\nСпробуйте пізніше.</string>
     <string name="weight_process_msg_problem_timeout">Вагу ANT+ не знайдено</string>

@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/background_material_dark_copy"
     android:id="@+id/mainView"
     android:padding="15dp"
     android:orientation="vertical">
@@ -40,6 +39,7 @@
             android:paddingEnd="5dp"
             android:background="#ffffff"
             android:hint="@string/edit_user_fragment_user"
+            android:importantForAutofill="no"
             android:textColor="@color/background_material_dark_copy"
             android:inputType="text" />
 

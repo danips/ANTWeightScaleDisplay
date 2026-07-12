@@ -820,8 +820,7 @@ measure whether the refactor achieved its goals.
 
 ### Manual device verification
 
-- [ ] Test API 23, 29, 33, target API 36, and emulator API 37 where devices or emulators are
-      available.
+- [ ] Test API 23, 29, 33, and target/API 37 where devices or emulators are available.
 - [ ] Test rotation, background/foreground transitions, and process recreation.
 - [ ] Create, edit, select, and delete users.
 - [ ] Create, edit, and delete manual measurements.
@@ -862,9 +861,9 @@ measure whether the refactor achieved its goals.
 ### Automated verification results
 
 - 158 unit tests pass with no failures, errors, or skips.
-- `lintDebug` passes with 0 errors and 49 warnings.
-- A clean minified `assembleRelease`, including `lintVitalRelease`, passes in 21.00 seconds.
-- The unsigned release APK is 2,289,524 bytes and contains 14,669 DEX method references.
+- `lintDebug` passes with 0 errors and 0 warnings after the 2026-07-12 cleanup below.
+- A clean minified `assembleRelease`, including `lintVitalRelease`, passes in 17.25 seconds.
+- The unsigned release APK is 2,306,088 bytes and contains 14,709 DEX method references.
 - A reproducible baseline build from `6e0a7fa` confirmed 14,528 DEX method references. Its release
   required the documented `lintVitalRelease` exclusion; the final build does not.
 - `git diff --check` reports no whitespace errors.
@@ -888,6 +887,16 @@ measure whether the refactor achieved its goals.
 - Extracted Android-independent `GarminHistoryImporter` and added two tests covering field
   conversion, progress, sorting, user assignment, and existing-measurement deduplication. The
   complete suite now contains 160 passing tests.
+- Raised `targetSdk` from 36 to 37 and removed the redundant explicit predictive-back manifest
+  attribute, whose target-33+ default is already enabled.
+- Resolved all 49 remaining lint warnings: profile and credential fields now have meaningful
+  autofill metadata, measurement/search containers opt out, themed window backgrounds replace
+  redundant root backgrounds,
+  unused resources were deleted, and the three expensive vector paths were rasterized at xxxhdpi
+  while preserving their intrinsic dp sizes.
+- Upgraded the Garmin FIT SDK from 21.188.0 to 21.205.0. The characterization test now verifies FIT
+  integrity and decoded weight, body-fat, hydration, bone, muscle, and BMI fields in addition to the
+  deterministic digest.
 
 ### Acceptance criteria
 
@@ -963,6 +972,7 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 10 | Retain a named Garmin foreground composition root instead of duplicating construction in callers | Keeps Android MFA composition at the UI boundary without preserving the old all-purpose Garmin facade | `4a6119f` |
 | 2026-07-11 | Phase 10 | Validate backup contents before atomic replacement | Preserves the existing archive format while rejecting traversal, unknown entries, duplicates, oversized entries, and malformed JSON | `4a6119f` |
 | 2026-07-12 | Cleanup | Bind interactive Garmin history download to the History view lifecycle | Preserves foreground MFA while ensuring execution, callbacks, and notifications are cancelled when their UI owner is destroyed | Pending commit |
+| 2026-07-12 | Cleanup | Target API 37 and resolve every remaining lint finding without a baseline | Keeps platform behavior current while making autofill, rendering, resources, and dependency compatibility explicit and testable | Pending commit |
 
 ## Final results
 
@@ -970,23 +980,20 @@ Recorded during Phase 10.
 
 | Measure | Baseline | Final | Change |
 |---|---:|---:|---:|
-| Application Java files | 29 | 54 | +25 (+86.2%); responsibilities split into focused classes |
-| Application Java lines | 9,903 | 9,552 | -351 (-3.5%) |
+| Application Java files | 29 | 56 | +27 (+93.1%); responsibilities split into focused classes |
+| Application Java lines | 9,903 | 9,720 | -183 (-1.8%) |
 | Vendored FIT Java files | 493 | 0 | -493 (-100%) |
 | Vendored FIT Java lines | ~77,500 | 0 | ~-77,500 (-100%) |
-| DEX method references | 14,528 rebuilt | 14,669 | +141 (+1.0%) |
+| DEX method references | 14,528 rebuilt | 14,709 | +181 (+1.2%) |
 | Lint errors | 9 | 0 | -9 (-100%) |
-| Lint warnings | 155 | 49 | -106 (-68.4%) |
-| Unit tests | 22 passing | 158 passing | +136 |
-| Release APK size | 2,290,656 bytes unsigned | 2,289,524 bytes unsigned | -1,132 bytes (-0.05%) |
-| Clean release build time | 16 seconds, fatal lint excluded | 21.00 seconds, lint included | +5.00 seconds with stricter verification |
+| Lint warnings | 155 | 0 | -155 (-100%) |
+| Unit tests | 22 passing | 160 passing | +138 |
+| Release APK size | 2,290,656 bytes unsigned | 2,306,088 bytes unsigned | +15,432 bytes (+0.67%) |
+| Clean release build time | 16 seconds, fatal lint excluded | 17.25 seconds, lint included | +1.25 seconds with stricter verification |
 
 ## Remaining technical debt
 
 Record deliberately deferred work here instead of expanding an active phase without review.
 
-- The remaining 49 non-fatal lint warnings are 39 autofill suggestions, 3 vector-path optimization
-  suggestions, 2 unused resources, 2 overdraw warnings, 1 unused attribute, 1 target-SDK reminder,
-  and 1 dependency-update notice. Address them only with separate UI, SDK, and dependency testing.
 - Garmin credentials still require a backward-compatible Keystore migration and recovery design.
 - Physical ANT behavior and live Garmin workflows remain release gates, as listed above.

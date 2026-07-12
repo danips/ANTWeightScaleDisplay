@@ -66,7 +66,6 @@
 	<string name="fat_percent_value_1">Healthy</string>
 	<string name="fat_percent_value_2">Overfat</string>
 	<string name="fat_percent_value_3">Obese</string>
-    <string name="format_signed_value" translatable="false">%1$s%2$s</string>
     <string name="format_delta" translatable="false">Δ %1$s%2$s</string>
     <string name="format_total_sigma" translatable="false">Σ %1$s%2$s</string>
     <string name="format_user_description_cm" translatable="false">%1$s, %2$d %3$s</string>
@@ -187,7 +186,6 @@
     <string name="weight_fragment_years_tag" tools:ignore="PluralsCandidate"><xliff:g id="number">%1$d</xliff:g> years</string>
 	<string name="weight_process_msg_error">Error</string>
 	<string name="weight_process_msg_problem_bind">Unable to bind with ANT service</string>
-	<string name="weight_process_msg_problem_event">Event happened: <xliff:g id="event">%1$s</xliff:g></string>
 	<string name="weight_process_msg_problem_not_barefoot">Composition analysis not available</string>
 	<string name="weight_process_msg_problem_scale_not_ready">ANT+ Scale not ready.\nTry again later.</string>
 	<string name="weight_process_msg_problem_timeout">ANT+ weight scale not found</string>

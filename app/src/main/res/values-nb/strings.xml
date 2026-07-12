@@ -168,7 +168,6 @@
 	<string name="weight_fragment_years_tag">%1$d år</string>
 	<string name="weight_process_msg_error">Feil</string>
 	<string name="weight_process_msg_problem_bind">Ute av stand til å binde med ANT service</string>
-	<string name="weight_process_msg_problem_event">Hendelsen skjedde: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Sammensetningsanalyse ikke tilgjengelig</string>
 	<string name="weight_process_msg_problem_scale_not_ready">ANT+-vekt ikke klar.\nPrøv igjen senere.</string>
 	<string name="weight_process_msg_problem_timeout">Ikke funnet ANT+-vekt</string>

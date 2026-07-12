@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> سنة</string>
 	<string name="weight_process_msg_error">خطأ</string>
 	<string name="weight_process_msg_problem_bind">عم التمكن من التوافق مع خدمة ANT</string>
-	<string name="weight_process_msg_problem_event">الأحداث الواقعة: <xliff:g id="event">%1$s</xliff:g></string>
 	<string name="weight_process_msg_problem_not_barefoot">تحليل التكوين غير متوفر</string>
 	<string name="weight_process_msg_problem_scale_not_ready">ميزان +ANT غير جاهز. حاول مرةً اخرى</string>
 	<string name="weight_process_msg_problem_timeout">عدم إيجاد ميزان +ANT</string>

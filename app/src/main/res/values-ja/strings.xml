@@ -167,7 +167,6 @@
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> 歳</string>
     <string name="weight_process_msg_error">エラー</string>
     <string name="weight_process_msg_problem_bind">ANT サービスにバインドできません</string>
-    <string name="weight_process_msg_problem_event">イベントが発生しました: <xliff:g id="event">%1$s</xliff:g></string>
     <string name="weight_process_msg_problem_not_barefoot">体組成分析は利用できません</string>
     <string name="weight_process_msg_problem_scale_not_ready">ANT+ 体重計の準備ができていません。\n後でもう一度試してください。</string>
     <string name="weight_process_msg_problem_timeout">ANT+ 体重計が見つかりません</string>

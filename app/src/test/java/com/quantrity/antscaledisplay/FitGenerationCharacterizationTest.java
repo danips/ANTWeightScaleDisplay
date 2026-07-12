@@ -4,6 +4,8 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import com.garmin.fit.Decode;
+import com.garmin.fit.MesgNum;
+import com.garmin.fit.WeightScaleMesg;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,6 +15,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 
 public class FitGenerationCharacterizationTest {
     @Rule
@@ -37,7 +40,23 @@ public class FitGenerationCharacterizationTest {
         try (FileInputStream input = new FileInputStream(output)) {
             assertTrue(new Decode().checkFileIntegrity(input));
         }
-        assertEquals("71b74f44bf2e59a96330997cf345ebdfdec3696c6687958b62916a1bf9803fbe", sha256(output));
+        ArrayList<WeightScaleMesg> messages = new ArrayList<>();
+        try (FileInputStream input = new FileInputStream(output)) {
+            assertTrue(new Decode().read(input, message -> {
+                if (message.getNum() == MesgNum.WEIGHT_SCALE) {
+                    messages.add(new WeightScaleMesg(message));
+                }
+            }));
+        }
+        assertEquals(1, messages.size());
+        WeightScaleMesg decoded = messages.get(0);
+        assertEquals(64.2, decoded.getWeight(), 0.01);
+        assertEquals(26.3, decoded.getPercentFat(), 0.01);
+        assertEquals(52.4, decoded.getPercentHydration(), 0.01);
+        assertEquals(2.4, decoded.getBoneMass(), 0.01);
+        assertEquals(45.1, decoded.getMuscleMass(), 0.01);
+        assertEquals(22.8, decoded.getBmi(), 0.01);
+        assertEquals("41755a93625f966cf905e3d3758ac6adebbfa2de0cec41f1e9a5aec9b6dfdcfb", sha256(output));
     }
 
     private static String sha256(File file) throws Exception {

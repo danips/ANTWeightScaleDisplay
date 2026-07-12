@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> yıl</string>
 	<string name="weight_process_msg_error">Hata</string>
 	<string name="weight_process_msg_problem_bind">ANT servisi ile bağlantı kurulamadı</string>
-	<string name="weight_process_msg_problem_event">Olay oluştu: <xliff:g id="event">%1$s</xliff:g></string>
 	<string name="weight_process_msg_problem_not_barefoot">Kompozisyon analizi mevcut değil</string>
 	<string name="weight_process_msg_problem_scale_not_ready">ANT+ tartısı hazır değil.\nDaha sonra tekrar deneyiniz.</string>
 	<string name="weight_process_msg_problem_timeout">ANT+ tartısı bulunamadı</string>

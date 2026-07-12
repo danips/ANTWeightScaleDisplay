@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d anni</string>
 	<string name="weight_process_msg_error">Errore</string>
 	<string name="weight_process_msg_problem_bind">Impossibile collegarsi con un servizio ANT</string>
-	<string name="weight_process_msg_problem_event">Evento accaduto: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Analisi della composizione corporea non disponibile</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Bilancia non pronta.\nRiprova tra poco</string>
 	<string name="weight_process_msg_problem_timeout">Bilancia ANT+ non trovata</string>

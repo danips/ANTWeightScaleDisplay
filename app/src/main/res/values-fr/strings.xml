@@ -167,7 +167,6 @@
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> ans</string>
     <string name="weight_process_msg_error">Erreur</string>
     <string name="weight_process_msg_problem_bind">Impossible de se lier au service ANT</string>
-    <string name="weight_process_msg_problem_event">Un événement s\'est produit : <xliff:g id="event">%1$s</xliff:g></string>
     <string name="weight_process_msg_problem_not_barefoot">Analyse de la composition non disponible</string>
     <string name="weight_process_msg_problem_scale_not_ready">Balance ANT+ non prête.\nRéessayez plus tard.</string>
     <string name="weight_process_msg_problem_timeout">Balance ANT+ introuvable</string>

@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d anos</string>
 	<string name="weight_process_msg_error">Erro</string>
 	<string name="weight_process_msg_problem_bind">Problema ao vincular o servizo ANT+</string>
-	<string name="weight_process_msg_problem_event">Sucedeu evento: %1$s</string>
 	<string name="weight_process_msg_problem_not_barefoot">Análisis de composición non dispoñible</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Báscula ANT+ non preparada.\nInténteo outra vez máis tarde.</string>
 	<string name="weight_process_msg_problem_timeout">Báscula ANT+ non atopada</string>

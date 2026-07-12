@@ -167,7 +167,6 @@
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> år</string>
     <string name="weight_process_msg_error">Fel</string>
     <string name="weight_process_msg_problem_bind">Kunde inte binda till ANT-tjänsten</string>
-    <string name="weight_process_msg_problem_event">Händelse inträffade: <xliff:g id="event">%1$s</xliff:g></string>
     <string name="weight_process_msg_problem_not_barefoot">Kroppskompositionsanalys ej tillgänglig</string>
     <string name="weight_process_msg_problem_scale_not_ready">ANT+ vågen är inte redo.\nFörsök igen senare.</string>
     <string name="weight_process_msg_problem_timeout">ANT+ våg hittades inte</string>

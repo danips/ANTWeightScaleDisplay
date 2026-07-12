@@ -167,7 +167,6 @@
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> 岁</string>
     <string name="weight_process_msg_error">错误</string>
     <string name="weight_process_msg_problem_bind">无法绑定 ANT 服务</string>
-    <string name="weight_process_msg_problem_event">发生事件: <xliff:g id="event">%1$s</xliff:g></string>
     <string name="weight_process_msg_problem_not_barefoot">无法进行身体成分分析</string>
     <string name="weight_process_msg_problem_scale_not_ready">ANT+ 体重秤未就绪。\n请稍后再试。</string>
     <string name="weight_process_msg_problem_timeout">未找到 ANT+ 体重秤</string>

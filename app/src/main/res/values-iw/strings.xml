@@ -167,7 +167,6 @@
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> שנים</string>
     <string name="weight_process_msg_error">שגיאה</string>
     <string name="weight_process_msg_problem_bind">לא ניתן להתחבר לשירות ANT</string>
-    <string name="weight_process_msg_problem_event">אירע אירוע: <xliff:g id="event">%1$s</xliff:g></string>
     <string name="weight_process_msg_problem_not_barefoot">ניתוח הרכב גוף אינו זמין</string>
     <string name="weight_process_msg_problem_scale_not_ready">משקל ה-ANT+ אינו מוכן.\nנסה שוב מאוחר יותר.</string>
     <string name="weight_process_msg_problem_timeout">משקל ANT+ לא נמצא</string>

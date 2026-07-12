@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag">%1$d anos</string>
 	<string name="weight_process_msg_error">Erro</string>
 	<string name="weight_process_msg_problem_bind">Não é possível ligar com o serviço ANT</string>
-	<string name="weight_process_msg_problem_event">Evento aconteceu: <xliff:g id="event">%1$s</xliff:g></string>
 	<string name="weight_process_msg_problem_not_barefoot">Análise de composição não disponível</string>
 	<string name="weight_process_msg_problem_scale_not_ready">Escala ANT+ não está pronta.\nTente mais tarde.</string>
 	<string name="weight_process_msg_problem_timeout">Escala ANT+ não encontrada</string>

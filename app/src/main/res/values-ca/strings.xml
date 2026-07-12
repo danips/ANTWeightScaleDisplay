@@ -167,7 +167,6 @@
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> anys</string>
 	<string name="weight_process_msg_error">Error</string>
 	<string name="weight_process_msg_problem_bind">No es pot enllaçar amb el servei ANT</string>
-	<string name="weight_process_msg_problem_event">S\'ha produït un l\'esdeveniment: <xliff:g id="event">%1$s</xliff:g></string>
 	<string name="weight_process_msg_problem_not_barefoot">Anàlisis corporal no disponible</string>
 	<string name="weight_process_msg_problem_scale_not_ready">La bàscula ANT+ no està preparada.\nIntenta-ho més tard.</string>
 	<string name="weight_process_msg_problem_timeout">No s\'ha trobat la bàscula ANT+</string>
