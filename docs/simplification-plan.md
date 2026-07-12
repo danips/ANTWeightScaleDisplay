@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 3 — Simplify manual measurement editing
+- Current phase: Phase 4 — Simplify goal value editing
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -64,7 +64,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 0 — Record the baseline
 - [x] Phase 1 — Centralize number parsing and mass conversion
 - [x] Phase 2 — Introduce reusable measurement presentation models
-- [ ] Phase 3 — Simplify manual measurement editing
+- [x] Phase 3 — Simplify manual measurement editing
 - [ ] Phase 4 — Simplify goal value editing
 - [ ] Phase 5 — Extract graph definitions and calculations
 - [ ] Phase 6 — Clarify repository write completion and failures
@@ -337,10 +337,10 @@ second list of left/right arm, left/right leg, and trunk fields.
 
 ## Phase 3 — Simplify manual measurement editing
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 3 changes are in the working tree)
 
 ### Objective
 
@@ -349,19 +349,19 @@ small table of editable metric bindings.
 
 ### Tasks
 
-- [ ] Characterize creation and editing of complete, partial, segmental, barefoot, and non-barefoot
+- [x] Characterize creation and editing of complete, partial, segmental, barefoot, and non-barefoot
       measurements.
-- [ ] Add tests for mapping an editable metric to and from a `Weight` value.
-- [ ] Decide whether writable access belongs in `Metric`, a `WeightMetricAccess` registry, or a small
+- [x] Add tests for mapping an editable metric to and from a `Weight` value.
+- [x] Decide whether writable access belongs in `Metric`, a `WeightMetricAccess` registry, or a small
       editor-only binding. Prefer the smallest design that keeps parsing out of `Weight`.
-- [ ] Define binding entries containing the metric, input view, optional unit label, and availability
+- [x] Define binding entries containing the metric, input view, optional unit label, and availability
       rule.
-- [ ] Replace repeated initial-value assignment with one iteration over bindings.
-- [ ] Replace repeated save-time parsing and assignment with one iteration over bindings.
-- [ ] Centralize unavailable/blank handling and preserve the `-1` sentinel contract.
-- [ ] Centralize barefoot and segmental visibility rules.
-- [ ] Keep date, user selection, and menu handling in the fragment.
-- [ ] Remove obsolete individual field members and helper methods.
+- [x] Replace repeated initial-value assignment with one iteration over bindings.
+- [x] Replace repeated save-time parsing and assignment with one iteration over bindings.
+- [x] Centralize unavailable/blank handling and preserve the `-1` sentinel contract.
+- [x] Centralize barefoot and segmental visibility rules.
+- [x] Keep date, user selection, and menu handling in the fragment.
+- [x] Remove obsolete individual field members and helper methods.
 
 ### Acceptance criteria
 
@@ -379,10 +379,35 @@ small table of editable metric bindings.
 
 ### Completion notes
 
-- Binding design selected: —
-- Approximate Java lines removed: —
-- Behavior differences: —
-- Follow-up work: —
+- Binding design selected: `EditableWeightMetric` is an editor-only enum pairing each editable
+  `Metric` with its `Weight` setter, display/canonical conversion, precision, unit resource, decimal
+  input policy, and invalid-input fallback. `EditWeightFragment.MetricField` pairs that pure
+  definition with its generated `EditText` and unit-label binding.
+- The fragment builds one `EnumMap` for all 20 editable metrics. Initial clearing/population, decimal
+  separator watchers, hints, unit labels, localized parsing, canonical conversion, `-1` handling,
+  and model assignment are now single loops.
+- `Weight` remains a persistence/domain model and does not gain UI setters or Android view knowledge.
+  BMI remains calculated rather than manually editable.
+- Visibility audit: the legacy manual editor did not hide fields based on barefoot or segmental
+  state; all optional fields remain visible. Barefoot/partial acceptance belongs to the ANT protocol
+  path and remains characterized by `AntMessageParserTest` and `AntWeightSessionTest`. Segmental
+  editor availability is represented by the complete `EditableWeightMetric` table.
+- Tests added: `EditableWeightMetricTest` verifies every metric-to-`Weight` mapping is unique,
+  complete and writable; missing sentinels; kilogram, pound, and stone round trips; fat percentage
+  versus fat-mass conversion; units; decimal policies; and invalid fallbacks.
+- Approximate Java lines removed: `EditWeightFragment` decreased from 670 to 363 lines. After adding
+  the 117-line reusable accessor, production Java decreased from 9,885 after Phase 2 to 9,658 lines.
+- Behavior improvements: active metabolism is now repopulated when an existing measurement is
+  edited. Left-arm muscle is independently parsed instead of incorrectly using the left-arm fat
+  field's emptiness. A non-empty invalid required weight now shows the existing required-value error
+  instead of saving `-1`. Blank optional energy values remain `-1`, while non-empty invalid energy
+  input retains the established `0` fallback.
+- Automated verification: 82 declared `@Test` methods produced 182 test executions with zero
+  failures, errors, or skips. `lintDebug` reports no issues, and the complete minified release build
+  passes; the unsigned APK is 2,306,184 bytes.
+- Manual checks: deferred to the applicable measurement editing and unit-system items in
+  `docs/release-checklist.md`; no emulator or physical device was available in this phase.
+- Follow-up work: Phase 4 will apply the same definition-and-binding pattern to start/end goal values.
 
 ---
 
@@ -744,6 +769,7 @@ Add one entry whenever implementation differs from this plan or a choice affects
 | 2026-07-12 | Plan | Avoid a Kotlin/Compose/Room/DI migration | It would expand scope and risk without directly removing the concentrated UI duplication. |
 | 2026-07-12 | 1 | Use a small parser result instead of `OptionalDouble` | `OptionalDouble` requires API 24, while the application supports API 23; the custom result preserves validation without desugaring or a minimum-SDK change. |
 | 2026-07-12 | 1 | Reject partially parsed numeric input | Accepting a numeric prefix from otherwise invalid text can silently save unintended values; strict complete parsing is deterministic and covered by tests. |
+| 2026-07-12 | 3 | Keep writable metric access in `EditableWeightMetric` | `Metric` remains the read-only domain definition used across the application, while editor-only setters, precision, input, and unit policies stay out of the persistence model. |
 
 ## Blockers and risks
 
