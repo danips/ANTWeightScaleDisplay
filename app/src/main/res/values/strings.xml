@@ -148,6 +148,8 @@
 	<string name="visceral_fat_plus13">Excess</string>
 	<string name="visceral_fat_sub13">Healthy</string>
 	<string name="weight_edit_empty_value_error">Value cannot be empty</string>
+	<string name="edit_goal_invalid_number_error" translatable="false">Enter a valid number</string>
+	<string name="edit_goal_date_range_error" translatable="false">End date must be after start date</string>
 	<string name="weight_edit_fragment_edit_weight">Edit weight</string>
 	<string name="weight_edit_fragment_kcal_tag">kcal</string>
 	<string name="weight_edit_fragment_kg_tag">kg</string>

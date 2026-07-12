@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 4 — Simplify goal value editing
+- Current phase: Phase 5 — Extract graph definitions and calculations
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -65,7 +65,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 1 — Centralize number parsing and mass conversion
 - [x] Phase 2 — Introduce reusable measurement presentation models
 - [x] Phase 3 — Simplify manual measurement editing
-- [ ] Phase 4 — Simplify goal value editing
+- [x] Phase 4 — Simplify goal value editing
 - [ ] Phase 5 — Extract graph definitions and calculations
 - [ ] Phase 6 — Clarify repository write completion and failures
 - [ ] Phase 7 — Complete the backup archive boundary
@@ -413,10 +413,10 @@ small table of editable metric bindings.
 
 ## Phase 4 — Simplify goal value editing
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 4 changes are in the working tree)
 
 ### Objective
 
@@ -440,20 +440,21 @@ avoids custom view lifecycle and XML inflation complexity.
 
 ### Tasks
 
-- [ ] Characterize formatting and parsing for every goal metric and unit system.
-- [ ] Add tests for start/end round trips for unitless, percentage, energy, years, kilograms, pounds,
+- [x] Characterize formatting and parsing for every goal metric and unit system.
+- [x] Add tests for start/end round trips for unitless, percentage, energy, years, kilograms, pounds,
       and stones.
-- [ ] Add tests for fat-percentage goals when `show_fat_mass` is enabled and disabled.
-- [ ] Implement one reusable goal value input.
-- [ ] Replace parallel start/end field members with two instances of the reusable input.
-- [ ] Replace metric-specific setup switches with configuration derived from `Metric.Unit` and
+- [x] Add tests for fat-percentage goals when `show_fat_mass` is enabled and disabled.
+- [x] Implement one reusable goal value input.
+- [x] Replace parallel start/end field members with two instances of the reusable input.
+- [x] Replace metric-specific setup switches with configuration derived from `Metric.Unit` and
       narrowly defined precision metadata.
-- [ ] Replace `checkValues`, `setValues`, `updateValue`, and `resetValues` branches with the reusable
+- [x] Replace `checkValues`, `setValues`, `updateValue`, and `resetValues` branches with the reusable
       input API.
-- [ ] Keep date picking, type selection, color picking, and fragment navigation in the fragment.
-- [ ] Validate start/end dates and numeric input explicitly; do not silently turn invalid text into
+- [x] Keep date picking, type selection, color picking, and fragment navigation in the fragment.
+- [x] Validate start/end dates and numeric input explicitly; do not silently turn invalid text into
       zero unless characterization tests prove that behavior must remain.
-- [ ] Remove obsolete input layouts or IDs only after lint confirms they are unused.
+- [x] Remove obsolete input layouts or IDs only after lint confirms they are unused. No layouts or
+      IDs were obsolete: the controller reuses all three alternatives through generated bindings.
 
 ### Acceptance criteria
 
@@ -470,10 +471,31 @@ avoids custom view lifecycle and XML inflation complexity.
 
 ### Completion notes
 
-- Component implemented as: —
-- Approximate Java/XML lines removed: —
-- Validation changes: —
-- Follow-up work: —
+- Component implemented as: `GoalValueDefinition` is the Android-independent metric/unit/precision
+  model. `GoalValueInput` is a binding controller around one endpoint's existing unitless,
+  single-unit, and stone/pound layouts. `EditGoalFragment` owns exactly two instances, for start and
+  end values.
+- Formatting and conversion: the definition derives its mode from `Metric.displayedUnit(...)` and
+  the user's mass unit. It preserves integer precision for physique, age, and energy; one decimal
+  for other values; and canonical-kilogram storage for kilogram, pound, stone, and fat-mass goals.
+- Tests added: `GoalValueDefinitionTest` covers every goal metric plus unitless, percentage, energy,
+  years, kilograms, pounds, stones, precision metadata, and fat-percentage goals with fat-mass mode
+  both disabled and enabled.
+- Approximate Java/XML lines removed: `EditGoalFragment` decreased from 637 to 294 lines. After
+  adding the 188 production lines in the reusable definition and controller, production Java
+  decreased from 9,658 after Phase 3 to 9,503 lines (net 155 lines). No layout structure changed;
+  two validation strings increased production XML to 7,557 lines.
+- Validation changes: blank or malformed localized numeric input now leaves the editor open and
+  marks the specific field with `Enter a valid number`. A missing start date or an end date that is
+  not after the start date also leaves the editor open and marks the relevant date field. Invalid
+  text is no longer silently persisted as zero.
+- Automated verification: 88 declared `@Test` methods produced 188 test executions with zero
+  failures, errors, or skips. `lintDebug` reports `No issues found`, and the complete minified
+  release build passes; the unsigned APK is 2,306,716 bytes. `git diff --check` also passes.
+- Manual checks: deferred to the applicable goal editing, unit-system, and fat-mass items in
+  `docs/release-checklist.md`; no emulator or physical device was available in this phase.
+- Follow-up work: Phase 5 can use the same pure-definition approach to separate graph calculations
+  from MPAndroidChart rendering.
 
 ---
 
