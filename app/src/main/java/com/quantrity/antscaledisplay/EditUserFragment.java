@@ -396,8 +396,11 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                     garmin_refresh_work = workInfos == null
                             ? Collections.emptyList()
                             : workInfos;
-                    state.reloadGarminTokens(the_user);
-                    updateGarminTokenInformation();
+                    state.reloadGarminTokens(the_user, result -> {
+                        MainActivity activity = (MainActivity) getActivity();
+                        if (activity == null || activity.handleMutationFailure(result)) return;
+                        updateGarminTokenInformation();
+                    });
                 });
     }
 
@@ -408,8 +411,13 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             setValues(the_user);
             needs_to_sync = false;
         }
-        if (the_user != null) state.reloadGarminTokens(the_user);
-        updateGarminTokenInformation();
+        if (the_user != null) {
+            state.reloadGarminTokens(the_user, result -> {
+                MainActivity activity = (MainActivity) getActivity();
+                if (activity == null || activity.handleMutationFailure(result)) return;
+                updateGarminTokenInformation();
+            });
+        } else updateGarminTokenInformation();
         super.onResume();
     }
 
@@ -543,9 +551,12 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 the_user.garminOauth2Token = "";
                 the_user.garminOauth2ExpiryTimestamp = -1;
                 GarminTokenRefreshScheduler.cancel(getActivity(), the_user);
-                state.saveUser(the_user);
-                updateGarminTokenInformation();
-                Toast.makeText(getActivity(), R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
+                state.saveUser(the_user, result -> {
+                    MainActivity activity = (MainActivity) getActivity();
+                    if (activity == null || activity.handleMutationFailure(result)) return;
+                    updateGarminTokenInformation();
+                    Toast.makeText(activity, R.string.gc_token_cleared, Toast.LENGTH_SHORT).show();
+                });
             }
         }
     }

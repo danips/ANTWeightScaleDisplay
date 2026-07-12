@@ -5,4 +5,5 @@ interface AntWeightListener {
     void onAntProgress(AntWeightSession.Progress progress);
     void onAntSuccess(Weight weight, User user);
     void onAntFailure(AntWeightSession.Failure failure, String detail);
+    void onAntPersistenceFailure(String message);
 }

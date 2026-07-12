@@ -457,6 +457,17 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         });
     }
 
+    @Override
+    public void onAntPersistenceFailure(String message) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            dismissAntProgress();
+            MainActivity activity = (MainActivity) getActivity();
+            if (activity != null) activity.showMessage(
+                    getString(R.string.repository_save_error, message));
+        });
+    }
+
     private int failureMessage(AntWeightSession.Failure failure) {
         switch (failure) {
             case BIND: return R.string.weight_process_msg_problem_bind;

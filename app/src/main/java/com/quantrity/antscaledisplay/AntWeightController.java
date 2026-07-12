@@ -196,12 +196,15 @@ final class AntWeightController implements AntServiceClient.Listener {
         result.age = user.age;
         result.isMale = user.isMale;
         result.height = user.height_cm;
-        AppRepository.get(context).upsertWeight(result, false);
         finished = true;
         successful = true;
         cleanup();
-        AntWeightListener listener = listenerRef.get();
-        if (listener != null) listener.onAntSuccess(result, user);
+        AppRepository.get(context).upsertWeight(result, false, saveResult -> {
+            AntWeightListener listener = listenerRef.get();
+            if (listener == null) return;
+            if (saveResult.isSuccess()) listener.onAntSuccess(result, user);
+            else listener.onAntPersistenceFailure(saveResult.message);
+        });
     }
 
     private synchronized void fail(AntWeightSession.Failure failure, String detail) {

@@ -11,7 +11,7 @@ remaining duplicated UI, formatting, conversion, graph, and file-operation code.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 6 — Clarify repository write completion and failures
+- Current phase: Phase 7 — Complete the backup archive boundary
 - Last updated: 2026-07-12
 - Plan created from commit: `52a2af0`
 - Production Java baseline: 9,720 lines
@@ -67,7 +67,7 @@ When work begins, update the status above and add the branch name and baseline v
 - [x] Phase 3 — Simplify manual measurement editing
 - [x] Phase 4 — Simplify goal value editing
 - [x] Phase 5 — Extract graph definitions and calculations
-- [ ] Phase 6 — Clarify repository write completion and failures
+- [x] Phase 6 — Clarify repository write completion and failures
 - [ ] Phase 7 — Complete the backup archive boundary
 - [ ] Phase 8 — Simplify navigation and user selection
 - [ ] Phase 9 — Final cleanup and regression verification
@@ -584,10 +584,10 @@ can be tested on the local JVM.
 
 ## Phase 6 — Clarify repository write completion and failures
 
-Status: Not started<br>
-Started: —<br>
-Completed: —<br>
-Commit: —
+Status: Completed<br>
+Started: 2026-07-12<br>
+Completed: 2026-07-12<br>
+Commit: Pending (Phase 6 changes are in the working tree)
 
 ### Objective
 
@@ -596,22 +596,22 @@ application cannot silently present an in-memory change as saved after disk pers
 
 ### Tasks
 
-- [ ] Inventory every repository mutation and record whether its caller needs completion, rollback,
+- [x] Inventory every repository mutation and record whether its caller needs completion, rollback,
       retry, or only centralized error reporting.
-- [ ] Add tests for asynchronous write success, encoding failure, disk failure, serialization order,
+- [x] Add tests for asynchronous write success, encoding failure, disk failure, serialization order,
       and concurrent Garmin token/profile updates.
-- [ ] Choose and document one asynchronous completion mechanism compatible with API 23.
-- [ ] Keep synchronous repository operations only where a worker/background thread already owns the
+- [x] Choose and document one asynchronous completion mechanism compatible with API 23.
+- [x] Keep synchronous repository operations only where a worker/background thread already owns the
       call and requires an immediate result.
-- [ ] Replace `Future` return values that callers do not consume with the chosen explicit API.
-- [ ] Handle completion or failure in `MainActivity`, `HistoryFragment`, `GoalsFragment`, history
+- [x] Replace `Future` return values that callers do not consume with the chosen explicit API.
+- [x] Handle completion or failure in `MainActivity`, `HistoryFragment`, `GoalsFragment`, history
       import, and ANT measurement persistence.
-- [ ] Define whether failed writes roll back the in-memory snapshot or retain it with a visible retry
+- [x] Define whether failed writes roll back the in-memory snapshot or retain it with a visible retry
       error; test the selected behavior.
-- [ ] Narrow `AppStateViewModel` mutation methods to the UI-facing contract while retaining ownership
+- [x] Narrow `AppStateViewModel` mutation methods to the UI-facing contract while retaining ownership
       of `AntWeightController` across Activity recreation.
-- [ ] Remove obsolete `completed(...)`, ignored futures, and unnecessary blocking wrappers.
-- [ ] Confirm no disk I/O is performed on the main thread.
+- [x] Remove obsolete `completed(...)`, ignored futures, and unnecessary blocking wrappers.
+- [x] Confirm no disk I/O is performed on the main thread.
 
 ### Acceptance criteria
 
@@ -628,10 +628,32 @@ application cannot silently present an in-memory change as saved after disk pers
 
 ### Completion notes
 
-- Completion mechanism selected: —
-- Failure/rollback policy: —
-- API methods removed or renamed: —
-- Follow-up work: —
+- Completion mechanism selected: `AppRepository.MutationCallback` is invoked by the serialized
+  repository executor after encoding and atomic persistence finish. `AppStateViewModel` posts every
+  callback to the main looper, giving Activities and Fragments one API-23-compatible UI contract
+  without exposing `Future` or blocking the main thread.
+- Failure/rollback policy: mutations retain their optimistic in-memory snapshot and report a visible
+  persistence error. This avoids unsafe rollback across multiple queued mutations and gives the user
+  an honest retry signal. Tests explicitly cover both the callback failure and retained snapshot.
+- Mutation inventory: profile saves schedule token refresh only after success; manual saves upload
+  only after success; goal/weight/user deletion and Garmin imports report failures; Garmin token
+  reload is asynchronous; and ANT measurement success is emitted only after exactly one successful
+  repository save. All UI failures flow through `MainActivity.handleMutationFailure` or the ANT
+  persistence callback.
+- API methods removed or renamed: UI-facing `Future<RepositoryResult<Void>>` methods and the synthetic
+  `completed(...)` future were removed. Low-level test/worker operations are explicitly named
+  `save*Synchronously`; Garmin token writes remain synchronous because their callers already execute
+  on background workers.
+- Tests added: asynchronous persistence success, disk failure, retained in-memory state, encoding
+  failure, and callback serialization order. Existing concurrent profile/token and stale-token tests
+  continue to verify Garmin token preservation.
+- Automated verification: 99 declared `@Test` methods produce 199 test executions with zero failures,
+  errors, or skips. `lintDebug` reports no issues and the minified release build passes; before the
+  final encoding-failure assertion the unsigned APK measured 2,309,716 bytes (test-only changes do
+  not affect it).
+- Manual checks: deferred to `docs/release-checklist.md`; no emulator, ANT scale, or Garmin account
+  was available.
+- Follow-up work: Phase 7 will place backup creation beside restore in `BackupArchive`.
 
 ---
 
@@ -812,6 +834,7 @@ Add one entry whenever implementation differs from this plan or a choice affects
 | 2026-07-12 | 1 | Reject partially parsed numeric input | Accepting a numeric prefix from otherwise invalid text can silently save unintended values; strict complete parsing is deterministic and covered by tests. |
 | 2026-07-12 | 3 | Keep writable metric access in `EditableWeightMetric` | `Metric` remains the read-only domain definition used across the application, while editor-only setters, precision, input, and unit policies stay out of the persistence model. |
 | 2026-07-12 | 5 | Keep graph periods as viewport definitions | The legacy `time_limit` was calculated and logged but never filtered data. Keeping all points preserves panning behavior while removing dead code. |
+| 2026-07-12 | 6 | Retain optimistic state and surface persistence failure | Rolling state back safely across serialized queued mutations would require versioned snapshots. Visible completion errors are deterministic and prevent silent data-loss claims. |
 
 ## Blockers and risks
 

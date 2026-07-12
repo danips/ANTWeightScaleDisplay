@@ -155,9 +155,10 @@ public class MainActivity extends AppCompatActivity
 
     public void closeEditUserFragment(User user) {
         if (user != null) {
-            RepositoryResult<Void> result = state.saveUser(user);
-            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-            GarminTokenRefreshScheduler.schedule(this, user);
+            state.saveUser(user, result -> {
+                if (handleMutationFailure(result)) return;
+                GarminTokenRefreshScheduler.schedule(this, user);
+            });
         }
         dismissKeyboard();
         selectItem(getString(R.string.lateral_menu_option_users));
@@ -184,11 +185,10 @@ public class MainActivity extends AppCompatActivity
 
     public void closeEditWeightFragment(Weight weight, User user, boolean edit, boolean change) {
         if (weight != null) {
-            state.saveWeight(weight, edit);
-            if ((user != null) && user.autoupload && change)
-            {
-                uploadButton(this, weight, user);
-            }
+            state.saveWeight(weight, edit, result -> {
+                if (handleMutationFailure(result)) return;
+                if (user != null && user.autoupload && change) uploadButton(this, weight, user);
+            });
         }
 
         dismissKeyboard();
@@ -219,12 +219,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void closeEditGoalFragment(Goal goal) {
-        if (goal != null) state.saveGoal(goal);
+        if (goal != null) state.saveGoal(goal, this::handleMutationFailure);
         dismissKeyboard();
         selectItem(getString(R.string.lateral_menu_option_goals));
     }
 
     public AntWeightController getAntWeightController() { return state.antWeightController(); }
+
+    boolean handleMutationFailure(RepositoryResult<Void> result) {
+        if (result.isSuccess()) return false;
+        Log.e(TAG, result.message, result.error);
+        showMessage(getString(R.string.repository_save_error, result.message));
+        return true;
+    }
 
     public AntWeightController startAntWeightMeasurement(WeightFragment fragment) {
         return state.newAntWeightController(fragment);

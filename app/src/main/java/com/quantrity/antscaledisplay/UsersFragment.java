@@ -179,8 +179,10 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
     void deleteUser(User user) {
         GarminTokenRefreshScheduler.cancel(requireContext(), user);
-        RepositoryResult<Void> result = state.deleteUser(user);
-        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
+        state.deleteUser(user, result -> {
+            MainActivity activity = (MainActivity) getActivity();
+            if (activity != null) activity.handleMutationFailure(result);
+        });
     }
 
     private void saveBackup() {

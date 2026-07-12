@@ -13,10 +13,11 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
 final class AppRepository {
+    interface MutationCallback {
+        void onComplete(RepositoryResult<Void> result);
+    }
     private static final String SELECTED_USER_KEY = "selected_user";
     private static final String SELECTED_USER_UUID_KEY = "selected_user_uuid";
     private static final String USERS_FILE_NAME = "users";
@@ -201,7 +202,7 @@ final class AppRepository {
         return selected.isEmpty() ? null : selected.get(0);
     }
 
-    RepositoryResult<Void> upsertUser(User user) {
+    void upsertUser(User user, MutationCallback callback) {
         ArrayList<User> snapshot;
         synchronized (stateLock) {
             User existing = findUser(users, user.uuid);
@@ -212,10 +213,10 @@ final class AppRepository {
             persistSelectedUserUuid(selectedUserUuid);
             snapshot = new ArrayList<>(users);
         }
-        return saveUsersSynchronously(snapshot);
+        execute(() -> saveUsersPreservingNewerTokens(copyUsers(snapshot)), callback);
     }
 
-    Future<RepositoryResult<Void>> upsertWeight(Weight weight, boolean editing) {
+    void upsertWeight(Weight weight, boolean editing, MutationCallback callback) {
         ArrayList<Weight> snapshot;
         synchronized (stateLock) {
             Weight existing = findWeight(weight.uuid, weight.date);
@@ -224,42 +225,48 @@ final class AppRepository {
             Collections.sort(weights, new Weight.DateComparator());
             snapshot = new ArrayList<>(weights);
         }
-        return saveWeights(snapshot);
+        execute(() -> writeWeights(snapshot), callback);
     }
 
-    Future<RepositoryResult<Void>> upsertGoal(Goal goal) {
+    void upsertGoal(Goal goal, MutationCallback callback) {
         ArrayList<Goal> snapshot;
         synchronized (stateLock) {
             if (!goals.contains(goal)) goals.add(goal);
             snapshot = new ArrayList<>(goals);
         }
-        return saveGoals(snapshot);
+        execute(() -> writeGoals(snapshot), callback);
     }
 
-    Future<RepositoryResult<Void>> replaceWeights(List<Weight> replacement) {
+    void replaceWeights(List<Weight> replacement, MutationCallback callback) {
+        ArrayList<Weight> snapshot;
         synchronized (stateLock) {
             weights.clear();
             weights.addAll(replacement);
             Collections.sort(weights, new Weight.DateComparator());
-            return saveWeights(new ArrayList<>(weights));
+            snapshot = new ArrayList<>(weights);
         }
+        execute(() -> writeWeights(snapshot), callback);
     }
 
-    Future<RepositoryResult<Void>> deleteWeight(Weight weight) {
+    void deleteWeight(Weight weight, MutationCallback callback) {
+        ArrayList<Weight> snapshot;
         synchronized (stateLock) {
             weights.remove(weight);
-            return saveWeights(new ArrayList<>(weights));
+            snapshot = new ArrayList<>(weights);
         }
+        execute(() -> writeWeights(snapshot), callback);
     }
 
-    Future<RepositoryResult<Void>> deleteGoal(Goal goal) {
+    void deleteGoal(Goal goal, MutationCallback callback) {
+        ArrayList<Goal> snapshot;
         synchronized (stateLock) {
             goals.remove(goal);
-            return saveGoals(new ArrayList<>(goals));
+            snapshot = new ArrayList<>(goals);
         }
+        execute(() -> writeGoals(snapshot), callback);
     }
 
-    RepositoryResult<Void> deleteUser(User user) {
+    void deleteUser(User user, MutationCallback callback) {
         ArrayList<User> userSnapshot;
         ArrayList<Weight> weightSnapshot;
         ArrayList<Goal> goalSnapshot;
@@ -279,10 +286,12 @@ final class AppRepository {
             weightSnapshot = new ArrayList<>(weights);
             goalSnapshot = new ArrayList<>(goals);
         }
-        RepositoryResult<Void> userResult = saveUsersSynchronously(userSnapshot);
-        saveWeights(weightSnapshot);
-        saveGoals(goalSnapshot);
-        return userResult;
+        execute(() -> {
+            RepositoryResult<Void> result = saveUsersPreservingNewerTokens(copyUsers(userSnapshot));
+            if (!result.isSuccess()) return result;
+            result = writeWeights(weightSnapshot);
+            return result.isSuccess() ? writeGoals(goalSnapshot) : result;
+        }, callback);
     }
 
     RepositoryResult<Void> saveUsersSynchronously(List<User> users) {
@@ -290,16 +299,26 @@ final class AppRepository {
         return await(() -> saveUsersPreservingNewerTokens(snapshot));
     }
 
-    Future<RepositoryResult<Void>> saveWeights(List<Weight> weights) {
-        RepositoryResult<String> encoded = weightCodec.encode(new ArrayList<>(weights));
-        if (!encoded.isSuccess()) return completed(encoded);
-        return writeExecutor.submit(() -> historyFile.write(encoded.value));
+    RepositoryResult<Void> saveWeightsSynchronously(List<Weight> weights) {
+        ArrayList<Weight> snapshot = new ArrayList<>(weights);
+        return await(() -> writeWeights(snapshot));
     }
 
-    Future<RepositoryResult<Void>> saveGoals(List<Goal> goals) {
+    RepositoryResult<Void> saveGoalsSynchronously(List<Goal> goals) {
+        ArrayList<Goal> snapshot = new ArrayList<>(goals);
+        return await(() -> writeGoals(snapshot));
+    }
+
+    private RepositoryResult<Void> writeWeights(List<Weight> weights) {
+        RepositoryResult<String> encoded = weightCodec.encode(new ArrayList<>(weights));
+        if (!encoded.isSuccess()) return RepositoryResult.failure(encoded.message, encoded.error);
+        return historyFile.write(encoded.value);
+    }
+
+    private RepositoryResult<Void> writeGoals(List<Goal> goals) {
         RepositoryResult<String> encoded = goalCodec.encode(new ArrayList<>(goals));
-        if (!encoded.isSuccess()) return completed(encoded);
-        return writeExecutor.submit(() -> goalsFile.write(encoded.value));
+        if (!encoded.isSuccess()) return RepositoryResult.failure(encoded.message, encoded.error);
+        return goalsFile.write(encoded.value);
     }
 
     RepositoryResult<Void> updateGarminTokensSynchronously(User tokenSource) {
@@ -323,13 +342,17 @@ final class AppRepository {
         });
     }
 
-    RepositoryResult<Void> reloadGarminTokens(User target) {
-        if (target == null || target.uuid == null) return RepositoryResult.success(null);
-        RepositoryResult<List<User>> loaded = loadUsers();
-        if (!loaded.isSuccess()) return RepositoryResult.failure(loaded.message, loaded.error);
-        User latest = findUser(loaded.value, target.uuid);
-        if (latest != null) copyGarminAccessToken(latest, target);
-        return RepositoryResult.success(null);
+    void reloadGarminTokens(User target, MutationCallback callback) {
+        execute(() -> {
+            if (target == null || target.uuid == null) return RepositoryResult.success(null);
+            RepositoryResult<List<User>> loaded = loadUsers();
+            if (!loaded.isSuccess()) {
+                return RepositoryResult.failure(loaded.message, loaded.error);
+            }
+            User latest = findUser(loaded.value, target.uuid);
+            if (latest != null) copyGarminAccessToken(latest, target);
+            return RepositoryResult.success(null);
+        }, callback);
     }
 
     List<File> dataFiles() {
@@ -464,10 +487,15 @@ final class AppRepository {
         }
     }
 
-    private static Future<RepositoryResult<Void>> completed(RepositoryResult<?> failed) {
-        FutureTask<RepositoryResult<Void>> task = new FutureTask<>(
-                () -> RepositoryResult.failure(failed.message, failed.error));
-        task.run();
-        return task;
+    private void execute(Callable<RepositoryResult<Void>> operation, MutationCallback callback) {
+        writeExecutor.submit(() -> {
+            RepositoryResult<Void> result;
+            try {
+                result = operation.call();
+            } catch (Exception e) {
+                result = RepositoryResult.failure("Could not save application data", e);
+            }
+            callback.onComplete(result);
+        });
     }
 }

@@ -1,16 +1,18 @@
 package com.quantrity.antscaledisplay;
 
 import android.app.Application;
+import android.os.Handler;
+import android.os.Looper;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Future;
 
 public final class AppStateViewModel extends AndroidViewModel {
     private final AppRepository repository;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private AntWeightController antWeightController;
 
     public AppStateViewModel(@NonNull Application application) {
@@ -70,36 +72,36 @@ public final class AppStateViewModel extends AndroidViewModel {
         repository.selectUser(user == null ? null : user.uuid);
     }
 
-    RepositoryResult<Void> saveUser(User user) {
-        return repository.upsertUser(user);
+    void saveUser(User user, AppRepository.MutationCallback callback) {
+        repository.upsertUser(user, onMainThread(callback));
     }
 
-    RepositoryResult<Void> reloadGarminTokens(User user) {
-        return repository.reloadGarminTokens(user);
+    void reloadGarminTokens(User user, AppRepository.MutationCallback callback) {
+        repository.reloadGarminTokens(user, onMainThread(callback));
     }
 
-    Future<RepositoryResult<Void>> saveWeight(Weight weight, boolean editing) {
-        return repository.upsertWeight(weight, editing);
+    void saveWeight(Weight weight, boolean editing, AppRepository.MutationCallback callback) {
+        repository.upsertWeight(weight, editing, onMainThread(callback));
     }
 
-    Future<RepositoryResult<Void>> saveGoal(Goal goal) {
-        return repository.upsertGoal(goal);
+    void saveGoal(Goal goal, AppRepository.MutationCallback callback) {
+        repository.upsertGoal(goal, onMainThread(callback));
     }
 
-    Future<RepositoryResult<Void>> replaceWeights(List<Weight> weights) {
-        return repository.replaceWeights(weights);
+    void replaceWeights(List<Weight> weights, AppRepository.MutationCallback callback) {
+        repository.replaceWeights(weights, onMainThread(callback));
     }
 
-    Future<RepositoryResult<Void>> deleteWeight(Weight weight) {
-        return repository.deleteWeight(weight);
+    void deleteWeight(Weight weight, AppRepository.MutationCallback callback) {
+        repository.deleteWeight(weight, onMainThread(callback));
     }
 
-    Future<RepositoryResult<Void>> deleteGoal(Goal goal) {
-        return repository.deleteGoal(goal);
+    void deleteGoal(Goal goal, AppRepository.MutationCallback callback) {
+        repository.deleteGoal(goal, onMainThread(callback));
     }
 
-    RepositoryResult<Void> deleteUser(User user) {
-        return repository.deleteUser(user);
+    void deleteUser(User user, AppRepository.MutationCallback callback) {
+        repository.deleteUser(user, onMainThread(callback));
     }
 
     AntWeightController antWeightController() { return antWeightController; }
@@ -110,6 +112,10 @@ public final class AppStateViewModel extends AndroidViewModel {
         }
         antWeightController = new AntWeightController(getApplication(), listener);
         return antWeightController;
+    }
+
+    private AppRepository.MutationCallback onMainThread(AppRepository.MutationCallback callback) {
+        return result -> mainHandler.post(() -> callback.onComplete(result));
     }
 
     @Override

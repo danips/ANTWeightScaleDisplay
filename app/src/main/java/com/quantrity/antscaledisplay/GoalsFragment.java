@@ -94,7 +94,10 @@ public class GoalsFragment extends Fragment implements MenuProvider {
     }
 
     void deleteGoal(Goal goal) {
-        state.deleteGoal(goal);
+        state.deleteGoal(goal, result -> {
+            MainActivity activity = (MainActivity) getActivity();
+            if (activity != null) activity.handleMutationFailure(result);
+        });
     }
 
     void editGoal(Goal goal) {

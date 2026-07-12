@@ -132,7 +132,7 @@ public class HistoryFragment extends Fragment implements MenuProvider,
     }
 
     void deleteWeight(Weight weight) {
-        state.deleteWeight(weight);
+        state.deleteWeight(weight, this::showMutationFailure);
     }
 
     void editWeight(Weight weight, User user) {
@@ -313,17 +313,24 @@ public class HistoryFragment extends Fragment implements MenuProvider,
 
     @Override
     public void onHistoryImported(ArrayList<Weight> weights, int added) {
-        state.replaceWeights(weights);
-        User selectedUser = state.selectedUser();
-        if (mAdapter != null && selectedUser != null) {
-            mAdapter.replaceAll(state.selectedWeights(), selectedUser);
-        }
+        state.replaceWeights(weights, result -> {
+            if (showMutationFailure(result)) return;
+            User selectedUser = state.selectedUser();
+            if (mAdapter != null && selectedUser != null) {
+                mAdapter.replaceAll(state.selectedWeights(), selectedUser);
+            }
+        });
     }
 
     @Override
     public void onHistoryDownloadFailed(String message) {
         MainActivity activity = (MainActivity) getActivity();
         if (activity != null) activity.showMessage(message);
+    }
+
+    private boolean showMutationFailure(RepositoryResult<Void> result) {
+        MainActivity activity = (MainActivity) getActivity();
+        return activity != null && activity.handleMutationFailure(result);
     }
 
 }
