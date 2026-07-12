@@ -47,6 +47,12 @@ The foreground composition root is `GarminForegroundSession`. It constructs and 
 the same authenticator with a non-interactive MFA provider. `GarminTokenRefreshScheduler` is the
 only component that defines WorkManager names and renewal timing.
 
+Interactive history download is owned by `GarminHistoryDownloadCoordinator`, which observes the
+History view lifecycle and owns its executor, cancellation, notification channel, progress updates,
+and main-thread result delivery. Leaving the History view cancels the task and removes its pending
+callbacks and notification. `GarminHistoryImporter` separately parses the response and applies the
+established duplicate-detection rules without Android UI dependencies.
+
 ## ANT boundary
 
 `AntServiceClient` owns Android service discovery, binding, broadcast receivers, channel commands,

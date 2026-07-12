@@ -8,7 +8,7 @@ retained as an audit trail; do not delete them.
 
 - Current phase: Phase 8 and Phase 10 device verification
 - Overall status: Verification pending
-- Last updated: 2026-07-11
+- Last updated: 2026-07-12
 - Baseline commit: `6e0a7fa`
 - Baseline application code: 29 Java files and 9,903 lines
 - Vendored Garmin FIT SDK: 493 Java files and approximately 77,500 lines
@@ -697,6 +697,10 @@ AntWeightListener
 
 ### Remaining device verification
 
+On 2026-07-12, the user reported that a new real-scale measurement completed successfully and the
+resulting workflow appeared correct. The repeated failure, cancellation, disconnect, partial-data,
+and recreation cases below remain release gates.
+
 Repeat each case at least three times on a representative supported Android device:
 
 1. Successful complete measurement, confirming it is saved exactly once.
@@ -792,7 +796,7 @@ refactor: adopt view binding across legacy screens
 
 Status: Verification pending<br>
 Completed: —<br>
-Commit: Pending commit
+Commit: `4a6119f` plus pending verification cleanup
 
 ### Objective
 
@@ -870,11 +874,20 @@ measure whether the refactor achieved its goals.
 - Complete every unchecked device and service test below before declaring the refactor release-ready.
 - Garmin credentials remain in the backward-compatible `users` JSON file. Keystore protection still
   requires a migration and backup-recovery design.
-- Garmin history download still owns a raw foreground thread and notification lifecycle in
-  `HistoryFragment`; moving it behind a lifecycle-aware coordinator is a future cleanup, not a
-  temporary migration path.
 - Validate restoration of an actual pre-refactor backup on a representative device even though
   fixture round trips and archive validation pass locally.
+
+### Post-refactor debt cleanup
+
+- On 2026-07-12, moved interactive Garmin history execution, cancellation, provider setup,
+  notification progress, and result delivery into lifecycle-bound
+  `GarminHistoryDownloadCoordinator`.
+- `HistoryFragment` now only starts the operation and applies completed results. Destroying its view
+  closes the coordinator, interrupts its named executor, removes queued callbacks, and cancels the
+  notification.
+- Extracted Android-independent `GarminHistoryImporter` and added two tests covering field
+  conversion, progress, sorting, user assignment, and existing-measurement deduplication. The
+  complete suite now contains 160 passing tests.
 
 ### Acceptance criteria
 
@@ -947,8 +960,9 @@ Add entries whenever a decision changes the implementation direction or phase or
 | 2026-07-11 | Phase 7 | Defer Android Keystore protection until a credential migration and recovery format is designed | Avoids silently invalidating existing Garmin connections while token persistence is being structurally isolated | `0d694c7` |
 | 2026-07-11 | Phase 8 | Persist only protocol-complete ANT measurements | Prevents timeouts, disconnects, and partial composition sequences from being saved or automatically uploaded | `704c8bc` |
 | 2026-07-11 | Phase 9 | Keep adapter-owned snapshots and dispatch explicit replacement ranges | Avoids broad RecyclerView invalidation while preventing adapters from mutating repository-owned collections | `6d90a31` |
-| 2026-07-11 | Phase 10 | Retain a named Garmin foreground composition root instead of duplicating construction in callers | Keeps Android MFA composition at the UI boundary without preserving the old all-purpose Garmin facade | Pending commit |
-| 2026-07-11 | Phase 10 | Validate backup contents before atomic replacement | Preserves the existing archive format while rejecting traversal, unknown entries, duplicates, oversized entries, and malformed JSON | Pending commit |
+| 2026-07-11 | Phase 10 | Retain a named Garmin foreground composition root instead of duplicating construction in callers | Keeps Android MFA composition at the UI boundary without preserving the old all-purpose Garmin facade | `4a6119f` |
+| 2026-07-11 | Phase 10 | Validate backup contents before atomic replacement | Preserves the existing archive format while rejecting traversal, unknown entries, duplicates, oversized entries, and malformed JSON | `4a6119f` |
+| 2026-07-12 | Cleanup | Bind interactive Garmin history download to the History view lifecycle | Preserves foreground MFA while ensuring execution, callbacks, and notifications are cancelled when their UI owner is destroyed | Pending commit |
 
 ## Final results
 
@@ -975,5 +989,4 @@ Record deliberately deferred work here instead of expanding an active phase with
   suggestions, 2 unused resources, 2 overdraw warnings, 1 unused attribute, 1 target-SDK reminder,
   and 1 dependency-update notice. Address them only with separate UI, SDK, and dependency testing.
 - Garmin credentials still require a backward-compatible Keystore migration and recovery design.
-- Garmin history download can move from its fragment-owned thread to a lifecycle-aware coordinator.
 - Physical ANT behavior and live Garmin workflows remain release gates, as listed above.
