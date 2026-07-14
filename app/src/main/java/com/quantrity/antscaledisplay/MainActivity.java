@@ -13,14 +13,13 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
+import android.widget.CheckedTextView;
 import android.widget.Spinner;
 
 import androidx.activity.OnBackPressedCallback;
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -30,16 +29,15 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.google.android.material.navigation.NavigationView;
 import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, AppHost {
+        implements AppHost {
     private static final String TAG = "MainActivity";
-    private NavigationView navigationView;
+    private View navigationView;
     private AppStateViewModel state;
     private UserSpinnerController userSpinnerController;
     private ActivityMainBinding binding;
@@ -80,7 +78,10 @@ public class MainActivity extends AppCompatActivity
         toggle.syncState();
 
         navigationView = binding.navView;
-        navigationView.setNavigationItemSelectedListener(this);
+        for (NavigationDestination destination : NavigationDestination.values()) {
+            navigationView.findViewById(destination.viewId).setOnClickListener(
+                    view -> navigate(destination));
+        }
         state = new ViewModelProvider(this).get(AppStateViewModel.class);
         userSpinnerController = new UserSpinnerController(this, state);
 
@@ -133,6 +134,10 @@ public class MainActivity extends AppCompatActivity
 
         if (savedInstanceState == null) {
             navigate(NavigationDestination.WEIGHT);
+        } else {
+            Fragment restored = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+            NavigationDestination selected = NavigationDestination.forFragment(restored);
+            if (selected != null) selectNavigationDestination(selected);
         }
     }
 
@@ -145,7 +150,7 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, euf).commit();
 
         // update selected item and title, then close the drawer
-        navigationView.getMenu().findItem(R.id.nav_users).setChecked(true);
+        selectNavigationDestination(NavigationDestination.USERS);
         setTitle(getString(R.string.lateral_menu_option_users));
     }
 
@@ -174,7 +179,7 @@ public class MainActivity extends AppCompatActivity
             getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, ewf, "EditWeightFragmentTag").commit();
 
             // update selected item and title, then close the drawer
-            navigationView.getMenu().findItem(R.id.nav_weight).setChecked(true);
+            selectNavigationDestination(NavigationDestination.WEIGHT);
             setTitle(getString(R.string.weight_edit_fragment_edit_weight));
         }
     }
@@ -210,7 +215,7 @@ public class MainActivity extends AppCompatActivity
         getSupportFragmentManager().beginTransaction().replace(R.id.content_frame, egf).commit();
 
         // update selected item and title, then close the drawer
-        navigationView.getMenu().findItem(R.id.nav_goals).setChecked(true);
+        selectNavigationDestination(NavigationDestination.GOALS);
         setTitle(getString(R.string.lateral_menu_option_goals));
     }
 
@@ -237,22 +242,23 @@ public class MainActivity extends AppCompatActivity
         return super.onCreateOptionsMenu(menu);
     }
 
-    @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        NavigationDestination destination = NavigationDestination.fromMenuId(item.getItemId());
-        return destination != null && navigate(destination);
-    }
-
     private boolean navigate(NavigationDestination destination) {
         Fragment current = getSupportFragmentManager().findFragmentById(R.id.content_frame);
         if (!destination.matches(current)) {
             getSupportFragmentManager().beginTransaction()
                     .replace(R.id.content_frame, destination.createFragment()).commit();
             setTitle(destination.titleResource);
-            navigationView.getMenu().findItem(destination.menuId).setChecked(true);
         }
+        selectNavigationDestination(destination);
         binding.drawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void selectNavigationDestination(NavigationDestination selected) {
+        for (NavigationDestination destination : NavigationDestination.values()) {
+            CheckedTextView item = navigationView.findViewById(destination.viewId);
+            item.setChecked(destination == selected);
+        }
     }
 
     @Override

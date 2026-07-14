@@ -37,6 +37,11 @@ issues, and the minified unsigned release APK built successfully. The app-owned 
 official SDK decoding, value, boundary, endianness, and CRC tests. A real Garmin Connect upload
 remains pending.
 
+Phase 6 APK-reduction verification on 2026-07-14: 218 test executions passed, lint reported no
+issues, and the minified unsigned release APK built successfully. Material UI infrastructure was
+replaced by focused AppCompat/AndroidX layouts and controls. The UI checks below remain pending
+because no device or emulator was modified during this phase.
+
 ## Android lifecycle and compatibility
 
 - [ ] Smoke-test API 23, 29, 33, and 37 where devices or emulators are available.
@@ -46,6 +51,10 @@ remains pending.
 
 ## Data and navigation
 
+- [ ] Open the drawer from the toolbar and with an edge swipe; select every destination and confirm
+      the title, fragment, icon, and single checked row are correct.
+- [ ] Rotate and recreate the Activity on every top-level and edit screen; confirm the correct parent
+      drawer row remains checked.
 - [ ] Confirm existing users, measurements, and goals load correctly.
 - [ ] Create, edit, select, and delete users.
 - [ ] Confirm the selected user is preserved after restart.
@@ -93,6 +102,10 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 
 ## Display and export
 
+- [ ] On API 23 and a current API, verify toolbar/menu layout, weight cards, drawer width/insets, and
+      the circular add button in both day and night themes.
+- [ ] With TalkBack or another accessibility service, confirm drawer rows expose their checked state,
+      all navigation and add targets are easy to activate, and the add action is announced correctly.
 - [ ] Verify graphs for every metric, unit system, goal type, and segmental measurement.
 - [ ] Confirm fat percentage/mass preference is respected.
 - [ ] Confirm segmental values map to the correct body parts.

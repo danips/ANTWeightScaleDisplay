@@ -9,15 +9,15 @@ import java.util.Set;
 import org.junit.Test;
 
 public class NavigationDestinationTest {
-    @Test public void everyDestinationHasAUniqueStableMenuIdAndTitle() {
+    @Test public void everyDestinationHasAUniqueStableViewIdAndTitle() {
         Set<Integer> ids = new HashSet<>();
         for (NavigationDestination destination : NavigationDestination.values()) {
-            assertEquals(destination, NavigationDestination.fromMenuId(destination.menuId));
-            ids.add(destination.menuId);
+            assertEquals(destination, NavigationDestination.fromViewId(destination.viewId));
+            ids.add(destination.viewId);
             org.junit.Assert.assertNotEquals(0, destination.titleResource);
         }
         assertEquals(NavigationDestination.values().length, ids.size());
-        assertNull(NavigationDestination.fromMenuId(-1));
+        assertNull(NavigationDestination.fromViewId(-1));
     }
 
     @Test public void destinationMapsToExpectedFragmentClass() {
@@ -26,5 +26,14 @@ public class NavigationDestinationTest {
         assertEquals(GraphsFragment.class, NavigationDestination.GRAPHS.fragmentClass);
         assertEquals(HistoryFragment.class, NavigationDestination.HISTORY.fragmentClass);
         assertEquals(UsersFragment.class, NavigationDestination.USERS.fragmentClass);
+    }
+
+    @Test public void editorFragmentsKeepTheirParentDestinationSelected() {
+        assertEquals(NavigationDestination.WEIGHT,
+                NavigationDestination.forFragment(new EditWeightFragment()));
+        assertEquals(NavigationDestination.GOALS,
+                NavigationDestination.forFragment(new EditGoalFragment()));
+        assertEquals(NavigationDestination.USERS,
+                NavigationDestination.forFragment(new EditUserFragment()));
     }
 }

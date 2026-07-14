@@ -10,20 +10,30 @@ enum NavigationDestination {
     HISTORY(R.id.nav_history, R.string.lateral_menu_option_history, HistoryFragment.class),
     USERS(R.id.nav_users, R.string.lateral_menu_option_users, UsersFragment.class);
 
-    final int menuId;
+    final int viewId;
     final int titleResource;
     final Class<? extends Fragment> fragmentClass;
 
-    NavigationDestination(int menuId, int titleResource,
+    NavigationDestination(int viewId, int titleResource,
                           Class<? extends Fragment> fragmentClass) {
-        this.menuId = menuId;
+        this.viewId = viewId;
         this.titleResource = titleResource;
         this.fragmentClass = fragmentClass;
     }
 
-    static NavigationDestination fromMenuId(int menuId) {
+    static NavigationDestination fromViewId(int viewId) {
         for (NavigationDestination destination : values()) {
-            if (destination.menuId == menuId) return destination;
+            if (destination.viewId == viewId) return destination;
+        }
+        return null;
+    }
+
+    static NavigationDestination forFragment(Fragment fragment) {
+        if (fragment instanceof EditWeightFragment) return WEIGHT;
+        if (fragment instanceof EditGoalFragment) return GOALS;
+        if (fragment instanceof EditUserFragment) return USERS;
+        for (NavigationDestination destination : values()) {
+            if (destination.matches(fragment)) return destination;
         }
         return null;
     }

@@ -8,7 +8,7 @@ approved in the decision log.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 5 — Optimize remaining bitmap assets
+- Current phase: Phase 7 — Final verification and distribution optimization
 - Last updated: 2026-07-14
 - Plan created from commit: `fdb4d97`
 - Branch at plan creation: `main`
@@ -17,8 +17,8 @@ approved in the decision log.
 - Baseline SHA-256: `0f709cb2f8f7c30ce0bd9c3d32b4914e4e1556d0a99b6a27d7ded814db2d8c12`
 - Compressed `classes.dex` baseline: 1,002,986 bytes
 - Uncompressed `resources.arsc` baseline: 930,796 bytes
-- Current unsigned release APK: 1,674,552 bytes
-- Current APK reduction from baseline: 619,176 bytes (27.0%)
+- Current unsigned release APK: 1,221,277 bytes
+- Current APK reduction from baseline: 1,072,451 bytes (46.8%)
 
 Update the current phase, date, measurements, and relevant commit after completing every phase.
 
@@ -119,8 +119,8 @@ Other observations:
 - [x] Phase 2 — Replace WorkManager token-refresh scheduling
 - [x] Phase 3 — Decide the Google Play Services/API-level strategy
 - [x] Phase 4 — Replace the production Garmin FIT SDK with a specialized encoder
-- [ ] Phase 5 — Optimize remaining bitmap assets
-- [ ] Phase 6 — Evaluate deeper UI dependency reduction
+- [x] Phase 5 — Skipped by decision; no bitmap changes made
+- [x] Phase 6 — Evaluate deeper UI dependency reduction
 - [ ] Phase 7 — Final verification and distribution optimization
 
 ---
@@ -228,7 +228,7 @@ android {
 
 Status: Completed; device lifecycle checks deferred to the release checklist<br>
 Completed: 2026-07-14<br>
-Commit: Pending
+Commit: `1dcadae`
 
 ### Objective
 
@@ -296,7 +296,7 @@ implementation while retaining reliable Garmin OAuth renewal.
 
 Status: Completed<br>
 Completed: 2026-07-14<br>
-Commit: Pending
+Commit: `51985ea`
 
 ### Objective
 
@@ -359,7 +359,7 @@ TLS provider on Android 6–9.
 
 Status: Completed<br>
 Completed: 2026-07-14<br>
-Commit: Pending
+Commit: `87b468a`
 
 ### Objective
 
@@ -428,7 +428,8 @@ generic FIT SDK runtime.
 
 ## Phase 5 — Optimize remaining bitmap assets
 
-Status: Pending
+Status: Skipped by user decision<br>
+Decided: 2026-07-14
 
 ### Objective
 
@@ -451,13 +452,18 @@ Reduce bitmap size without visibly degrading icons or duplicating density resour
 
 ### Completion notes
 
-To be filled in with before/after packaged sizes and screenshots checked.
+No bitmap was changed. The remaining image opportunity is optional and requires visual comparison
+across densities; it was skipped so work could move directly to the much larger measured UI
+dependency opportunity. Revisit this phase only when representative screenshot/device checks are
+available or the affected artwork is being refreshed.
 
 ---
 
 ## Phase 6 — Evaluate deeper UI dependency reduction
 
-Status: Deferred until Phases 1–5 are complete
+Status: Completed; device UI checks deferred to the release checklist<br>
+Completed: 2026-07-14<br>
+Commit: Pending
 
 ### Objective
 
@@ -473,12 +479,12 @@ saving to justify the maintenance and regression cost.
 
 ### Tasks
 
-- [ ] Build a controlled prototype before editing production code.
-- [ ] Add explicit direct dependencies for AndroidX widgets the app uses rather than relying on
+- [x] Build a controlled prototype before editing production code.
+- [x] Add explicit direct dependencies for AndroidX widgets the app uses rather than relying on
       Material transitive dependencies.
-- [ ] Measure the replacement's net APK size, including app-owned UI code and resources.
-- [ ] Document accessibility, theme, navigation, configuration, and old-API regressions.
-- [ ] Proceed only when the measured benefit exceeds an agreed threshold and the UI can be tested
+- [x] Measure the replacement's net APK size, including app-owned UI code and resources.
+- [x] Document accessibility, theme, navigation, configuration, and old-API regressions.
+- [x] Proceed only when the measured benefit exceeds an agreed threshold and the UI can be tested
       comprehensively.
 
 ### Default decisions
@@ -490,7 +496,36 @@ saving to justify the maintenance and regression cost.
 
 ### Completion notes
 
-To be filled in only if a prototype justifies implementation.
+- A clean controlled prototype replaced Material while retaining the app's navigation, toolbar,
+  cards, and add action. It produced a 1,221,101-byte APK versus the 1,674,556-byte clean Phase 6
+  baseline, a net prototype saving of 453,455 bytes (27.1%). This was large enough to justify the
+  production change.
+- `Theme.MaterialComponents` became the corresponding AppCompat day/night theme. Material cards
+  became AndroidX `CardView`; the app bar became a simple toolbar/content layout; and the floating
+  action button became a 56dp AppCompat image button with a circular background, elevation, ripple,
+  and its existing content description.
+- `NavigationView` became an app-owned 304dp drawer containing five 48dp checked rows. It preserves
+  icons, localized labels, single selection, tap feedback, checked accessibility state, drawer
+  gestures, and toolbar toggle behavior. Selection is reconstructed after configuration/process
+  restoration, including the weight, goal, and user editor screens; a unit test covers those editor
+  mappings.
+- CardView 1.0.0, ConstraintLayout 2.2.1, and RecyclerView 1.2.1 are now explicit dependencies.
+  Material and its unused coordinator, transition, animation, ViewPager2, shape, and translated
+  resource infrastructure are absent from the release mapping and artifact.
+- The accepted production APK is 1,221,277 bytes: 453,279 bytes smaller than the controlled clean
+  Phase 6 baseline and 1,072,451 bytes (46.8%) smaller than the original baseline. The four-byte
+  difference between the current clean baseline and Phase 4's recorded artifact is release version
+  control metadata.
+- SHA-256: `b7ad9c2dc5801ef80834f9d8e20612380360bc618d4cfa81c7f670e9a0fa59d0`.
+- Compressed `classes.dex`: 612,546 bytes; uncompressed `resources.arsc`: 328,688 bytes.
+- All 218 unit tests, lint, and the minified release build pass. Device checks remain for day/night
+  themes, right-to-left layout, drawer state and insets, touch/accessibility behavior, cards, toolbar,
+  and the custom add button on API 23 and a current API.
+- The replacement intentionally does not reproduce unused Material behavior: adaptive navigation
+  menu presentation, app-bar scrolling behaviors, checkable/stroked Material cards, or FAB motion
+  transformations. The app did not configure those behaviors. MPAndroidChart, AppCompat, and view
+  binding remain because replacing them would require a much broader UI rewrite for a substantially
+  smaller known or expected return.
 
 ---
 
@@ -535,7 +570,9 @@ To be filled in at project completion.
 | 2026-07-14 | Phase 1 — supported locales | `a2ed699` | 2,005,012 | -288,716 | `42cf11…7243` | Tests, lint, release build, and packaged configurations verified |
 | 2026-07-14 | Phase 2 — platform refresh job | `1dcadae` | 1,800,143 | -204,869 | `0462b4…9e18e` | Clean verification; device lifecycle checks deferred |
 | 2026-07-14 | Phase 3 — retained provider support | `51985ea` | 1,719,980 | -80,163 | `356e36…5daea` | Kept API 23; removed full Base and Tasks layers |
-| 2026-07-14 | Phase 4 — focused FIT encoder | Pending | 1,674,552 | -45,428 | `6adc29…e593a` | SDK retained for tests only; Garmin Connect upload pending |
+| 2026-07-14 | Phase 4 — focused FIT encoder | `87b468a` | 1,674,552 | -45,428 | `6adc29…e593a` | SDK retained for tests only; Garmin Connect upload pending |
+| 2026-07-14 | Phase 5 — bitmaps | Skipped | 1,674,552 | 0 | `6adc29…e593a` | Skipped by user decision; no asset changes |
+| 2026-07-14 | Phase 6 — AppCompat UI | Pending | 1,221,277 | -453,275 | `b7ad9c…a59d0` | Material removed; automated verification passed; device UI checks pending |
 
 Add one row for every accepted phase result. Temporary no-op experiments belong in the measured
 opportunities table rather than this results log.
@@ -551,3 +588,5 @@ opportunities table rather than this results log.
 | 2026-07-14 | Keep Signpost by default | Maximum saving is only 4.35 KB | Revisit for maintenance/security reasons, not size |
 | 2026-07-14 | Keep MPAndroidChart by default | Maximum measured saving including graph code is 44.7 KB | Revisit only with a planned graph redesign |
 | 2026-07-14 | Keep release line metadata | It costs only 564 bytes | Revisit only if measurement changes materially |
+| 2026-07-14 | Skip bitmap optimization | Visual validation was unavailable and the remaining saving is small beside the UI dependency opportunity | Revisit during an artwork refresh or with representative screenshot tests |
+| 2026-07-14 | Replace Material with a focused AppCompat UI | The behavior-preserving prototype saved 453,455 bytes and the app uses only a simple subset of Material behavior | Revisit if future UI requirements need Material components |

@@ -14,13 +14,46 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <com.google.android.material.navigation.NavigationView
+    <LinearLayout
         android:id="@+id/nav_view"
-        android:layout_width="wrap_content"
+        android:layout_width="@dimen/navigation_drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
-        android:fitsSystemWindows="true"
-        app:headerLayout="@layout/nav_header_main"
-        app:menu="@menu/activity_main_drawer" />
+        android:background="?android:attr/windowBackground"
+        android:orientation="vertical">
+
+        <include layout="@layout/nav_header_main" />
+
+        <CheckedTextView
+            android:id="@+id/nav_weight"
+            style="@style/NavigationDrawerItem"
+            android:drawableStart="@drawable/ic_weight_mini"
+            android:text="@string/lateral_menu_option_weight" />
+
+        <CheckedTextView
+            android:id="@+id/nav_goals"
+            style="@style/NavigationDrawerItem"
+            android:drawableStart="@drawable/ic_action_goals"
+            android:text="@string/lateral_menu_option_goals" />
+
+        <CheckedTextView
+            android:id="@+id/nav_graphs"
+            style="@style/NavigationDrawerItem"
+            android:drawableStart="@drawable/ic_menu_graphs"
+            android:text="@string/lateral_menu_option_graphs" />
+
+        <CheckedTextView
+            android:id="@+id/nav_history"
+            style="@style/NavigationDrawerItem"
+            android:drawableStart="@drawable/ic_menu_history"
+            android:text="@string/lateral_menu_option_history" />
+
+        <CheckedTextView
+            android:id="@+id/nav_users"
+            style="@style/NavigationDrawerItem"
+            android:drawableStart="@drawable/ic_action_person"
+            android:text="@string/lateral_menu_option_users" />
+
+    </LinearLayout>
 
 </androidx.drawerlayout.widget.DrawerLayout>
