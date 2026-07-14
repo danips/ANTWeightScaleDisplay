@@ -244,6 +244,26 @@
             android:maxLines="1"/>
     </TableRow>
     <TableRow>
+        <Button
+            android:id="@+id/garmin_login_test"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:layout_gravity="end"
+            android:text="@string/garmin_login_test" />
+    </TableRow>
+    <TableRow>
+        <TextView
+            android:id="@+id/garmin_login_test_status"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_span="2"
+            android:paddingTop="4dp"
+            android:paddingBottom="8dp"
+            android:textIsSelectable="true"
+            android:visibility="gone" />
+    </TableRow>
+    <TableRow>
         <EditText
             android:layout_span="2"
             android:id="@+id/et_email_to"

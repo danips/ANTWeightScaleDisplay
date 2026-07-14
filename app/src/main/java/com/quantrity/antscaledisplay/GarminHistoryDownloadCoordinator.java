@@ -139,9 +139,10 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
                 return;
             }
             GarminForegroundSession garmin = new GarminForegroundSession(user, users, activity);
-            if (!garmin.signIn()) {
+            GarminAuthenticator.SignInReport signIn = garmin.signInDetailed();
+            if (!signIn.isSuccess()) {
                 if (!Thread.currentThread().isInterrupted()) {
-                    fail(context.getString(R.string.weight_fragment_msg_wrong_credentials));
+                    fail(GarminAuthenticationMessages.failure(context, signIn));
                 }
                 return;
             }

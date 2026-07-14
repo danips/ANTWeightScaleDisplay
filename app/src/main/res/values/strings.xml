@@ -13,6 +13,20 @@
     <string name="auth_notification_permission_message">To automatically detect the Garmin code from your email, please enable Notification Access for this app.</string>
     <string name="auth_notification_permission_skip">Skip</string>
     <string name="auth_notification_permission_title">Enable Auto-Verification?</string>
+    <!-- Garmin diagnostics intentionally use the English fallback until translations are added. -->
+    <string name="garmin_login_test" tools:ignore="MissingTranslation">Test Garmin login</string>
+    <string name="garmin_login_testing" tools:ignore="MissingTranslation">Contacting Garmin…</string>
+    <string name="garmin_login_success_direct" tools:ignore="MissingTranslation">Garmin login succeeded without a verification code.</string>
+    <string name="garmin_login_success_mfa" tools:ignore="MissingTranslation">Garmin login and email/SMS verification succeeded.</string>
+    <string name="garmin_login_invalid_credentials" tools:ignore="MissingTranslation">Garmin rejected the username, password, or verification code.</string>
+    <string name="garmin_login_rate_limited" tools:ignore="MissingTranslation">Garmin is temporarily rate-limiting login attempts. Wait before trying again.</string>
+    <string name="garmin_login_network_error" tools:ignore="MissingTranslation">The app could not reach Garmin.</string>
+    <string name="garmin_login_server_error" tools:ignore="MissingTranslation">Garmin returned a temporary server error.</string>
+    <string name="garmin_login_protocol_error" tools:ignore="MissingTranslation">Garmin returned an authentication response that the app could not complete.</string>
+    <string name="garmin_login_storage_error" tools:ignore="MissingTranslation">Login succeeded, but the app could not save the Garmin connection.</string>
+    <string name="garmin_login_cancelled" tools:ignore="MissingTranslation">Garmin authentication was cancelled.</string>
+    <string name="garmin_login_not_available" tools:ignore="MissingTranslation">not available</string>
+    <string name="garmin_login_error_details" tools:ignore="MissingTranslation">%1$s\n\nStage: %2$s\nHTTP status: %3$s\nDetails: %4$s</string>
 	<string name="bmi_value_0">Underweight</string>
 	<string name="bmi_value_1">Normal</string>
 	<string name="bmi_value_2">Overweight</string>

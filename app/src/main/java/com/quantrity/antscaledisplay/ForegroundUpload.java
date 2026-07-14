@@ -112,7 +112,10 @@ class ForegroundUpload {
                 R.string.edit_user_fragment_garmin_connect_category), result.garminError);
         appendError(errors, activity.getString(R.string.edit_user_fragment_email_category),
                 result.emailError);
-        if (errors.length() > 0) activity.showMessage(errors.toString());
+        if (errors.length() > 0) {
+            String popupMessage = errors.toString();
+            activity.showMessage(popupMessage);
+        }
 
         if (result.emailMessage != null) {
             MeasurementTextFormatter.EmailMessage message = result.emailMessage;

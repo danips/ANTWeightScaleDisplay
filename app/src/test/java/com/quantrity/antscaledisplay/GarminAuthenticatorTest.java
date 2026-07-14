@@ -2,10 +2,12 @@ package com.quantrity.antscaledisplay;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -21,8 +23,7 @@ public class GarminAuthenticatorTest {
     @Test
     public void successfulLoginExchangesAndStoresTokens() {
         FakeTransport transport = new FakeTransport(
-                response(200, csrfPage()),
-                response(200, "ticket=service-ticket"),
+                response(200, mobileSuccess("service-ticket")),
                 response(200, oauth1Response()),
                 response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
         FakeTokenStore tokens = new FakeTokenStore();
@@ -35,20 +36,17 @@ public class GarminAuthenticatorTest {
         assertEquals("oauth-secret", tokens.oauth1Secret);
         assertEquals("access", tokens.accessToken);
         assertEquals(NOW + 3600, tokens.accessExpiry);
-        assertEquals(4, transport.requests.size());
-        assertTrue(body(transport.requests.get(1)).contains("username=user%40example.com"));
-        assertFalse(body(transport.requests.get(1)).contains("%0A"));
+        assertEquals(3, transport.requests.size());
+        assertTrue(body(transport.requests.get(0)).contains("\"username\":\"user@example.com\""));
+        assertFalse(body(transport.requests.get(0)).contains("\\n"));
+        assertTrue(transport.requests.get(0).url.contains("/mobile/api/login"));
     }
 
     @Test
     public void mfaLoginUsesInjectedCodeProvider() {
-        Map<String, List<String>> redirect = new HashMap<>();
-        redirect.put("Location", Collections.singletonList(
-                "https://sso.garmin.com/sso/embed?ticket=mfa-ticket"));
         FakeTransport transport = new FakeTransport(
-                response(200, csrfPage()),
-                response(200, "<input name=\"_csrf\" value=\"mfa-csrf\">mfa-code"),
-                new GarminHttpClient.Response(302, "", "mfa", redirect),
+                response(200, mobileMfaRequired()),
+                response(200, mobileSuccess("mfa-ticket")),
                 response(200, oauth1Response()),
                 response(200, "{\"access_token\":\"access\",\"expires_in\":60}"));
         FakeTokenStore tokens = new FakeTokenStore();
@@ -57,27 +55,26 @@ public class GarminAuthenticatorTest {
                 transport, tokens, () -> "123456").signIn("user", "password");
 
         assertEquals(GarminAuthenticator.SignInResult.SUCCESS, result);
-        assertTrue(body(transport.requests.get(2)).contains("mfa-code=123456"));
-        assertTrue(transport.requests.get(2).url.contains("loginEnterMfaCode"));
+        assertTrue(body(transport.requests.get(1)).contains(
+                "\"mfaVerificationCode\":\"123456\""));
+        assertTrue(transport.requests.get(1).url.contains("/mobile/api/mfa/verifyCode"));
     }
 
     @Test
     public void cancellingMfaStopsAuthentication() {
         FakeTransport transport = new FakeTransport(
-                response(200, csrfPage()),
-                response(200, "MFA mfa-code"));
+                response(200, mobileMfaRequired()));
 
         GarminAuthenticator.SignInResult result = authenticator(
                 transport, new FakeTokenStore(), () -> "").signIn("user", "password");
 
         assertEquals(GarminAuthenticator.SignInResult.CANCELLED, result);
-        assertEquals(2, transport.requests.size());
+        assertEquals(1, transport.requests.size());
     }
 
     @Test
     public void invalidCredentialsAreRejected() {
-        FakeTransport transport = new FakeTransport(
-                response(200, csrfPage()), response(401, "invalid"));
+        FakeTransport transport = new FakeTransport(response(200, mobileInvalid()));
 
         assertEquals(GarminAuthenticator.SignInResult.INVALID,
                 authenticator(transport, new FakeTokenStore(), () -> null)
@@ -91,6 +88,254 @@ public class GarminAuthenticatorTest {
         assertEquals(GarminAuthenticator.SignInResult.RETRY,
                 authenticator(transport, new FakeTokenStore(), () -> null)
                         .signIn("user", "password"));
+    }
+
+    @Test
+    public void directLoginReportIdentifiesCompletedStageWithoutMfa() {
+        FakeTransport transport = new FakeTransport(
+                response(200, mobileSuccess("service-ticket")),
+                response(200, oauth1Response()),
+                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertTrue(report.isSuccess());
+        assertEquals(GarminAuthenticator.Stage.OAUTH2_EXCHANGE, report.stage);
+        assertEquals(200, report.httpStatus);
+        assertFalse(report.usedMfa);
+    }
+
+    @Test
+    public void mfaLoginReportRecordsThatVerificationWasUsed() {
+        FakeTransport transport = new FakeTransport(
+                response(200, mobileMfaRequired()),
+                response(200, mobileSuccess("mfa-ticket")),
+                response(200, oauth1Response()),
+                response(200, "{\"access_token\":\"access\",\"expires_in\":60}"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> "123456")
+                .signInDetailed("user", "password", true);
+
+        assertTrue(report.isSuccess());
+        assertTrue(report.usedMfa);
+        assertTrue(report.detail.contains("verification succeeded"));
+    }
+
+    @Test
+    public void invalidCredentialReportIncludesStageAndHttpStatus() {
+        FakeTransport transport = new FakeTransport(response(200, mobileInvalid()));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "bad-password", true);
+
+        assertEquals(GarminAuthenticator.SignInResult.INVALID, report.result);
+        assertEquals(GarminAuthenticator.FailureKind.INVALID_CREDENTIALS, report.failure);
+        assertEquals(GarminAuthenticator.Stage.CREDENTIALS, report.stage);
+        assertEquals(200, report.httpStatus);
+    }
+
+    @Test
+    public void ordinaryCloudflareAndCaptchaReferencesAreNotABotChallenge() {
+        String loginPage = "<title>Garmin Sign In</title>"
+                + "<script src=\"/challenge-platform/scripts/jsd/main.js\"></script>"
+                + "<input name=\"username\"><input name=\"password\">"
+                + "<div class=\"captcha-container\">Invalid credentials</div>";
+        FakeTransport transport = new FakeTransport(response(401, loginPage));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "bad-password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.INVALID_CREDENTIALS, report.failure);
+        assertEquals("Garmin rejected the supplied authentication data", report.detail);
+    }
+
+    @Test
+    public void cloudflareAssetsWithoutLoginFormAreABotChallenge() {
+        FakeTransport transport = new FakeTransport(
+                response(403, "<script src=\"/challenge-platform/h/g/orchestrate\"></script>"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.PROTOCOL, report.failure);
+        assertTrue(report.detail.contains("bot-protection"));
+    }
+
+    @Test
+    public void diagnosticDetailsRedactEmailAddresses() {
+        FakeTransport transport = new FakeTransport(
+                response(500, "{\"message\":\"Account user@example.com was rejected\"}"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertFalse(report.detail.contains("user@example.com"));
+        assertTrue(report.detail.contains("<email-redacted>"));
+    }
+
+    @Test
+    public void repeatedLoginPageReportsGarminValidationMessage() {
+        FakeTransport transport = new FakeTransport(
+                response(200, "<title>Garmin Sign In</title>"
+                        + "<div class=\"login-error-message\">"
+                        + "Additional verification is unavailable for user@example.com"
+                        + "</div><input name=\"username\"><input name=\"password\">"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.PROTOCOL, report.failure);
+        assertEquals("Additional verification is unavailable for <email-redacted>",
+                report.detail);
+    }
+
+    @Test
+    public void genericLegacyGarminPageDoesNotTriggerVerificationPopup() {
+        int[] promptCount = {0};
+        FakeTransport transport = new FakeTransport(
+                response(200, "<title>GARMIN Authentication Application</title>"
+                        + "<input name=\"username\"><input name=\"password\">"
+                        + "<input name=\"_csrf\" value=\"mfa-csrf\">"
+                        + "<div class=\"error-message\">An unexpected error has occurred.</div>"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> {
+                    promptCount[0]++;
+                    return "123456";
+                })
+                .signInDetailed("user", "password", true);
+
+        assertFalse(report.isSuccess());
+        assertFalse(report.usedMfa);
+        assertEquals(0, promptCount[0]);
+        assertEquals("An unexpected error has occurred.", report.detail);
+    }
+
+    @Test
+    public void rateLimitIsNotReportedAsBadPassword() {
+        FakeTransport transport = new FakeTransport(response(429, "too many requests"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.SignInResult.RETRY, report.result);
+        assertEquals(GarminAuthenticator.FailureKind.RATE_LIMITED, report.failure);
+        assertEquals(429, report.httpStatus);
+        assertTrue(report.detail.contains("Wait several minutes"));
+        assertFalse(report.detail.contains("request-id"));
+    }
+
+    @Test
+    public void rateLimitReportUsesRetryAfterHeaderWhenAvailable() {
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("Retry-After", Collections.singletonList("120"));
+        FakeTransport transport = new FakeTransport(new GarminHttpClient.Response(
+                429, "{\"status-code\":\"429\"}", "https://response", headers));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.RATE_LIMITED, report.failure);
+        assertEquals("Garmin is temporarily rate-limiting login attempts. "
+                + "Retry after 120 seconds.", report.detail);
+    }
+
+    @Test
+    public void botChallengeIsReportedAsProtocolFailure() {
+        FakeTransport transport = new FakeTransport(
+                response(403, "<title>Just a moment...</title> Cloudflare cf-chl-test"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.PROTOCOL, report.failure);
+        assertTrue(report.detail.contains("bot-protection"));
+    }
+
+    @Test
+    public void diagnosticDetailsRedactSensitiveValues() {
+        FakeTransport transport = new FakeTransport(
+                response(500, "{\"message\":\"token=secret-value password=hunter2\"}"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertFalse(report.detail.contains("secret-value"));
+        assertFalse(report.detail.contains("hunter2"));
+        assertTrue(report.detail.contains("<redacted>"));
+    }
+
+    @Test
+    public void networkFailureReportsExactStageAndRedactsUrlQuery() {
+        GarminHttpClient.Transport transport = new GarminHttpClient.Transport() {
+            int requestCount;
+
+            @Override
+            public GarminHttpClient.Response execute(GarminHttpClient.Request request)
+                    throws Exception {
+                requestCount++;
+                if (requestCount == 1) return response(200, mobileSuccess("service-ticket"));
+                throw new IOException("Failed https://connectapi.garmin.com/oauth?"
+                        + "ticket=secret-ticket&oauth_signature=secret-signature");
+            }
+        };
+
+        GarminAuthenticator.SignInReport report = new GarminAuthenticator(
+                new GarminHttpClient(transport), new FakeTokenStore(), () -> null, () -> NOW)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.NETWORK, report.failure);
+        assertEquals(GarminAuthenticator.Stage.OAUTH1_EXCHANGE, report.stage);
+        assertFalse(report.detail.contains("secret-ticket"));
+        assertFalse(report.detail.contains("secret-signature"));
+        assertTrue(report.detail.contains("query-redacted"));
+    }
+
+    @Test
+    public void forcedCredentialTestDoesNotAcceptCachedAccessToken() {
+        FakeTokenStore tokens = new FakeTokenStore();
+        tokens.accessToken = "cached";
+        tokens.accessExpiry = NOW + 3600;
+        FakeTransport transport = new FakeTransport(response(401, "rejected"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, tokens, () -> null).signInDetailed("user", "password", true);
+
+        assertFalse(report.isSuccess());
+        assertEquals(1, transport.requests.size());
+        assertFalse(tokens.refreshScheduled);
+    }
+
+    @Test
+    public void credentialTesterCapturesVerifiedTokensForLaterProfileSave() {
+        FakeTransport transport = new FakeTransport(
+                response(200, mobileSuccess("service-ticket")),
+                response(200, oauth1Response()),
+                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+        GarminCredentialTester tester = new GarminCredentialTester(
+                new GarminHttpClient(transport), () -> null, () -> NOW);
+
+        GarminCredentialTester.Attempt attempt = tester.test("user", "password");
+        User user = new User();
+        assertNotNull(attempt.tokens);
+        attempt.tokens.applyTo(user);
+
+        assertEquals("oauth-one", user.garminOauth1Token);
+        assertEquals("oauth-secret", user.garminOauth1TokenSecret);
+        assertEquals("access", user.garminOauth2Token);
+        assertEquals(NOW + 3600, user.garminOauth2ExpiryTimestamp);
     }
 
     @Test
@@ -142,8 +387,18 @@ public class GarminAuthenticatorTest {
         return new GarminHttpClient.Response(code, body, "https://response", null);
     }
 
-    private static String csrfPage() {
-        return "<input name=\"_csrf\" value=\"csrf-token\">";
+    private static String mobileSuccess(String ticket) {
+        return "{\"responseStatus\":{\"type\":\"SUCCESSFUL\"},"
+                + "\"serviceTicketId\":\"" + ticket + "\"}";
+    }
+
+    private static String mobileMfaRequired() {
+        return "{\"responseStatus\":{\"type\":\"MFA_REQUIRED\"},"
+                + "\"customerMfaInfo\":{\"mfaLastMethodUsed\":\"email\"}}";
+    }
+
+    private static String mobileInvalid() {
+        return "{\"responseStatus\":{\"type\":\"INVALID_USERNAME_PASSWORD\"}}";
     }
 
     private static String oauth1Response() {

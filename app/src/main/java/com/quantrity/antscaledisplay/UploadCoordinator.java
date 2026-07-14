@@ -35,11 +35,12 @@ final class UploadCoordinator {
                         new File(activity.getFilesDir(), "weight.fit"), weight);
                 GarminForegroundSession garmin = new GarminForegroundSession(user,
                         AppRepository.get(activity).usersSnapshot(), activity);
-                if (garmin.signIn()) {
+                GarminAuthenticator.SignInReport signIn = garmin.signInDetailed();
+                if (signIn.isSuccess()) {
                     garminError = garmin.upload(fitFile);
                     garminSucceeded = garminError == null;
                 } else {
-                    garminError = activity.getString(R.string.weight_fragment_msg_wrong_credentials);
+                    garminError = GarminAuthenticationMessages.failure(activity, signIn);
                 }
             } catch (RuntimeException exception) {
                 Log.e(TAG, "Unable to create or upload the FIT file", exception);
@@ -47,6 +48,9 @@ final class UploadCoordinator {
                         R.string.weight_fragment_msg_uploading_encoding_failure);
             } finally {
                 progress.operationCompleted();
+            }
+            if (garminError != null && !garminError.isEmpty()) {
+                Log.e(TAG, "Garmin Connect: " + garminError);
             }
         }
 

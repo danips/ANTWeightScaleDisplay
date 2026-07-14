@@ -6,6 +6,8 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.text.format.DateUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,11 +17,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -38,7 +42,11 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class EditUserFragment extends Fragment implements MenuProvider {
     private final static String TAG = "EditUserFragment";
@@ -64,10 +72,17 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private CheckBox cb_lifetime_athlete;
     private EditText et_gc_user;
     private EditText et_gc_pass;
+    private Button garmin_login_test;
+    private TextView garmin_login_test_status;
     private EditText et_email_to;
     private CheckBox cb_auto_upload;
     private CheckBox cb_show_fat_mass;
     private FragmentEditUserBinding binding;
+    private ExecutorService garmin_test_executor;
+    private Future<?> garmin_test_task;
+    private GarminCredentialTester.VerifiedTokens tested_garmin_tokens;
+    private String tested_garmin_user;
+    private String tested_garmin_password;
 
     static EditUserFragment newInstance(String userUuid) {
         EditUserFragment fragment = new EditUserFragment();
@@ -209,8 +224,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         tmp.activity_level = sp_activity.getSelectedItemPosition();
         tmp.isLifetimeAthlete = cb_lifetime_athlete.isChecked();
 
-        tmp.gc_user = (et_gc_user.getText().length() == 0) ? null : et_gc_user.getText().toString().trim().replaceAll("[\n\r]", "");
-        tmp.gc_pass = (et_gc_pass.getText().length() == 0) ? null : et_gc_pass.getText().toString().trim().replaceAll("[\n\r]", "");
+        tmp.gc_user = enteredGarminUsername();
+        tmp.gc_pass = enteredGarminPassword();
         tmp.email_to = (et_email_to.getText().length() == 0) ? null : et_email_to.getText().toString().trim().replaceAll("[\n\r]", "");
 
         tmp.autoupload = cb_auto_upload.isChecked();
@@ -218,8 +233,12 @@ public class EditUserFragment extends Fragment implements MenuProvider {
 
         if (the_user == null) {
             tmp.uuid = UUID.randomUUID().toString();
+            applyTestedGarminConnection(tmp, true);
             return tmp;
         }
+
+        boolean garminCredentialsChanged = !Objects.equals(the_user.gc_user, tmp.gc_user)
+                || !Objects.equals(the_user.gc_pass, tmp.gc_pass);
 
         the_user.name = tmp.name;
         the_user.isMale = tmp.isMale;
@@ -234,6 +253,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         the_user.isLifetimeAthlete = tmp.isLifetimeAthlete;
         the_user.gc_user = tmp.gc_user;
         the_user.gc_pass = tmp.gc_pass;
+        applyTestedGarminConnection(the_user, garminCredentialsChanged);
         the_user.email_to = tmp.email_to;
         the_user.autoupload = tmp.autoupload;
         the_user.show_fat_mass = tmp.show_fat_mass;
@@ -327,6 +347,27 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         cb_lifetime_athlete = binding.cbLifetimeAthlete;
         et_gc_user = binding.etGcUser;
         et_gc_pass = binding.etGcPass;
+        garmin_login_test = binding.garminLoginTest;
+        garmin_login_test_status = binding.garminLoginTestStatus;
+        garmin_login_test.setOnClickListener(view -> testGarminLogin());
+        TextWatcher garminCredentialsWatcher = new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence text, int start, int count, int after) {}
+
+            @Override public void onTextChanged(CharSequence text, int start, int before, int count) {}
+
+            @Override public void afterTextChanged(Editable editable) {
+                onGarminCredentialsChanged();
+            }
+        };
+        et_gc_user.addTextChangedListener(garminCredentialsWatcher);
+        et_gc_pass.addTextChangedListener(garminCredentialsWatcher);
+        if (garmin_test_executor == null || garmin_test_executor.isShutdown()) {
+            garmin_test_executor = Executors.newSingleThreadExecutor(runnable -> {
+                Thread thread = new Thread(runnable, "garmin-credential-test");
+                thread.setDaemon(true);
+                return thread;
+            });
+        }
         sp_units = binding.spUnits;
         sp_units.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -367,7 +408,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                     c1.set(Calendar.MILLISECOND, 0);
                     birthdate_millis = c1.getTimeInMillis();
                     et_birthdate.setText(DateUtils.formatDateTime(getActivity(), birthdate_millis, DateUtils.FORMAT_SHOW_DATE | DateUtils.FORMAT_NUMERIC_DATE | DateUtils.FORMAT_SHOW_YEAR));
-                    Log.v(TAG, "BIRTH=" + birthdate_millis);
                 }, year, month, day);
                 dpd.setTitle(R.string.edit_user_fragment_birthdate);
                 dpd.setOnDismissListener(dialogInterface -> {
@@ -383,14 +423,130 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     }
 
     @Override public void onDestroyView() {
+        if (garmin_test_task != null) garmin_test_task.cancel(true);
+        if (garmin_test_executor != null) garmin_test_executor.shutdownNow();
+        garmin_test_task = null;
+        garmin_test_executor = null;
         cm_ll = ft_ll = null;
         et_name = et_birthdate = et_height_cm = et_height_ft = et_height_in = null;
         et_gc_user = et_gc_pass = et_email_to = null;
+        garmin_login_test = null;
+        garmin_login_test_status = null;
         rg_gender = null;
         sp_units = sp_activity = null;
         cb_lifetime_athlete = cb_auto_upload = cb_show_fat_mass = null;
         binding = null;
         super.onDestroyView();
+    }
+
+    private void testGarminLogin() {
+        if (garmin_test_task != null && !garmin_test_task.isDone()) return;
+        String username = enteredGarminUsername();
+        String password = enteredGarminPassword();
+        if (username == null) {
+            et_gc_user.setError(getString(R.string.edit_user_fragment_user));
+            et_gc_user.requestFocus();
+            return;
+        }
+        if (password == null) {
+            et_gc_pass.setError(getString(R.string.edit_user_fragment_password));
+            et_gc_pass.requestFocus();
+            return;
+        }
+
+        KeyboardUtils.hide(requireActivity());
+        garmin_login_test.setEnabled(false);
+        garmin_login_test.setText(R.string.garmin_login_testing);
+        garmin_login_test_status.setVisibility(View.VISIBLE);
+        garmin_login_test_status.setText(R.string.garmin_login_testing);
+        tested_garmin_tokens = null;
+        tested_garmin_user = null;
+        tested_garmin_password = null;
+
+        Activity activity = requireActivity();
+        garmin_test_task = garmin_test_executor.submit(() -> {
+            GarminCredentialTester tester = new GarminCredentialTester(
+                    new GarminHttpClient(true), new DialogMfaCodeProvider(activity));
+            GarminCredentialTester.Attempt attempt = tester.test(username, password);
+            activity.runOnUiThread(() -> showGarminTestResult(username, password, attempt));
+        });
+    }
+
+    private void showGarminTestResult(String username, String password,
+                                      GarminCredentialTester.Attempt attempt) {
+        if (binding == null || garmin_login_test == null || !isAdded()) return;
+        if (!Objects.equals(username, enteredGarminUsername())
+                || !Objects.equals(password, enteredGarminPassword())) {
+            garmin_login_test.setVisibility(View.VISIBLE);
+            garmin_login_test.setEnabled(true);
+            garmin_login_test.setText(R.string.garmin_login_test);
+            garmin_login_test_status.setVisibility(View.GONE);
+            return;
+        }
+        garmin_login_test.setEnabled(true);
+        garmin_login_test.setText(R.string.garmin_login_test);
+        String message;
+        if (attempt.report.isSuccess()) {
+            tested_garmin_tokens = attempt.tokens;
+            tested_garmin_user = username;
+            tested_garmin_password = password;
+            garmin_login_test.setVisibility(View.GONE);
+            message = GarminAuthenticationMessages.success(requireContext(), attempt.report);
+        } else {
+            garmin_login_test.setVisibility(View.VISIBLE);
+            message = GarminAuthenticationMessages.failure(requireContext(), attempt.report);
+        }
+        garmin_login_test_status.setVisibility(View.VISIBLE);
+        garmin_login_test_status.setText(message);
+        showMessage(message);
+    }
+
+    private void onGarminCredentialsChanged() {
+        tested_garmin_tokens = null;
+        tested_garmin_user = null;
+        tested_garmin_password = null;
+        if (garmin_login_test == null || garmin_login_test_status == null) return;
+
+        boolean testInProgress = garmin_test_task != null && !garmin_test_task.isDone();
+        garmin_login_test.setVisibility(View.VISIBLE);
+        garmin_login_test.setEnabled(!testInProgress);
+        garmin_login_test.setText(testInProgress
+                ? R.string.garmin_login_testing
+                : R.string.garmin_login_test);
+        if (!testInProgress) {
+            garmin_login_test_status.setText("");
+            garmin_login_test_status.setVisibility(View.GONE);
+        }
+    }
+
+    private String enteredGarminUsername() {
+        if (et_gc_user == null || et_gc_user.getText().length() == 0) return null;
+        String value = et_gc_user.getText().toString().trim().replaceAll("[\n\r]", "");
+        return value.isEmpty() ? null : value;
+    }
+
+    private String enteredGarminPassword() {
+        if (et_gc_pass == null || et_gc_pass.getText().length() == 0) return null;
+        String value = et_gc_pass.getText().toString().trim().replaceAll("[\n\r]", "");
+        return value.isEmpty() ? null : value;
+    }
+
+    private void applyTestedGarminConnection(User user, boolean credentialsChanged) {
+        if (credentialsChanged) clearGarminConnection(user);
+        if (tested_garmin_tokens != null
+                && Objects.equals(tested_garmin_user, user.gc_user)
+                && Objects.equals(tested_garmin_password, user.gc_pass)) {
+            tested_garmin_tokens.applyTo(user);
+        }
+    }
+
+    private static void clearGarminConnection(User user) {
+        user.garminOauth1Token = null;
+        user.garminOauth1TokenSecret = null;
+        user.garminOauth1MfaToken = null;
+        user.garminOauth1MfaExpirationTimestamp = -1;
+        user.garminOauth2Token = null;
+        user.garminOauth2ExpiryTimestamp = -1;
     }
 
     @Override

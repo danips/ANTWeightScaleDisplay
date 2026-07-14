@@ -1,5 +1,7 @@
 package com.quantrity.antscaledisplay;
 
+import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStream;
@@ -92,6 +94,12 @@ class GarminHttpClient {
     Response executeRaw(String method, String url, Map<String, String> headers, byte[] body,
                         boolean followRedirects) throws Exception {
         return transport.execute(new Request(method, url, headers, body, followRedirects));
+    }
+
+    Response executeJson(String method, String url, Map<String, String> query, JSONObject json,
+                         Map<String, String> headers, boolean followRedirects) throws Exception {
+        return executeRaw(method, appendQuery(url, query), headers,
+                json.toString().getBytes(StandardCharsets.UTF_8), followRedirects);
     }
 
     void clearCookies() {

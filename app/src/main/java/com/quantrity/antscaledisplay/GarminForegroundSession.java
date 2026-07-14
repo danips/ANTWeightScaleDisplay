@@ -22,9 +22,12 @@ final class GarminForegroundSession {
     }
 
     boolean signIn() {
-        if (user == null) return false;
-        return authenticator.signIn(user.gc_user, user.gc_pass)
-                == GarminAuthenticator.SignInResult.SUCCESS;
+        return signInDetailed().isSuccess();
+    }
+
+    GarminAuthenticator.SignInReport signInDetailed() {
+        if (user == null) return authenticator.signInDetailed(null, null, false);
+        return authenticator.signInDetailed(user.gc_user, user.gc_pass, false);
     }
 
     String upload(File fitFile) {
