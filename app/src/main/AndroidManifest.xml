@@ -16,6 +16,9 @@
         <package android:name="com.dsi.ant.plugins.antplus"/>
         <package android:name="com.google.android.gms" />
         <package android:name="com.android.vending" />
+        <intent>
+            <action android:name="com.dsi.ant.intent.request.SERVICE_INFO" />
+        </intent>
     </queries>
 
     <application

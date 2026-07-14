@@ -1,7 +1,8 @@
 package com.quantrity.antscaledisplay;
 
-import com.dsi.ant.BuildConfig;
-
 public final class Debug {
-    public static final boolean ON = BuildConfig.DEBUG;
+    // The removed ANT AAR was a release build, so its BuildConfig.DEBUG was always false.
+    public static final boolean ON = false;
+
+    private Debug() { }
 }

@@ -30,7 +30,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.dsi.ant.AntSupportChecker;
 import com.google.android.material.navigation.NavigationView;
 import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 
@@ -106,22 +105,27 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (!isPackageInstalled("com.dsi.ant.service.socket")) goToMarketANTRadioService();
-        else if (!AntSupportChecker.hasAntFeature(this)) {
-            if (!AntSupportChecker.hasAntAddOn(this)) {
-                goToMarketANTUSBService();
-            }
-
-            SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
-            boolean never_no_ant_msg = settings.getBoolean("never_no_ant_msg", false);
-            if (!never_no_ant_msg) {
-                boolean show_message = true;
-                UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-                if (manager != null) {
-                    HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-                    if (!((deviceList == null) || (deviceList.isEmpty()))) show_message = false;
+        if (!isPackageInstalled("com.dsi.ant.service.socket")) {
+            goToMarketANTRadioService();
+        } else {
+            AntSupport.Capability antSupport = AntSupport.detect(this);
+            if (antSupport != AntSupport.Capability.BUILT_IN) {
+                if (antSupport == AntSupport.Capability.NONE) {
+                    goToMarketANTUSBService();
                 }
-                if (show_message) showNoAntMessage();
+
+                SharedPreferences settings = getSharedPreferences(
+                        getPackageName() + "_preferences", Context.MODE_PRIVATE);
+                boolean neverNoAntMessage = settings.getBoolean("never_no_ant_msg", false);
+                if (!neverNoAntMessage) {
+                    boolean showMessage = true;
+                    UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+                    if (manager != null) {
+                        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
+                        if (deviceList != null && !deviceList.isEmpty()) showMessage = false;
+                    }
+                    if (showMessage) showNoAntMessage();
+                }
             }
         }
 
