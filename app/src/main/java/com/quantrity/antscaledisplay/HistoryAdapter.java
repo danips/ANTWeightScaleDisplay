@@ -234,7 +234,9 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         int age_then = User.calcAge(user.birthdate, item.date);
 
         // --- EXPANSION LOGIC ---
-        final boolean isExpanded = expandedStates.get(position, false);
+        final boolean hasAdditionalMeasurements = item.hasAdditionalMeasurements();
+        final boolean isExpanded = hasAdditionalMeasurements
+                && expandedStates.get(position, false);
 
         // Show/Hide details based on state
         if (holder.detailsContainer != null) {
@@ -243,11 +245,13 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
 
         // Rotate arrow icon based on state
         if (holder.expandIcon != null) {
+            holder.expandIcon.setVisibility(
+                    hasAdditionalMeasurements ? View.VISIBLE : View.GONE);
             holder.expandIcon.setRotation(isExpanded ? 180f : 0f);
         }
 
         // Click Listener for the Card/Row
-        holder.itemView.setOnClickListener(v -> {
+        holder.itemView.setOnClickListener(hasAdditionalMeasurements ? v -> {
             // Use getBindingAdapterPosition() instead of the deprecated getAdapterPosition()
             int pos = holder.getBindingAdapterPosition();
 
@@ -262,7 +266,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                 // Use notifyItemChanged to animate the specific row update
                 notifyItemChanged(pos);
             }
-        });
+        } : null);
         // -----------------------
 
         holder.dateTV.setText(dateFormatter.format(item.date));

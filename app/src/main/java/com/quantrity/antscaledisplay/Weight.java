@@ -39,6 +39,28 @@ public class Weight implements Cloneable {
 
     public Weight() {}
 
+    boolean hasAdditionalMeasurements() {
+        return trunkPercentFat != -1
+                || trunkMuscleMass != -1
+                || leftArmPercentFat != -1
+                || leftArmMuscleMass != -1
+                || rightArmPercentFat != -1
+                || rightArmMuscleMass != -1
+                || leftLegPercentFat != -1
+                || leftLegMuscleMass != -1
+                || rightLegPercentFat != -1
+                || rightLegMuscleMass != -1
+                || percentFat != -1
+                || percentHydration != -1
+                || boneMass != -1
+                || muscleMass != -1
+                || physiqueRating != -1
+                || visceralFatRating != -1
+                || metabolicAge != -1
+                || activeMet != -1
+                || basalMet != -1;
+    }
+
     public Weight(JSONObject obj) throws JSONException {
         deserializeFromObj(obj);
     }
