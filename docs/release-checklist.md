@@ -37,10 +37,30 @@ issues, and the minified unsigned release APK built successfully. The app-owned 
 official SDK decoding, value, boundary, endianness, and CRC tests. A real Garmin Connect upload
 remains pending.
 
+Phase 5 APK-reduction verification on 2026-07-14: 218 test executions passed, lint reported no
+issues, and the minified unsigned release APK built successfully. The original Garmin and bone-mass
+vectors replaced the app's last three raster resources. Their rendering checks below remain pending.
+
 Phase 6 APK-reduction verification on 2026-07-14: 218 test executions passed, lint reported no
 issues, and the minified unsigned release APK built successfully. Material UI infrastructure was
 replaced by focused AppCompat/AndroidX layouts and controls. The UI checks below remain pending
 because no device or emulator was modified during this phase.
+
+Phase 7 clean verification on 2026-07-14: a fresh clone at `b498361` passed all 218 unit tests,
+`lintDebug`, `lintVitalRelease`, `assembleRelease`, and `bundleRelease`. Bundletool confirmed
+language/density delivery and no ABI splits. No application was installed and no device, scale, or
+authenticated service state was changed, so the manual checks below remain pending.
+
+## Distribution artifacts
+
+- [x] Clean unsigned universal APK: 1,206,013 bytes; SHA-256
+      `2c45e039560e4ed63476f3f579d22e64854c0f9511541304e476f408838d314e`.
+- [x] Clean unsigned release AAB: 1,999,431 bytes; SHA-256
+      `331ccb93123faa8e66840cb51868877357ea14d71bdc9d57aabc01929350f5b6`.
+- [x] Confirm the APK and AAB contain no native libraries and require no ABI splits.
+- [x] Inspect bundletool language/density splits and representative download estimates.
+- [ ] Sign and verify the universal APK with the release key; record its final size and SHA-256.
+- [ ] Sign the AAB with the upload key and verify the Play Console-generated delivery artifacts.
 
 ## Android lifecycle and compatibility
 
@@ -102,6 +122,10 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 
 ## Display and export
 
+- [ ] Verify the restored bone-mass icon in weight editing, history rows, metric cards, and graph
+      menus at representative screen densities in day and night themes.
+- [ ] Verify the restored Garmin icon in user rows and in the Garmin history notification, including
+      both its small and large notification forms on API 23 and a current API.
 - [ ] On API 23 and a current API, verify toolbar/menu layout, weight cards, drawer width/insets, and
       the circular add button in both day and night themes.
 - [ ] With TalkBack or another accessibility service, confirm drawer rows expose their checked state,

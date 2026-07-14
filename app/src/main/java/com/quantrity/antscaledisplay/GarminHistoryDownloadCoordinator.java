@@ -7,7 +7,9 @@ import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.BitmapFactory;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -79,9 +81,20 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
                         context.getString(R.string.edit_user_fragment_garmin_connect_category)))
                 .setContentText(context.getString(R.string.history_fragment_download_in_progress))
                 .setSmallIcon(R.drawable.ic_gc)
-                .setLargeIcon(BitmapFactory.decodeResource(context.getResources(), R.drawable.ic_gc))
+                .setLargeIcon(drawableToBitmap(context, R.drawable.ic_gc))
                 .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setOnlyAlertOnce(true);
+    }
+
+    private static Bitmap drawableToBitmap(Context context, int resourceId) {
+        Drawable drawable = ContextCompat.getDrawable(context, resourceId);
+        if (drawable == null) return null;
+        int width = Math.max(1, drawable.getIntrinsicWidth());
+        int height = Math.max(1, drawable.getIntrinsicHeight());
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        drawable.setBounds(0, 0, width, height);
+        drawable.draw(new Canvas(bitmap));
+        return bitmap;
     }
 
     synchronized boolean start(User user, ArrayList<User> users, List<Weight> existing) {

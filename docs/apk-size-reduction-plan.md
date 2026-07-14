@@ -17,8 +17,8 @@ approved in the decision log.
 - Baseline SHA-256: `0f709cb2f8f7c30ce0bd9c3d32b4914e4e1556d0a99b6a27d7ded814db2d8c12`
 - Compressed `classes.dex` baseline: 1,002,986 bytes
 - Uncompressed `resources.arsc` baseline: 930,796 bytes
-- Current unsigned release APK: 1,221,277 bytes
-- Current APK reduction from baseline: 1,072,451 bytes (46.8%)
+- Current clean unsigned release APK: 1,206,013 bytes
+- Current APK reduction from baseline: 1,087,715 bytes (47.4%)
 
 Update the current phase, date, measurements, and relevant commit after completing every phase.
 
@@ -103,8 +103,8 @@ functionality represent a maximum saving before replacement code is added.
 
 Other observations:
 
-- All packaged bitmap files together occupy approximately 94 KB.
-- `ic_gc.png` is 63,601 bytes in source but approximately 13,987 bytes after Android resource
+- At the original baseline, all packaged bitmap files together occupied approximately 94 KB.
+- At the original baseline, `ic_gc.png` was 63,601 bytes in source but approximately 13,987 bytes after Android resource
   processing. A lossless WebP experiment was approximately 10 KB; a quality-90 WebP was
   approximately 2 KB.
 - Kotlin built-in metadata occupies approximately 12 KB compressed. Do not exclude it blindly;
@@ -119,7 +119,7 @@ Other observations:
 - [x] Phase 2 — Replace WorkManager token-refresh scheduling
 - [x] Phase 3 — Decide the Google Play Services/API-level strategy
 - [x] Phase 4 — Replace the production Garmin FIT SDK with a specialized encoder
-- [x] Phase 5 — Skipped by decision; no bitmap changes made
+- [x] Phase 5 — Restore app-owned vector drawables
 - [x] Phase 6 — Evaluate deeper UI dependency reduction
 - [ ] Phase 7 — Final verification and distribution optimization
 
@@ -428,8 +428,9 @@ generic FIT SDK runtime.
 
 ## Phase 5 — Optimize remaining bitmap assets
 
-Status: Skipped by user decision<br>
-Decided: 2026-07-14
+Status: Completed; device rendering checks deferred to the release checklist<br>
+Completed: 2026-07-14<br>
+Commit: Pending
 
 ### Objective
 
@@ -437,12 +438,13 @@ Reduce bitmap size without visibly degrading icons or duplicating density resour
 
 ### Tasks
 
-- [ ] Use the built release APK—not source file size—to rank packaged bitmaps.
-- [ ] Convert `ic_gc.png` to lossless WebP and compare APK size and rendering.
-- [ ] Evaluate a visually acceptable lossy WebP only if the additional saving is worthwhile.
-- [ ] Convert suitable simple artwork to vectors when the vector is genuinely smaller.
-- [ ] Check launcher and notification icons at all supported densities and themes.
-- [ ] Run screenshot/device checks and automated verification.
+- [x] Use the built release APK—not source file size—to rank packaged bitmaps.
+- [x] Restore the original `ic_gc`, `ic_bone_mass`, and `ic_bone_mass_mini` vector drawables.
+- [x] Remove their xxxhdpi PNG replacements.
+- [x] Confirm that no app-owned PNG, WebP, or JPEG resources remain.
+- [x] Preserve the Garmin notification large icon by rendering its vector to a bitmap at runtime.
+- [x] Run automated verification and measure the release APK.
+- [ ] Check the restored bone-mass and Garmin icons at supported densities and themes on a device.
 
 ### Acceptance criteria
 
@@ -452,10 +454,22 @@ Reduce bitmap size without visibly degrading icons or duplicating density resour
 
 ### Completion notes
 
-No bitmap was changed. The remaining image opportunity is optional and requires visual comparison
-across densities; it was skipped so work could move directly to the much larger measured UI
-dependency opportunity. Revisit this phase only when representative screenshot/device checks are
-available or the affected artwork is being refreshed.
+- Restored `ic_bone_mass.xml`, `ic_bone_mass_mini.xml`, and `ic_gc.xml` exactly from commit
+  `223d679` immediately before their replacement in `b384aca`. Deleted the corresponding xxxhdpi
+  PNG files.
+- `BitmapFactory.decodeResource` cannot reliably decode an XML vector. The Garmin history
+  notification now renders `ic_gc` through a `Drawable` and `Canvas`, preserving its large icon
+  while allowing the PNG to be removed.
+- No app-owned raster image remains under `app/src/main/res`; remaining packaged PNG and nine-patch
+  resources belong to dependencies and are outside the app artwork optimization scope.
+- The unsigned release APK is 1,206,013 bytes, 15,264 bytes (1.2%) smaller than Phase 6 and
+  1,087,715 bytes (47.4%) smaller than the original baseline.
+- SHA-256: `82266f8a848036ae5f9a35907af98128adda07cf10097dc5fa7672297fd052bb`.
+- Compressed `classes.dex`: 612,593 bytes; uncompressed `resources.arsc`: 328,688 bytes.
+- All 218 unit tests, lint, and the minified release build pass. Visual checks for the restored
+  vectors and Garmin notification remain in `docs/release-checklist.md`.
+- No further Phase 5 conversion is justified unless new raster artwork is added. Lossy WebP and
+  launcher-image experiments are obsolete because the application resource tree is now vector-only.
 
 ---
 
@@ -463,7 +477,7 @@ available or the affected artwork is being refreshed.
 
 Status: Completed; device UI checks deferred to the release checklist<br>
 Completed: 2026-07-14<br>
-Commit: Pending
+Commit: `a1ee434`
 
 ### Objective
 
@@ -531,7 +545,8 @@ saving to justify the maintenance and regression cost.
 
 ## Phase 7 — Final verification and distribution optimization
 
-Status: Pending
+Status: Automated and distribution verification completed; release signing and device/service checks pending<br>
+Updated: 2026-07-14
 
 ### Objective
 
@@ -540,15 +555,16 @@ artifact or release diagnostics.
 
 ### Tasks
 
-- [ ] Run the full unit-test, lint, and release-build sequence from a clean checkout.
+- [x] Run the full unit-test, lint, and release-build sequence from a clean checkout.
 - [ ] Complete all affected items in `docs/release-checklist.md`.
-- [ ] Record final unsigned and signed APK sizes and SHA-256 values.
-- [ ] Build an Android App Bundle and inspect Play-generated language and density splits.
-- [ ] Confirm that ABI splitting provides no benefit while the app has no native libraries.
-- [ ] Decide whether GitHub/F-Droid distribution needs a universal APK, localized APKs, or separate
+- [x] Record final clean unsigned APK and AAB sizes and SHA-256 values.
+- [ ] Record the release-key-signed APK size and SHA-256 value.
+- [x] Build an Android App Bundle and inspect bundletool-generated language and density splits.
+- [x] Confirm that ABI splitting provides no benefit while the app has no native libraries.
+- [x] Decide whether GitHub/F-Droid distribution needs a universal APK, localized APKs, or separate
       modern/legacy artifacts.
-- [ ] Compare final size against every target and document any shortfall.
-- [ ] Update release notes with support-level or distribution changes.
+- [x] Compare final size against every target and document any shortfall.
+- [x] Document the release-note impact of support and distribution decisions.
 
 ### Acceptance criteria
 
@@ -558,7 +574,48 @@ artifact or release diagnostics.
 
 ### Completion notes
 
-To be filled in at project completion.
+- A fresh clone of commit `b498361` passed all 218 unit tests, `lintDebug`, `lintVitalRelease`,
+  `assembleRelease`, and `bundleRelease`. No previous build output was available to make a task
+  incorrectly pass from stale state.
+- The clean unsigned universal APK is 1,206,013 bytes. SHA-256:
+  `2c45e039560e4ed63476f3f579d22e64854c0f9511541304e476f408838d314e`. Compressed
+  `classes.dex` is 612,593 bytes and uncompressed `resources.arsc` is 328,688 bytes. Its hash differs
+  from the pre-commit Phase 5 artifact because release version-control metadata now identifies
+  `b498361`; its size is unchanged.
+- The unsigned release AAB is 1,999,431 bytes. SHA-256:
+  `331ccb93123faa8e66840cb51868877357ea14d71bdc9d57aabc01929350f5b6`. Its raw archive size is not
+  an install/download comparison because it contains the 10.5 MB uncompressed R8 mapping and other
+  Play metadata.
+- The repository has no release signing configuration or signing credentials. A temporary
+  debug-signed universal APK measured signature overhead only: 1,248,184 bytes, SHA-256
+  `c9c18affe81de7ab357dc3eab053adbbbb0798a485cef266ccc736273a595ad9`. It verifies with APK
+  signature schemes v1, v2, and v3, but it is not a distributable release artifact. The actual
+  release-key-signed APK and signed upload AAB remain release-automation tasks.
+- Bundletool 1.18.3 found 21 translated-language splits and seven density splits. It estimated
+  compressed Play downloads from 824,598 to 867,630 bytes across supported configurations.
+  Representative estimates were 849,892 bytes for API 23 English/xhdpi, 828,699 bytes for API 37
+  English/xxhdpi, and 837,143 bytes for API 37 Portuguese/xxhdpi.
+- Neither the APK nor AAB contains a `lib/` entry or native library. ABI splits would therefore add
+  configuration and release complexity without saving a byte.
+- Google Play should receive one release/upload-key-signed AAB and use Play App Signing plus
+  language/density delivery. GitHub should publish one release-key-signed universal APK; F-Droid can
+  build and sign the same universal variant. Separate localized APKs, ABI APKs, and API-29+ variants
+  are not justified at the current 1.21 MB universal size.
+- The final universal APK beats the 2,010,000-byte first target by 803,987 bytes, the lower bound of
+  the 1.75 MB feature-preserving target by 543,987 bytes, and the original 2,293,728-byte baseline
+  by 1,087,715 bytes (47.4%). No size target has a shortfall.
+
+### Release-note summary
+
+- The minimum supported API remains 23, the target remains API 37, and no supported language or app
+  feature was removed for size reduction.
+- Play distribution uses an AAB for language and density optimization; direct/F-Droid distribution
+  continues to use one universal APK.
+- Users receive the same functionality in a universal APK that is 47.4% smaller than the original
+  baseline; representative Play downloads are approximately 0.83–0.85 MB.
+- Manual ANT, Garmin, lifecycle, locale, restored-icon, and accessibility checks plus real release
+  signing remain required before publication. Because those checks are still open, this plan must
+  remain until the release checklist is completed.
 
 ---
 
@@ -571,8 +628,9 @@ To be filled in at project completion.
 | 2026-07-14 | Phase 2 — platform refresh job | `1dcadae` | 1,800,143 | -204,869 | `0462b4…9e18e` | Clean verification; device lifecycle checks deferred |
 | 2026-07-14 | Phase 3 — retained provider support | `51985ea` | 1,719,980 | -80,163 | `356e36…5daea` | Kept API 23; removed full Base and Tasks layers |
 | 2026-07-14 | Phase 4 — focused FIT encoder | `87b468a` | 1,674,552 | -45,428 | `6adc29…e593a` | SDK retained for tests only; Garmin Connect upload pending |
-| 2026-07-14 | Phase 5 — bitmaps | Skipped | 1,674,552 | 0 | `6adc29…e593a` | Skipped by user decision; no asset changes |
-| 2026-07-14 | Phase 6 — AppCompat UI | Pending | 1,221,277 | -453,275 | `b7ad9c…a59d0` | Material removed; automated verification passed; device UI checks pending |
+| 2026-07-14 | Phase 6 — AppCompat UI | `a1ee434` | 1,221,277 | -453,275 | `b7ad9c…a59d0` | Material removed; automated verification passed; device UI checks pending |
+| 2026-07-14 | Phase 5 reevaluation — restored vectors | `b498361` | 1,206,013 | -15,264 | `82266f…052bb` | All app-owned raster drawables removed; device rendering checks pending |
+| 2026-07-14 | Phase 7 — clean verification | `b498361` | 1,206,013 | 0 | `2c45e0…d314e` | Clean tests/lint/APK/AAB passed; hash changed with commit metadata |
 
 Add one row for every accepted phase result. Temporary no-op experiments belong in the measured
 opportunities table rather than this results log.
@@ -590,3 +648,5 @@ opportunities table rather than this results log.
 | 2026-07-14 | Keep release line metadata | It costs only 564 bytes | Revisit only if measurement changes materially |
 | 2026-07-14 | Skip bitmap optimization | Visual validation was unavailable and the remaining saving is small beside the UI dependency opportunity | Revisit during an artwork refresh or with representative screenshot tests |
 | 2026-07-14 | Replace Material with a focused AppCompat UI | The behavior-preserving prototype saved 453,455 bytes and the app uses only a simple subset of Material behavior | Revisit if future UI requirements need Material components |
+| 2026-07-14 | Reopen Phase 5 and restore the original vectors | The three PNG replacements were the app's only raster resources; restoring the vectors saves 15,264 bytes without lossy conversion | Revisit only when new raster artwork is introduced or a device exposes a rendering problem |
+| 2026-07-14 | Use AAB for Play and one universal APK elsewhere | AAB language/density delivery estimates 0.82–0.87 MB downloads; there is no native code to split and the universal APK is only 1.21 MB | Revisit if native code, large density assets, or a materially higher minimum API is introduced |
