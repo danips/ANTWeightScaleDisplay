@@ -32,6 +32,11 @@ issues, and the minified unsigned release APK built successfully. `ProviderInsta
 API 23–28, while the full Google Play services Base and Tasks layers were removed. The connected
 API 36 device skips this legacy path, so the API 23–28 checks below remain pending.
 
+Phase 4 APK-reduction verification on 2026-07-14: 217 test executions passed, lint reported no
+issues, and the minified unsigned release APK built successfully. The app-owned FIT writer passes
+official SDK decoding, value, boundary, endianness, and CRC tests. A real Garmin Connect upload
+remains pending.
+
 ## Android lifecycle and compatibility
 
 - [ ] Smoke-test API 23, 29, 33, and 37 where devices or emulators are available.
@@ -75,7 +80,8 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] Confirm token status and expiration timestamps are accurate.
 - [ ] Log in with MFA and verify both code entry and cancellation.
 - [ ] Upload with active and expired access tokens.
-- [ ] Upload a FIT file produced with Garmin FIT SDK 21.205.0.
+- [ ] Upload representative app-generated FIT files to Garmin Connect: one weight-only file and one
+      containing every supported optional measurement.
 - [ ] Observe background renewal across a complete access-token cycle.
 - [ ] Confirm the token-refresh job survives process termination and device reboot.
 - [ ] Confirm an offline refresh retries with backoff after connectivity returns.
