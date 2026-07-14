@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="gc_token_cleared">Token Garmin OAuth cancellati!</string>
-    <string name="pref_clear_garmin_token">Cancella token Garmin</string>
-    <string name="pref_clear_garmin_token_summary">Cancella i token Garmin OAuth1 e OAuth2. Verranno rigenerati dopo un accesso riuscito.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">Visualizzatore bilancia ANT+</string>

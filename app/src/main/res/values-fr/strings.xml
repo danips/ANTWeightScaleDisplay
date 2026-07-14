@@ -65,7 +65,6 @@
     <string name="fat_percent_value_1">Sain</string>
     <string name="fat_percent_value_2">Gras</string>
     <string name="fat_percent_value_3">Obèse</string>
-    <string name="gc_token_cleared">Jetons Garmin OAuth effacés !</string>
     <string name="graphs_fragment_measure_tag">Mesure</string>
     <string name="graphs_fragment_measurement_left_arm_muscle_mass">Masse musculaire bras gauche</string>
     <string name="graphs_fragment_measurement_left_arm_percent_fat">Pourcentage graisse bras gauche</string>
@@ -119,8 +118,6 @@
     <string name="physique_rating_7">Mince</string>
     <string name="physique_rating_8">Mince et musclé</string>
     <string name="physique_rating_9">Très musclé</string>
-    <string name="pref_clear_garmin_token">Effacer les jetons Garmin</string>
-    <string name="pref_clear_garmin_token_summary">Efface les jetons Garmin OAuth1 et OAuth2. Ils seront régénérés lors d\'une connexion réussie.</string>
     <string name="users_fragment_action_add_user">Ajouter un utilisateur</string>
     <string name="users_fragment_user_contextmenu_delete">Supprimer</string>
     <string name="users_fragment_user_contextmenu_edit">Modifier</string>

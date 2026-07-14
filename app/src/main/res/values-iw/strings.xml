@@ -65,7 +65,6 @@
     <string name="fat_percent_value_1">בריא</string>
     <string name="fat_percent_value_2">עודף שומן</string>
     <string name="fat_percent_value_3">השמנת יתר</string>
-    <string name="gc_token_cleared">אסימוני Garmin OAuth נמחקו!</string>
     <string name="graphs_fragment_measure_tag">מדידה</string>
     <string name="graphs_fragment_measurement_left_arm_muscle_mass">מסת שריר יד שמאל</string>
     <string name="graphs_fragment_measurement_left_arm_percent_fat">אחוז שומן יד שמאל</string>
@@ -119,8 +118,6 @@
     <string name="physique_rating_7">רזה</string>
     <string name="physique_rating_8">רזה ושרירי</string>
     <string name="physique_rating_9">שרירי מאוד</string>
-    <string name="pref_clear_garmin_token">נקה אסימוני Garmin</string>
-    <string name="pref_clear_garmin_token_summary">נקה אסימוני Garmin OAuth1 ו-OAuth2. הם יווצרו מחדש לאחר כניסה מוצלחת.</string>
     <string name="users_fragment_action_add_user">הוסף משתמש</string>
     <string name="users_fragment_user_contextmenu_delete">מחק</string>
     <string name="users_fragment_user_contextmenu_edit">ערוך</string>

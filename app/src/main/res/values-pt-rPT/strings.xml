@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="gc_token_cleared">Tokens Garmin OAuth limpos!</string>
-    <string name="pref_clear_garmin_token">Limpar tokens Garmin</string>
-    <string name="pref_clear_garmin_token_summary">Limpar tokens Garmin OAuth1 e OAuth2. Serão regenerados após um início de sessão bem-sucedido.</string>
 	<string name="ant_radio_service">ANT Rádio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ Weight Scale Display</string>

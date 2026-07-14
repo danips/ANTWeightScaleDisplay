@@ -70,19 +70,6 @@
     <string name="format_total_sigma" translatable="false">Σ %1$s%2$s</string>
     <string name="format_user_description_cm" translatable="false">%1$s, %2$d %3$s</string>
     <string name="format_user_description_imperial" translatable="false">%1$s, %2$d%3$s %4$d%5$s</string>
-    <string name="gc_token_cleared">Cleared Garmin OAuth tokens!</string>
-    <string name="garmin_token_information" tools:ignore="MissingTranslation">Token status: %1$s\nAccess expires: %2$s\nConnection expires: %3$s\nBackground refresh: %4$s</string>
-    <string name="garmin_token_status_active" tools:ignore="MissingTranslation">Active</string>
-    <string name="garmin_token_status_access_expired" tools:ignore="MissingTranslation">Access expired; renewal available</string>
-    <string name="garmin_token_status_connection_expired" tools:ignore="MissingTranslation">Connection credentials expired</string>
-    <string name="garmin_token_status_not_authenticated" tools:ignore="MissingTranslation">Not authenticated</string>
-    <string name="garmin_token_status_unknown" tools:ignore="MissingTranslation">Unknown</string>
-    <string name="garmin_token_work_running" tools:ignore="MissingTranslation">Running now</string>
-    <string name="garmin_token_work_scheduled" tools:ignore="MissingTranslation">Scheduled for %1$s</string>
-    <string name="garmin_token_work_queued" tools:ignore="MissingTranslation">Queued</string>
-    <string name="garmin_token_work_failed" tools:ignore="MissingTranslation">Last attempt failed</string>
-    <string name="garmin_token_work_not_scheduled" tools:ignore="MissingTranslation">Not scheduled</string>
-    <string name="garmin_token_work_reconnect_required" tools:ignore="MissingTranslation">Reconnect once to enable background refresh</string>
     <string name="graphs_fragment_measure_tag">Measurement</string>
 	<string name="graphs_fragment_measurement_left_arm_muscle_mass">Left Arm Muscle Mass</string>
 	<string name="graphs_fragment_measurement_left_arm_percent_fat">Left Arm Fat Percent</string>
@@ -138,8 +125,6 @@
 	<string name="physique_rating_7">Thin</string>
 	<string name="physique_rating_8">Thin and Muscular</string>
 	<string name="physique_rating_9">Very Muscular</string>
-    <string name="pref_clear_garmin_token">Clear Garmin Tokens</string>
-    <string name="pref_clear_garmin_token_summary">Clear Garmin OAuth1 and OAuth2 Tokens. They will be regenerated on a successful login.</string>
 	<string name="users_fragment_action_add_user">Add user</string>
 	<string name="users_fragment_user_contextmenu_delete">Delete</string>
 	<string name="users_fragment_user_contextmenu_edit">Edit</string>

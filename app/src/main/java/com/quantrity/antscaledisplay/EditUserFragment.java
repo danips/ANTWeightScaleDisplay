@@ -15,13 +15,11 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RadioGroup;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -31,8 +29,6 @@ import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.work.WorkInfo;
-import androidx.work.WorkManager;
 
 import com.quantrity.antscaledisplay.databinding.FragmentEditUserBinding;
 
@@ -41,8 +37,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
-import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -73,8 +67,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private EditText et_email_to;
     private CheckBox cb_auto_upload;
     private CheckBox cb_show_fat_mass;
-    private TextView tv_garmin_token_information;
-    private List<WorkInfo> garmin_refresh_work = Collections.emptyList();
     private FragmentEditUserBinding binding;
 
     static EditUserFragment newInstance(String userUuid) {
@@ -355,9 +347,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         et_email_to = binding.etEmailTo;
         cb_auto_upload = binding.cbAutomaticUpload;
         cb_show_fat_mass = binding.cbFatMass;
-        tv_garmin_token_information = binding.garminTokenInformation;
-        Button b_gc_token_clear = binding.garminTokenClear;
-        b_gc_token_clear.setOnClickListener(v -> clearGarminTokens());
 
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
@@ -400,34 +389,9 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         rg_gender = null;
         sp_units = sp_activity = null;
         cb_lifetime_athlete = cb_auto_upload = cb_show_fat_mass = null;
-        tv_garmin_token_information = null;
         binding = null;
         super.onDestroyView();
     }
-
-    @Override
-    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        if (the_user == null || the_user.uuid == null) {
-            updateGarminTokenInformation();
-            return;
-        }
-
-        WorkManager.getInstance(requireContext())
-                .getWorkInfosForUniqueWorkLiveData(
-                        GarminTokenRefreshScheduler.uniqueWorkName(the_user.uuid))
-                .observe(getViewLifecycleOwner(), workInfos -> {
-                    garmin_refresh_work = workInfos == null
-                            ? Collections.emptyList()
-                            : workInfos;
-                    state.reloadGarminTokens(the_user, result -> {
-                        if (getActivity() == null
-                                || AppHost.from(this).handleMutationFailure(result)) return;
-                        updateGarminTokenInformation();
-                    });
-                });
-    }
-
 
     @Override
     public void onResume() {
@@ -435,13 +399,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             setValues(the_user);
             needs_to_sync = false;
         }
-        if (the_user != null) {
-            state.reloadGarminTokens(the_user, result -> {
-                if (getActivity() == null
-                        || AppHost.from(this).handleMutationFailure(result)) return;
-                updateGarminTokenInformation();
-            });
-        } else updateGarminTokenInformation();
         super.onResume();
     }
 
@@ -449,89 +406,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putLong(STATE_BIRTHDATE, birthdate_millis);
-    }
-
-    private void updateGarminTokenInformation() {
-        if (tv_garmin_token_information == null) return;
-
-        GarminTokenStatus.State state = GarminTokenStatus.getState(
-                the_user, System.currentTimeMillis() / 1000);
-        String accessExpiry = formatTokenExpiry(
-                the_user == null ? -1 : the_user.garminOauth2ExpiryTimestamp);
-        String connectionExpiry = formatTokenExpiry(
-                the_user == null ? -1 : the_user.garminOauth1MfaExpirationTimestamp);
-        tv_garmin_token_information.setText(getString(
-                R.string.garmin_token_information,
-                getTokenStateText(state),
-                accessExpiry,
-                connectionExpiry,
-                getBackgroundRefreshText()));
-    }
-
-    private String getTokenStateText(GarminTokenStatus.State state) {
-        switch (state) {
-            case ACTIVE:
-                return getString(R.string.garmin_token_status_active);
-            case ACCESS_EXPIRED:
-                return getString(R.string.garmin_token_status_access_expired);
-            case CONNECTION_EXPIRED:
-                return getString(R.string.garmin_token_status_connection_expired);
-            case UNKNOWN:
-                return getString(R.string.garmin_token_status_unknown);
-            case NOT_AUTHENTICATED:
-            default:
-                return getString(R.string.garmin_token_status_not_authenticated);
-        }
-    }
-
-    private String formatTokenExpiry(long expirySeconds) {
-        if (expirySeconds <= 0) return getString(R.string.garmin_token_status_unknown);
-        return DateUtils.formatDateTime(
-                requireContext(),
-                expirySeconds * 1000,
-                DateUtils.FORMAT_SHOW_DATE
-                        | DateUtils.FORMAT_SHOW_TIME
-                        | DateUtils.FORMAT_SHOW_YEAR
-                        | DateUtils.FORMAT_ABBREV_MONTH);
-    }
-
-    private String getBackgroundRefreshText() {
-        if (the_user != null
-                && the_user.garminOauth2Token != null
-                && !the_user.garminOauth2Token.isEmpty()
-                && !GarminTokenRefreshScheduler.hasRenewalCredentials(the_user)) {
-            return getString(R.string.garmin_token_work_reconnect_required);
-        }
-
-        WorkInfo enqueuedWork = null;
-        boolean failed = false;
-        for (WorkInfo workInfo : garmin_refresh_work) {
-            if (workInfo.getState() == WorkInfo.State.RUNNING) {
-                return getString(R.string.garmin_token_work_running);
-            }
-            if (workInfo.getState() == WorkInfo.State.ENQUEUED) enqueuedWork = workInfo;
-            if (workInfo.getState() == WorkInfo.State.BLOCKED && enqueuedWork == null) {
-                enqueuedWork = workInfo;
-            }
-            if (workInfo.getState() == WorkInfo.State.FAILED) failed = true;
-        }
-
-        if (enqueuedWork != null) {
-            long nextRun = enqueuedWork.getNextScheduleTimeMillis();
-            if (nextRun > 0 && nextRun < Long.MAX_VALUE) {
-                String formattedTime = DateUtils.formatDateTime(
-                        requireContext(),
-                        nextRun,
-                        DateUtils.FORMAT_SHOW_DATE
-                                | DateUtils.FORMAT_SHOW_TIME
-                                | DateUtils.FORMAT_SHOW_YEAR
-                                | DateUtils.FORMAT_ABBREV_MONTH);
-                return getString(R.string.garmin_token_work_scheduled, formattedTime);
-            }
-            return getString(R.string.garmin_token_work_queued);
-        }
-        if (failed) return getString(R.string.garmin_token_work_failed);
-        return getString(R.string.garmin_token_work_not_scheduled);
     }
 
     @Override
@@ -562,27 +436,5 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             return true;
         }
         return false;
-    }
-
-    /* Clear Garmin OAuth Tokens */
-    private void clearGarminTokens() {
-        if (getActivity() != null) {
-            if (the_user != null && state.findUser(the_user.uuid) != null) {
-                the_user.garminOauth1Token = "";
-                the_user.garminOauth1TokenSecret = "";
-                the_user.garminOauth1MfaToken = "";
-                the_user.garminOauth1MfaExpirationTimestamp = -1;
-                the_user.garminOauth2Token = "";
-                the_user.garminOauth2ExpiryTimestamp = -1;
-                GarminTokenRefreshScheduler.cancel(getActivity(), the_user);
-                state.saveUser(the_user, result -> {
-                    if (getActivity() == null
-                            || AppHost.from(this).handleMutationFailure(result)) return;
-                    updateGarminTokenInformation();
-                    Toast.makeText(requireActivity(), R.string.gc_token_cleared,
-                            Toast.LENGTH_SHORT).show();
-                });
-            }
-        }
     }
 }

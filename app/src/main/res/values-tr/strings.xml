@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
-    <string name="gc_token_cleared">Garmin OAuth jetonları temizlendi!</string>
-    <string name="pref_clear_garmin_token">Garmin Jetonlarını Temizle</string>
-    <string name="pref_clear_garmin_token_summary">Garmin OAuth1 ve OAuth2 jetonlarını temizle. Başarılı bir giriş yapıldığında yeniden oluşturulacaklar.</string>
 	<string name="ant_radio_service">ANT Radio Service</string>
 	<string name="ant_usb_service">ANT USB Service</string>
 	<string name="app_name">ANT+ tartı göstergesi</string>
