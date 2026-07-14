@@ -2,6 +2,16 @@ plugins {
     id 'com.android.application'
 }
 
+def localeDirectoryPattern =
+        ~/^values-([a-z]{2}(?:-r[A-Z]{2})?|b\+[A-Za-z0-9+]+)$/
+def translatedLocales = fileTree('src/main/res') {
+    include 'values-*/strings.xml'
+}.files.collect { stringsFile ->
+    def matcher = stringsFile.parentFile.name =~ localeDirectoryPattern
+    matcher.matches() ? matcher.group(1) : null
+}.findAll().toSet()
+def supportedLocales = (['en'] + translatedLocales).sort()
+
 android {
     namespace 'com.quantrity.antscaledisplay'
     compileSdk 37
@@ -12,6 +22,10 @@ android {
         targetSdk 37
         versionCode 323
         versionName "3.23"
+    }
+    androidResources {
+        // Default resources are English; translated locales come from values-*/strings.xml.
+        localeFilters += supportedLocales
     }
 
     buildTypes {

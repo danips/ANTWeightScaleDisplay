@@ -73,6 +73,13 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] Open and complete the email-sharing workflow.
 - [ ] Confirm CSV and email output use the correct values and units.
 
+## Locales
+
+- [ ] Check English default resources and navigation.
+- [ ] Check Arabic right-to-left layout and translated resources.
+- [ ] Check Portuguese (Portugal) translated resources.
+- [ ] Check Japanese non-Latin translated resources.
+
 ## Deferred technical debt
 
 Garmin credentials remain in the backward-compatible `users` JSON file. Moving them to Android
