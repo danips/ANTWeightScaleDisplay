@@ -33,6 +33,7 @@ final class AntWeightController implements AntServiceClient.Listener {
     private boolean profileSent;
     private boolean finished;
     private boolean successful;
+    private final CompletionDelivery completionDelivery = new CompletionDelivery();
     private AntWeightSession.Failure lastFailure;
     private String lastFailureDetail;
     private boolean failureDelivered;
@@ -50,13 +51,13 @@ final class AntWeightController implements AntServiceClient.Listener {
     void setProfile(User user) { this.user = user; }
     synchronized void attachListener(AntWeightListener listener) {
         listenerRef = new WeakReference<>(listener);
-        if (finished && successful) listener.onAntSuccess(weight, user);
-        else if (finished && lastFailure != null && !failureDelivered) {
+        deliverSuccessIfPending();
+        if (finished && !successful && lastFailure != null && !failureDelivered) {
             failureDelivered = true;
             listener.onAntFailure(lastFailure, lastFailureDetail);
         }
     }
-    void detachListener(AntWeightListener listener) {
+    synchronized void detachListener(AntWeightListener listener) {
         if (listenerRef.get() == listener) listenerRef.clear();
     }
     boolean isRunning() { return session != null && !finished; }
@@ -200,11 +201,26 @@ final class AntWeightController implements AntServiceClient.Listener {
         successful = true;
         cleanup();
         AppRepository.get(context).upsertWeight(result, false, saveResult -> {
-            AntWeightListener listener = listenerRef.get();
-            if (listener == null) return;
-            if (saveResult.isSuccess()) listener.onAntSuccess(result, user);
-            else listener.onAntPersistenceFailure(saveResult.message);
+            if (saveResult.isSuccess()) onMeasurementSaved();
+            else notifyPersistenceFailure(saveResult.message);
         });
+    }
+
+    private synchronized void onMeasurementSaved() {
+        completionDelivery.markReady();
+        deliverSuccessIfPending();
+    }
+
+    private synchronized void deliverSuccessIfPending() {
+        AntWeightListener listener = listenerRef.get();
+        if (listener != null && completionDelivery.claim()) {
+            listener.onAntSuccess(weight, user);
+        }
+    }
+
+    private synchronized void notifyPersistenceFailure(String message) {
+        AntWeightListener listener = listenerRef.get();
+        if (listener != null) listener.onAntPersistenceFailure(message);
     }
 
     private synchronized void fail(AntWeightSession.Failure failure, String detail) {
@@ -243,6 +259,19 @@ final class AntWeightController implements AntServiceClient.Listener {
         currentProgress = progress;
         AntWeightListener listener = listenerRef.get();
         if (listener != null) listener.onAntProgress(progress);
+    }
+
+    static final class CompletionDelivery {
+        private boolean ready;
+        private boolean claimed;
+
+        void markReady() { ready = true; }
+
+        boolean claim() {
+            if (!ready || claimed) return false;
+            claimed = true;
+            return true;
+        }
     }
 
     private static final class CommandFailedException extends RuntimeException {
