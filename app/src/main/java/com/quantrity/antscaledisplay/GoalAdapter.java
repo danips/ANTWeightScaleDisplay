@@ -1,6 +1,7 @@
 package com.quantrity.antscaledisplay;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
@@ -120,7 +121,7 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         holder.startDateTV.setText(dateFormatter.format(goal.start_date));
         holder.endDateTV.setText(dateFormatter.format(goal.end_date));
         holder.metricIV.setImageResource(goal.type.getIconRes());
-        holder.metricIV.setBackgroundColor(goal.color);
+        holder.metricIV.setBackgroundTintList(ColorStateList.valueOf(goal.color));
         holder.onTrackProgressTV.setText("");
 
         Metric.Unit unit = goal.type.displayedUnit(goal.show_fat_mass);

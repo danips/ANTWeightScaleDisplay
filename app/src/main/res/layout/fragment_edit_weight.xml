@@ -6,10 +6,23 @@
     android:padding="12dp"
     android:fillViewport="true">
 
-    <GridLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:columnCount="4">
+        android:orientation="vertical">
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp">
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="4">
 
         <TextView
             android:id="@+id/dateTV"
@@ -125,6 +138,23 @@
             android:id="@+id/visceralFatRatingUnits"
             style="@style/EditWeightUnits" />
 
+            </GridLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_marginTop="8dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp">
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="4">
+
         <ImageView
             style="@style/EditWeightIV"
             android:contentDescription="@string/weight_fragment_icon_desc_metabolicAge"
@@ -173,6 +203,23 @@
             style="@style/EditWeightUnits"
             android:text="@string/weight_edit_fragment_kcal_tag" />
 
+            </GridLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="12dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="2dp"
+            app:contentPadding="16dp">
+
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:columnCount="4">
 
         <ImageView
             style="@style/EditWeightIV"
@@ -314,5 +361,7 @@
             android:id="@+id/rightLegMuscleMassUnits"
             style="@style/EditWeightUnits" />
 
-    </GridLayout>
+            </GridLayout>
+        </androidx.cardview.widget.CardView>
+    </LinearLayout>
 </ScrollView>

@@ -1,91 +1,121 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:orientation="horizontal"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/row_shape">
+    android:layout_margin="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
 
-    <ImageView
-        android:id="@+id/row_goal_metricIV"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="@drawable/rounded_blue_mini"
-        android:layout_margin="10dip"
-        android:contentDescription="@string/graphs_fragment_measure_tag"
-        app:srcCompat="@drawable/ic_weight" />
-
-    <TableLayout
-        android:layout_margin="10dip"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="wrap_content"
+        android:background="?android:attr/selectableItemBackground"
+        android:gravity="center_vertical"
+        android:minHeight="80dp"
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-        <TableRow
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/row_goal_metricIV"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/rounded_blue"
+            android:contentDescription="@string/graphs_fragment_measure_tag"
+            android:padding="10dp"
+            app:srcCompat="@drawable/ic_weight" />
 
-            <TextView
-                android:id="@+id/row_goal_startDateTV"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:paddingStart="10dip"
-                android:paddingLeft="10dip"
-                android:paddingEnd="10dip"
-                android:paddingRight="10dip"
-                android:textAppearance="?android:textAppearanceMedium" />
+        <TableLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:stretchColumns="0,1,2">
 
-            <TextView
-                android:id="@+id/row_goal_startValueTV"
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/row_goal_startDateTV"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="14/07/26" />
+
+                <TextView
+                    android:id="@+id/row_goal_startValueTV"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="75.0 kg" />
+
+                <TextView
+                    android:id="@+id/row_goal_totalProgressTV"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="Σ -2.0 kg" />
+            </TableRow>
+
+            <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:paddingStart="10dip"
-                android:paddingLeft="10dip"
-                android:paddingEnd="10dip"
-                android:paddingRight="10dip"
-                android:textAppearance="?android:textAppearanceMedium" />
+                android:paddingTop="6dp">
 
-            <TextView
-                android:id="@+id/row_goal_totalProgressTV"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="10dip"
-                android:paddingLeft="10dip"
-                android:paddingEnd="10dip"
-                android:paddingRight="10dip"
-                android:textAppearance="?android:textAppearanceMedium" />
-        </TableRow>
+                <TextView
+                    android:id="@+id/row_goal_endDateTV"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="14sp"
+                    tools:text="14/08/26" />
 
-        <TableRow
-            android:paddingTop="4dip">
+                <TextView
+                    android:id="@+id/row_goal_endValueTV"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="?android:attr/textColorSecondary"
+                    android:textSize="14sp"
+                    tools:text="70.0 kg" />
 
-            <TextView
-                android:id="@+id/row_goal_endDateTV"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingLeft="10dip"
-                android:paddingRight="10dip"
-                android:textAppearance="?android:textAppearanceMedium" />
+                <TextView
+                    android:id="@+id/row_goal_onTrackProgressTV"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:gravity="end"
+                    android:maxLines="1"
+                    android:textSize="14sp"
+                    tools:text="Δ -0.5 kg" />
+            </TableRow>
 
-            <TextView
-                android:id="@+id/row_goal_endValueTV"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="10dip"
-                android:paddingLeft="10dip"
-                android:paddingEnd="10dip"
-                android:paddingRight="10dip"
-                android:textAppearance="?android:textAppearanceMedium" />
-
-            <TextView
-                android:id="@+id/row_goal_onTrackProgressTV"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:paddingStart="10dip"
-                android:paddingLeft="10dip"
-                android:paddingEnd="10dip"
-                android:paddingRight="10dip"
-                android:textAppearance="?android:textAppearanceMedium" />
-        </TableRow>
-
-    </TableLayout>
-</LinearLayout>
+        </TableLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>
