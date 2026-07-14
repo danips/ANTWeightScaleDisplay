@@ -21,10 +21,6 @@ final class GarminForegroundSession {
         weightService = new GarminWeightService(http, authenticator);
     }
 
-    boolean signIn() {
-        return signInDetailed().isSuccess();
-    }
-
     GarminAuthenticator.SignInReport signInDetailed() {
         if (user == null) return authenticator.signInDetailed(null, null, false);
         return authenticator.signInDetailed(user.gc_user, user.gc_pass, false);

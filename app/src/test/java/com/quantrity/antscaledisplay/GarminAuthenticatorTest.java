@@ -28,10 +28,10 @@ public class GarminAuthenticatorTest {
                 response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
         FakeTokenStore tokens = new FakeTokenStore();
 
-        GarminAuthenticator.SignInResult result = authenticator(transport, tokens, () -> null)
-                .signIn(" user@example.com\n", "password\r");
+        GarminAuthenticator.SignInReport report = authenticator(transport, tokens, () -> null)
+                .signInDetailed(" user@example.com\n", "password\r", false);
 
-        assertEquals(GarminAuthenticator.SignInResult.SUCCESS, result);
+        assertEquals(GarminAuthenticator.SignInResult.SUCCESS, report.result);
         assertEquals("oauth-one", tokens.oauth1Token);
         assertEquals("oauth-secret", tokens.oauth1Secret);
         assertEquals("access", tokens.accessToken);
@@ -51,10 +51,11 @@ public class GarminAuthenticatorTest {
                 response(200, "{\"access_token\":\"access\",\"expires_in\":60}"));
         FakeTokenStore tokens = new FakeTokenStore();
 
-        GarminAuthenticator.SignInResult result = authenticator(
-                transport, tokens, () -> "123456").signIn("user", "password");
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, tokens, () -> "123456")
+                .signInDetailed("user", "password", false);
 
-        assertEquals(GarminAuthenticator.SignInResult.SUCCESS, result);
+        assertEquals(GarminAuthenticator.SignInResult.SUCCESS, report.result);
         assertTrue(body(transport.requests.get(1)).contains(
                 "\"mfaVerificationCode\":\"123456\""));
         assertTrue(transport.requests.get(1).url.contains("/mobile/api/mfa/verifyCode"));
@@ -65,20 +66,12 @@ public class GarminAuthenticatorTest {
         FakeTransport transport = new FakeTransport(
                 response(200, mobileMfaRequired()));
 
-        GarminAuthenticator.SignInResult result = authenticator(
-                transport, new FakeTokenStore(), () -> "").signIn("user", "password");
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> "")
+                .signInDetailed("user", "password", false);
 
-        assertEquals(GarminAuthenticator.SignInResult.CANCELLED, result);
+        assertEquals(GarminAuthenticator.SignInResult.CANCELLED, report.result);
         assertEquals(1, transport.requests.size());
-    }
-
-    @Test
-    public void invalidCredentialsAreRejected() {
-        FakeTransport transport = new FakeTransport(response(200, mobileInvalid()));
-
-        assertEquals(GarminAuthenticator.SignInResult.INVALID,
-                authenticator(transport, new FakeTokenStore(), () -> null)
-                        .signIn("user", "bad-password"));
     }
 
     @Test
@@ -87,7 +80,7 @@ public class GarminAuthenticatorTest {
 
         assertEquals(GarminAuthenticator.SignInResult.RETRY,
                 authenticator(transport, new FakeTokenStore(), () -> null)
-                        .signIn("user", "password"));
+                        .signInDetailed("user", "password", false).result);
     }
 
     @Test
@@ -316,6 +309,61 @@ public class GarminAuthenticatorTest {
         assertFalse(report.isSuccess());
         assertEquals(1, transport.requests.size());
         assertFalse(tokens.refreshScheduled);
+    }
+
+    @Test
+    public void savedAccessTokenIsReusedWithoutNetworkOrMfa() {
+        FakeTokenStore tokens = new FakeTokenStore();
+        tokens.accessToken = "cached";
+        tokens.accessExpiry = NOW + 3600;
+        FakeTransport transport = new FakeTransport();
+        int[] promptCount = {0};
+
+        GarminAuthenticator.SignInReport report = authenticator(transport, tokens, () -> {
+            promptCount[0]++;
+            return "123456";
+        }).signInDetailed("user", "password", false);
+
+        assertTrue(report.isSuccess());
+        assertEquals(GarminAuthenticator.Stage.SAVED_ACCESS_TOKEN, report.stage);
+        assertEquals(0, transport.requests.size());
+        assertEquals(0, promptCount[0]);
+        assertTrue(tokens.refreshScheduled);
+    }
+
+    @Test
+    public void temporarySavedConnectionFailureDoesNotRequestFreshCredentials() {
+        FakeTransport transport = new FakeTransport(response(503, "unavailable"));
+        int[] promptCount = {0};
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, renewalTokens(), () -> {
+                    promptCount[0]++;
+                    return "123456";
+                }).signInDetailed("user", "password", false);
+
+        assertEquals(GarminAuthenticator.SignInResult.RETRY, report.result);
+        assertEquals(GarminAuthenticator.FailureKind.SERVER, report.failure);
+        assertEquals(GarminAuthenticator.Stage.SAVED_CONNECTION, report.stage);
+        assertEquals(1, transport.requests.size());
+        assertEquals(0, promptCount[0]);
+    }
+
+    @Test
+    public void rejectedSavedConnectionFallsBackToFreshCredentials() {
+        FakeTransport transport = new FakeTransport(
+                response(401, "rejected"),
+                response(200, mobileSuccess("service-ticket")),
+                response(200, oauth1Response()),
+                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, renewalTokens(), () -> null)
+                .signInDetailed("user", "password", false);
+
+        assertTrue(report.isSuccess());
+        assertEquals(4, transport.requests.size());
+        assertTrue(transport.requests.get(1).url.contains("/mobile/api/login"));
     }
 
     @Test

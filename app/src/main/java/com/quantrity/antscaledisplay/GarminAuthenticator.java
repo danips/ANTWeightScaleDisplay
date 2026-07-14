@@ -51,7 +51,7 @@ final class GarminAuthenticator {
         NONE, INVALID_CREDENTIALS, RATE_LIMITED, NETWORK, SERVER, PROTOCOL, STORAGE, CANCELLED
     }
     enum Stage {
-        INPUT, SAVED_ACCESS_TOKEN, SAVED_CONNECTION, SSO_PAGE, CREDENTIALS, MFA,
+        INPUT, SAVED_ACCESS_TOKEN, SAVED_CONNECTION, CREDENTIALS, MFA,
         OAUTH1_EXCHANGE, OAUTH2_EXCHANGE
     }
 
@@ -120,10 +120,6 @@ final class GarminAuthenticator {
         this.clock = clock;
     }
 
-    SignInResult signIn(String username, String password) {
-        return signInDetailed(username, password, false).result;
-    }
-
     SignInReport signInDetailed(String username, String password, boolean forceCredentials) {
         if (!hasText(username) || !hasText(password)) {
             return report(SignInResult.INVALID, FailureKind.INVALID_CREDENTIALS, Stage.INPUT,
@@ -139,6 +135,10 @@ final class GarminAuthenticator {
             if (renewal.result == RenewalResult.SUCCESS) {
                 return report(SignInResult.SUCCESS, FailureKind.NONE, Stage.SAVED_CONNECTION,
                         renewal.httpStatus, "A saved Garmin connection was renewed", false);
+            }
+            if (renewal.result == RenewalResult.RETRY) {
+                return report(SignInResult.RETRY, renewal.failure, Stage.SAVED_CONNECTION,
+                        renewal.httpStatus, renewal.detail, false);
             }
         }
 
