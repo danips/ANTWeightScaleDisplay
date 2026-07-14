@@ -8,7 +8,7 @@ approved in the decision log.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 2 — Replace WorkManager token-refresh scheduling
+- Current phase: Phase 3 — Decide the Google Play Services/API-level strategy
 - Last updated: 2026-07-14
 - Plan created from commit: `fdb4d97`
 - Branch at plan creation: `main`
@@ -17,8 +17,8 @@ approved in the decision log.
 - Baseline SHA-256: `0f709cb2f8f7c30ce0bd9c3d32b4914e4e1556d0a99b6a27d7ded814db2d8c12`
 - Compressed `classes.dex` baseline: 1,002,986 bytes
 - Uncompressed `resources.arsc` baseline: 930,796 bytes
-- Current unsigned release APK: 2,005,012 bytes
-- Current APK reduction from baseline: 288,716 bytes (12.6%)
+- Current unsigned release APK: 1,800,143 bytes
+- Current APK reduction from baseline: 493,585 bytes (21.5%)
 
 Update the current phase, date, measurements, and relevant commit after completing every phase.
 
@@ -116,7 +116,7 @@ Other observations:
 
 - [x] Phase 0 — Record baseline and upper-bound experiments
 - [x] Phase 1 — Restrict packaged locales
-- [ ] Phase 2 — Replace WorkManager token-refresh scheduling
+- [x] Phase 2 — Replace WorkManager token-refresh scheduling
 - [ ] Phase 3 — Decide the Google Play Services/API-level strategy
 - [ ] Phase 4 — Replace the production Garmin FIT SDK with a specialized encoder
 - [ ] Phase 5 — Optimize remaining bitmap assets
@@ -159,7 +159,7 @@ Establish the current optimized APK composition and realistic ceilings for the m
 
 Status: Completed; device locale smoke test deferred to the release checklist<br>
 Completed: 2026-07-14<br>
-Commit: Pending
+Commit: `a2ed699`
 
 ### Objective
 
@@ -226,7 +226,9 @@ android {
 
 ## Phase 2 — Replace WorkManager token-refresh scheduling
 
-Status: Pending
+Status: Completed; device lifecycle checks deferred to the release checklist<br>
+Completed: 2026-07-14<br>
+Commit: Pending
 
 ### Objective
 
@@ -246,16 +248,16 @@ implementation while retaining reliable Garmin OAuth renewal.
 
 ### Tasks
 
-- [ ] Add tests for delay calculation, credential eligibility, stable job IDs, collision handling,
+- [x] Add tests for delay calculation, credential eligibility, stable job IDs, collision handling,
       and retry timing.
-- [ ] Add an app-owned `JobService` for Garmin token renewal.
-- [ ] Replace `GarminTokenRefreshScheduler` WorkManager calls with `JobScheduler` calls.
-- [ ] Preserve network, persistence, cancellation, and backoff semantics.
-- [ ] Remove `GarminTokenRefreshWorker` after all callers and tests have migrated.
-- [ ] Remove `androidx.work:work-runtime` from production dependencies.
-- [ ] Inspect the merged manifest for required job/reboot permissions and removed WorkManager
+- [x] Add an app-owned `JobService` for Garmin token renewal.
+- [x] Replace `GarminTokenRefreshScheduler` WorkManager calls with `JobScheduler` calls.
+- [x] Preserve network, persistence, cancellation, and backoff semantics.
+- [x] Remove `GarminTokenRefreshWorker` after all callers and tests have migrated.
+- [x] Remove `androidx.work:work-runtime` from production dependencies.
+- [x] Inspect the merged manifest for required job/reboot permissions and removed WorkManager
       initializers.
-- [ ] Run automated verification and measure the release APK.
+- [x] Run automated verification and measure the release APK.
 - [ ] Manually verify renewal after process termination, offline retry, reboot, user deletion, and
       rejected credentials.
 
@@ -268,7 +270,25 @@ implementation while retaining reliable Garmin OAuth renewal.
 
 ### Completion notes
 
-To be filled in with design deviations, commit, APK size, SHA-256, and verification results.
+- `GarminTokenRefreshJobService` performs renewal off the main thread and uses the existing
+  success, temporary-failure, rejected-credential, missing-user, and repository-failure outcomes.
+- Jobs require a network, persist across reboot, start six hours before access-token expiry, and
+  use a 30-minute exponential retry backoff. `RECEIVE_BOOT_COMPLETED` is now explicit.
+- Each user receives a deterministic job ID. Pending-job extras preserve an existing assignment,
+  and occupied IDs are probed so colliding UUID hashes cannot replace another user's refresh.
+- A successful renewal replaces the completed running job with the next expiry-based job. Temporary
+  failures request a framework retry; missing or rejected credentials finish without rescheduling.
+- The release dependency graph, R8 mapping, and merged manifest contain no WorkManager or Room
+  runtime classes, worker, initializer, service, or receiver.
+- The unsigned release APK is 1,800,143 bytes, 204,869 bytes (10.2%) smaller than Phase 1 and
+  493,585 bytes (21.5%) smaller than the baseline.
+- SHA-256: `0462b449c00393283783a7726b3a345d24e0dca1a0952218b4b7a4863e69e18e`.
+- Compressed `classes.dex`: 807,738 bytes; uncompressed `resources.arsc`: 641,812 bytes.
+- A clean `testDebugUnitTest`, `lintDebug`, and `assembleRelease` all pass.
+- An API 36 device became available with an existing debuggable v3.23 installation. Stateful checks
+  were not run because they require replacing that build, using its saved data, controlling its
+  network, and rebooting the device. Process-death, offline-retry, reboot, deletion, and
+  rejected-credential checks remain in `docs/release-checklist.md` and must pass before release.
 
 ---
 
@@ -459,7 +479,8 @@ To be filled in at project completion.
 | Date | Phase/experiment | Commit | APK bytes | Change from previous | SHA-256 | Notes |
 |---|---|---|---:|---:|---|---|
 | 2026-07-14 | Baseline | `fdb4d97` | 2,293,728 | — | `0f709c…d8c12` | Current minified unsigned release |
-| 2026-07-14 | Phase 1 — supported locales | Pending | 2,005,012 | -288,716 | `42cf11…7243` | Tests, lint, release build, and packaged configurations verified |
+| 2026-07-14 | Phase 1 — supported locales | `a2ed699` | 2,005,012 | -288,716 | `42cf11…7243` | Tests, lint, release build, and packaged configurations verified |
+| 2026-07-14 | Phase 2 — platform refresh job | Pending | 1,800,143 | -204,869 | `0462b4…9e18e` | Clean verification; device lifecycle checks deferred |
 
 Add one row for every accepted phase result. Temporary no-op experiments belong in the measured
 opportunities table rather than this results log.

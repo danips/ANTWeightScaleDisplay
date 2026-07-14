@@ -21,6 +21,12 @@ issues, and the minified unsigned release APK built successfully. Device, ANT, G
 provider, locale, rotation, and process-recreation items below remain intentionally unchecked
 because no representative device, scale, or authenticated Garmin account was available.
 
+Phase 2 APK-reduction verification on 2026-07-14: 210 test executions passed, lint reported no
+issues, and the minified unsigned release APK built successfully. The new Garmin token-refresh
+lifecycle checks below remain pending. An API 36 device was detected, but replacing its existing
+debug build, using its saved data, controlling its network, and rebooting it require an explicit
+device-test session.
+
 ## Android lifecycle and compatibility
 
 - [ ] Smoke-test API 23, 29, 33, and 37 where devices or emulators are available.
@@ -60,6 +66,10 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] Upload with active and expired access tokens.
 - [ ] Upload a FIT file produced with Garmin FIT SDK 21.205.0.
 - [ ] Observe background renewal across a complete access-token cycle.
+- [ ] Confirm the token-refresh job survives process termination and device reboot.
+- [ ] Confirm an offline refresh retries with backoff after connectivity returns.
+- [ ] Confirm deleting a user or removing their Garmin credentials cancels the pending refresh.
+- [ ] Confirm rejected renewal credentials do not schedule another refresh.
 - [ ] Confirm expired access is renewed using the saved OAuth1 credentials without another MFA
       prompt.
 - [ ] Download Garmin history and confirm existing measurements are not duplicated.
