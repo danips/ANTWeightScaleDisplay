@@ -2,10 +2,10 @@ package com.quantrity.antscaledisplay;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.BitmapFactory;
 import android.os.Build;
@@ -19,7 +19,6 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
@@ -90,7 +89,7 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         Activity activity = activityRef.get();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
 
-        installSecurityProvider(activity);
+        if (!installSecurityProvider(activity)) return false;
         running = true;
         showProgress(0, 1);
         ArrayList<Weight> historySnapshot = new ArrayList<>(existing);
@@ -221,18 +220,22 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         notificationManager.createNotificationChannel(channel);
     }
 
-    private static void installSecurityProvider(Activity activity) {
-        if (Build.VERSION.SDK_INT >= 29) return;
+    private static boolean installSecurityProvider(Activity activity) {
+        if (Build.VERSION.SDK_INT >= 29) return true;
         try {
             ProviderInstaller.installIfNeeded(activity);
+            return true;
         } catch (GooglePlayServicesRepairableException exception) {
             Log.e(TAG, "Google Play services needs repair", exception);
-            Dialog dialog = GoogleApiAvailability.getInstance().getErrorDialog(
-                    activity, exception.getConnectionStatusCode(),
-                    PLAY_SERVICES_RESOLUTION_REQUEST);
-            if (dialog != null) dialog.show();
+            Intent resolutionIntent = exception.getIntent();
+            if (resolutionIntent != null) {
+                activity.startActivityForResult(
+                        resolutionIntent, PLAY_SERVICES_RESOLUTION_REQUEST);
+            }
+            return false;
         } catch (GooglePlayServicesNotAvailableException exception) {
             Log.e(TAG, "Google Play services is unavailable", exception);
+            return false;
         }
     }
 }

@@ -2,7 +2,12 @@ package com.quantrity.antscaledisplay;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
+import android.os.Build;
 import android.util.Log;
+
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.security.ProviderInstaller;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -59,6 +64,10 @@ public class GarminTokenRefreshJobService extends JobService {
 
     private void runRefresh(RunningJob job, String userUuid) {
         try {
+            if (!installSecurityProvider()) {
+                finish(job, true);
+                return;
+            }
             RepositoryResult<java.util.List<User>> loaded =
                     AppRepository.get(getApplicationContext()).loadUsers();
             if (!loaded.isSuccess()) {
@@ -92,6 +101,20 @@ public class GarminTokenRefreshJobService extends JobService {
             finish(job, true);
         } finally {
             runningJobs.remove(job.parameters.getJobId(), job);
+        }
+    }
+
+    private boolean installSecurityProvider() {
+        if (Build.VERSION.SDK_INT >= 29) return true;
+        try {
+            ProviderInstaller.installIfNeeded(getApplicationContext());
+            return true;
+        } catch (GooglePlayServicesRepairableException exception) {
+            Log.w(TAG, "Google Play services needs repair before token renewal", exception);
+            return false;
+        } catch (GooglePlayServicesNotAvailableException exception) {
+            Log.w(TAG, "Google Play services is unavailable for token renewal", exception);
+            return false;
         }
     }
 

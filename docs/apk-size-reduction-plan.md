@@ -8,7 +8,7 @@ approved in the decision log.
 ## Current status
 
 - Overall status: In progress
-- Current phase: Phase 3 — Decide the Google Play Services/API-level strategy
+- Current phase: Phase 4 — Replace the production Garmin FIT SDK with a specialized encoder
 - Last updated: 2026-07-14
 - Plan created from commit: `fdb4d97`
 - Branch at plan creation: `main`
@@ -17,8 +17,8 @@ approved in the decision log.
 - Baseline SHA-256: `0f709cb2f8f7c30ce0bd9c3d32b4914e4e1556d0a99b6a27d7ded814db2d8c12`
 - Compressed `classes.dex` baseline: 1,002,986 bytes
 - Uncompressed `resources.arsc` baseline: 930,796 bytes
-- Current unsigned release APK: 1,800,143 bytes
-- Current APK reduction from baseline: 493,585 bytes (21.5%)
+- Current unsigned release APK: 1,719,980 bytes
+- Current APK reduction from baseline: 573,748 bytes (25.0%)
 
 Update the current phase, date, measurements, and relevant commit after completing every phase.
 
@@ -117,7 +117,7 @@ Other observations:
 - [x] Phase 0 — Record baseline and upper-bound experiments
 - [x] Phase 1 — Restrict packaged locales
 - [x] Phase 2 — Replace WorkManager token-refresh scheduling
-- [ ] Phase 3 — Decide the Google Play Services/API-level strategy
+- [x] Phase 3 — Decide the Google Play Services/API-level strategy
 - [ ] Phase 4 — Replace the production Garmin FIT SDK with a specialized encoder
 - [ ] Phase 5 — Optimize remaining bitmap assets
 - [ ] Phase 6 — Evaluate deeper UI dependency reduction
@@ -294,7 +294,9 @@ implementation while retaining reliable Garmin OAuth renewal.
 
 ## Phase 3 — Decide the Google Play Services/API-level strategy
 
-Status: Pending decision
+Status: Completed<br>
+Completed: 2026-07-14<br>
+Commit: Pending
 
 ### Objective
 
@@ -311,13 +313,13 @@ TLS provider on Android 6–9.
 
 ### Tasks
 
-- [ ] Determine the active-user share on API 23–28, if distribution analytics are available.
-- [ ] Confirm every call site and verify that provider installation is already skipped on API 29+.
-- [ ] Choose and record one option in the decision log.
-- [ ] If removing it, delete the provider installation UI/error paths and the Play Services
-      dependency rather than replacing cryptographic provider code.
+- [x] Determine whether distribution analytics for API 23–28 are available.
+- [x] Confirm every call site and verify that provider installation is already skipped on API 29+.
+- [x] Choose and record one option in the decision log.
+- [x] Retain `ProviderInstaller` while removing the unneeded full availability-dialog and Tasks
+      dependency layers.
 - [ ] Test Garmin sign-in, renewal, upload, and history download on the minimum supported API.
-- [ ] Build and measure every release artifact affected by the decision.
+- [x] Build and measure every release artifact affected by the decision.
 
 ### Acceptance criteria
 
@@ -327,7 +329,29 @@ TLS provider on Android 6–9.
 
 ### Completion notes
 
-To be filled in after the support-policy decision.
+- No distribution analytics are present in the repository, so there is no evidence that API 23–28
+  can be dropped. The app retains its API 23 minimum and continues installing the updated security
+  provider before Garmin HTTPS work on API 23–28.
+- Android 10 and newer continue skipping the installer. Android 10 enables TLS 1.3 by default and
+  exposes the platform Conscrypt TLS API, so the existing API 29 boundary remains appropriate.
+- The app now depends directly on the officially published `play-services-basement` artifact that
+  contains `ProviderInstaller`. It no longer packages `play-services-base` or
+  `play-services-tasks`.
+- Repairable installation failures in interactive workflows launch the recovery `Intent` supplied
+  by Google Play services. Garmin upload and history networking no longer starts when installation
+  fails; users can retry after completing recovery. Background token renewal defers through the
+  existing job backoff instead of communicating without the updated provider.
+- A separate API-29+ artifact was rejected for now: it would add release and support complexity
+  while the smaller dependency preserves one universal APK and API 23 compatibility.
+- The unsigned release APK is 1,719,980 bytes, 80,163 bytes (4.5%) smaller than Phase 2 and
+  573,748 bytes (25.0%) smaller than the baseline.
+- SHA-256: `356e3678332deba870b5a8b07b45ac4cfe447b68312f632b57b120aeae75daea`.
+- Compressed `classes.dex`: 765,612 bytes; uncompressed `resources.arsc`: 605,624 bytes.
+- The release dependency graph and R8 mapping retain `ProviderInstaller` and
+  `GoogleApiAvailabilityLight`; full `GoogleApiAvailability` and Tasks APIs are absent.
+- All 210 unit tests, lint, and the minified release build pass. API 23–28 Garmin workflow and
+  recovery checks remain in `docs/release-checklist.md`; the connected API 36 device cannot
+  exercise the legacy provider-installation path.
 
 ---
 
@@ -480,7 +504,8 @@ To be filled in at project completion.
 |---|---|---|---:|---:|---|---|
 | 2026-07-14 | Baseline | `fdb4d97` | 2,293,728 | — | `0f709c…d8c12` | Current minified unsigned release |
 | 2026-07-14 | Phase 1 — supported locales | `a2ed699` | 2,005,012 | -288,716 | `42cf11…7243` | Tests, lint, release build, and packaged configurations verified |
-| 2026-07-14 | Phase 2 — platform refresh job | Pending | 1,800,143 | -204,869 | `0462b4…9e18e` | Clean verification; device lifecycle checks deferred |
+| 2026-07-14 | Phase 2 — platform refresh job | `1dcadae` | 1,800,143 | -204,869 | `0462b4…9e18e` | Clean verification; device lifecycle checks deferred |
+| 2026-07-14 | Phase 3 — retained provider support | Pending | 1,719,980 | -80,163 | `356e36…5daea` | Kept API 23; removed full Base and Tasks layers |
 
 Add one row for every accepted phase result. Temporary no-op experiments belong in the measured
 opportunities table rather than this results log.
@@ -491,6 +516,7 @@ opportunities table rather than this results log.
 |---|---|---|---|
 | 2026-07-14 | Start with supported-locale filtering | Largest measured low-risk saving | Revisit list whenever a locale is added |
 | 2026-07-14 | Prefer `JobScheduler` for WorkManager replacement | API 23 is already the minimum and only one job family is needed | Revisit if scheduling requirements expand |
+| 2026-07-14 | Keep API 23 and provider updates; use `play-services-basement` directly | Security updates remain available on API 23–28 while the smaller official artifact saves 80,163 bytes | Revisit when API 23–28 usage is known to be negligible or the minimum rises to API 29 |
 | 2026-07-14 | Keep Signpost by default | Maximum saving is only 4.35 KB | Revisit for maintenance/security reasons, not size |
 | 2026-07-14 | Keep MPAndroidChart by default | Maximum measured saving including graph code is 44.7 KB | Revisit only with a planned graph redesign |
 | 2026-07-14 | Keep release line metadata | It costs only 564 bytes | Revisit only if measurement changes materially |

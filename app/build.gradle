@@ -53,7 +53,7 @@ dependencies {
     testImplementation 'org.json:json:20260522'
 
     implementation 'com.github.PhilJay:MPAndroidChart:v3.1.0'
-    implementation 'com.google.android.gms:play-services-base:18.10.0'
+    implementation 'com.google.android.gms:play-services-basement:18.10.0'
     implementation 'com.garmin:fit:21.205.0'
 
     implementation "oauth.signpost:signpost-core:2.1.1"

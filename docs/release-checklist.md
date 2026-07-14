@@ -27,6 +27,11 @@ lifecycle checks below remain pending. An API 36 device was detected, but replac
 debug build, using its saved data, controlling its network, and rebooting it require an explicit
 device-test session.
 
+Phase 3 APK-reduction verification on 2026-07-14: 210 test executions passed, lint reported no
+issues, and the minified unsigned release APK built successfully. `ProviderInstaller` remains for
+API 23–28, while the full Google Play services Base and Tasks layers were removed. The connected
+API 36 device skips this legacy path, so the API 23–28 checks below remain pending.
+
 ## Android lifecycle and compatibility
 
 - [ ] Smoke-test API 23, 29, 33, and 37 where devices or emulators are available.
@@ -61,6 +66,12 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 
 ## Garmin
 
+- [ ] On API 23–28, sign in, upload a measurement, renew a token, and download history with current
+      Google Play services installed.
+- [ ] On API 23–28 with repairable Google Play services, confirm the supplied recovery action opens,
+      no Garmin HTTPS request starts before recovery completes, and retry succeeds afterward.
+- [ ] On API 23–28 without Google Play services, confirm Garmin workflows stop safely without a
+      crash or HTTPS request.
 - [ ] Confirm token status and expiration timestamps are accurate.
 - [ ] Log in with MFA and verify both code entry and cancellation.
 - [ ] Upload with active and expired access tokens.

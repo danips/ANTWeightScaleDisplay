@@ -1,7 +1,6 @@
 package com.quantrity.antscaledisplay;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Handler;
@@ -13,7 +12,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.GoogleApiAvailability;
 import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
 import com.google.android.gms.common.GooglePlayServicesRepairableException;
 import com.google.android.gms.security.ProviderInstaller;
@@ -71,9 +69,10 @@ class ForegroundUpload {
                 finish(null);
                 return;
             }
-            if (uploadToGarmin) installSecurityProvider(currentActivity);
-            UploadResult result = coordinator.run(currentActivity, weight, user, uploadToGarmin,
-                    prepareEmail, this::incrementProgress);
+            boolean uploadWithProvider = uploadToGarmin
+                    && installSecurityProvider(currentActivity);
+            UploadResult result = coordinator.run(currentActivity, weight, user,
+                    uploadWithProvider, prepareEmail, this::incrementProgress);
             finish(result);
         });
     }
@@ -126,24 +125,28 @@ class ForegroundUpload {
         }
     }
 
-    private void installSecurityProvider(MainActivity activity) {
-        if (Build.VERSION.SDK_INT >= 29 || cancelled) return;
+    private boolean installSecurityProvider(MainActivity activity) {
+        if (Build.VERSION.SDK_INT >= 29) return true;
+        if (cancelled) return false;
         try {
             ProviderInstaller.installIfNeeded(activity);
+            return true;
         } catch (GooglePlayServicesRepairableException exception) {
             Log.e(TAG, "Google Play Services needs repair", exception);
-            GoogleApiAvailability availability = GoogleApiAvailability.getInstance();
-            int errorCode = exception.getConnectionStatusCode();
-            mainHandler.post(() -> {
-                MainActivity currentActivity = activityRef.get();
-                if (currentActivity == null || currentActivity.isFinishing()
-                        || currentActivity.isDestroyed()) return;
-                Dialog dialog = availability.getErrorDialog(currentActivity, errorCode,
-                        PLAY_SERVICES_RESOLUTION_REQUEST);
-                if (dialog != null) dialog.show();
-            });
+            Intent resolutionIntent = exception.getIntent();
+            if (resolutionIntent != null) {
+                mainHandler.post(() -> {
+                    MainActivity currentActivity = activityRef.get();
+                    if (currentActivity == null || currentActivity.isFinishing()
+                            || currentActivity.isDestroyed()) return;
+                    currentActivity.startActivityForResult(
+                            resolutionIntent, PLAY_SERVICES_RESOLUTION_REQUEST);
+                });
+            }
+            return false;
         } catch (GooglePlayServicesNotAvailableException exception) {
             Log.e(TAG, "Google Play Services is unavailable", exception);
+            return false;
         }
     }
 
