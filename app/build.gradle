@@ -10,8 +10,8 @@ android {
         applicationId "com.quantrity.antscaledisplay"
         minSdk 23
         targetSdk 37
-        versionCode 322
-        versionName "3.22"
+        versionCode 323
+        versionName "3.23"
     }
 
     buildTypes {
