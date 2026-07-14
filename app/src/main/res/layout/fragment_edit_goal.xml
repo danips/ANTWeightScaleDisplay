@@ -231,10 +231,12 @@
             android:layout_height="wrap_content"
             android:text="@string/edit_goal_fragment_color"
             android:layout_gravity="center_vertical"/>
-        <com.larswerkman.holocolorpicker.ColorPicker
+        <com.quantrity.antscaledisplay.GoalColorPickerButton
             android:id="@+id/picker"
-            android:layout_width="0px"
-            android:layout_height="wrap_content"/>
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"/>
     </TableRow>
 
 </TableLayout>

@@ -18,6 +18,14 @@
 	<string name="bmi_value_2">Overweight</string>
 	<string name="bmi_value_3">Obese</string>
 	<string name="edit_goal_fragment_color">Color</string>
+	<string name="color_picker_title" tools:ignore="MissingTranslation">Choose color</string>
+	<string name="color_picker_hue" tools:ignore="MissingTranslation">Hue</string>
+	<string name="color_picker_saturation" tools:ignore="MissingTranslation">Saturation</string>
+	<string name="color_picker_brightness" tools:ignore="MissingTranslation">Brightness</string>
+	<string name="color_picker_hue_value" tools:ignore="MissingTranslation">Hue: %1$d°</string>
+	<string name="color_picker_saturation_value" tools:ignore="MissingTranslation">Saturation: %1$d%%</string>
+	<string name="color_picker_brightness_value" tools:ignore="MissingTranslation">Brightness: %1$d%%</string>
+	<string name="color_picker_button_description" tools:ignore="MissingTranslation">Selected color %1$s. Tap to change.</string>
 	<string name="edit_goal_fragment_end">End</string>
 	<string name="edit_goal_fragment_goal">Goal</string>
 	<string name="edit_goal_fragment_start">Start</string>

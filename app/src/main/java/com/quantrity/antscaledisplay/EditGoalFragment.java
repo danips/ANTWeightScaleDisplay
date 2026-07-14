@@ -20,7 +20,6 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Lifecycle;
 import androidx.lifecycle.ViewModelProvider;
 
-import com.larswerkman.holocolorpicker.ColorPicker;
 import com.quantrity.antscaledisplay.databinding.FragmentEditGoalBinding;
 
 import java.util.Calendar;
@@ -48,7 +47,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     private long endDateMillis = -1;
     private GoalValueInput startValue;
     private GoalValueInput endValue;
-    private ColorPicker colorPicker;
+    private GoalColorPickerButton colorPicker;
     private FragmentEditGoalBinding binding;
 
     static EditGoalFragment newInstance(String goalUserUuid, long startDate, String goalType,
