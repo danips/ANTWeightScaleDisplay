@@ -47,6 +47,22 @@ public class AntWeightSessionTest {
     }
 
     @Test
+    public void unavailableCompositionCompletesWithWeight() {
+        AntWeightSession session = receivingSession();
+        assertAction(AntWeightSession.ActionType.MEASUREMENT_STARTED,
+                session.onMessage(AntMessageParserTest.page(
+                        1, 0, 0, 0, 0, 0, 0x10, 0x27)));
+
+        assertAction(AntWeightSession.ActionType.COMPLETE_WEIGHT_ONLY,
+                session.onMessage(AntMessageParserTest.page(
+                        0xf1, 0xff, 0xa2, 0, 0, 0, 0xff, 0xff)));
+
+        assertTrue(session.hasCompleteMeasurement());
+        assertEquals(100.0, session.weight().weight, 0.001);
+        assertEquals(AntWeightSession.State.FINISHED, session.state());
+    }
+
+    @Test
     public void channelCloseIsExplicitFailure() {
         AntWeightSession session = receivingSession();
         byte[] event = {3, 0x40, 0, 0x01, 0x07};

@@ -13,14 +13,14 @@ final class AntWeightSession {
     enum Progress { SEARCHING, FOUND, WAITING }
     enum Failure {
         BIND, PERMISSION, CONFIGURATION, SEARCH_TIMEOUT, WEIGHT_TIMEOUT,
-        MEASUREMENT_TIMEOUT, SCALE_NOT_READY, NOT_BAREFOOT, DISCONNECTED,
+        MEASUREMENT_TIMEOUT, SCALE_NOT_READY, DISCONNECTED,
         PROTOCOL, CANCELLED
     }
 
     enum ActionType {
         NONE, ASSIGN_CHANNEL, SET_POWER, SET_FREQUENCY, SET_PERIOD, SET_ID,
         SET_SEARCH_TIMEOUT, OPEN_CHANNEL, SEND_PROFILE, SEARCH_STARTED,
-        MEASUREMENT_STARTED, COMPLETE, FAIL
+        MEASUREMENT_STARTED, COMPLETE, COMPLETE_WEIGHT_ONLY, FAIL
     }
 
     static final class Action {
@@ -139,9 +139,9 @@ final class AntWeightSession {
             state = State.FINISHED;
             return Action.fail(Failure.SCALE_NOT_READY, null);
         }
-        if (outcome == AntMessageParser.Outcome.NOT_BAREFOOT) {
+        if (outcome == AntMessageParser.Outcome.WEIGHT_ONLY_COMPLETE) {
             state = State.FINISHED;
-            return Action.fail(Failure.NOT_BAREFOOT, null);
+            return Action.of(ActionType.COMPLETE_WEIGHT_ONLY);
         }
         if (outcome == AntMessageParser.Outcome.FIRST_WEIGHT) {
             return Action.of(ActionType.MEASUREMENT_STARTED);

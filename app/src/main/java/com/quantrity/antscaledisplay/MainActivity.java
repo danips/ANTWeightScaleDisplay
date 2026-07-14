@@ -6,7 +6,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.hardware.usb.UsbDevice;
 import android.hardware.usb.UsbManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -32,7 +31,6 @@ import androidx.lifecycle.ViewModelProvider;
 import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity
         implements AppHost {
@@ -106,29 +104,7 @@ public class MainActivity extends AppCompatActivity
             }
         });
 
-        if (!isPackageInstalled("com.dsi.ant.service.socket")) {
-            goToMarketANTRadioService();
-        } else {
-            AntSupport.Capability antSupport = AntSupport.detect(this);
-            if (antSupport != AntSupport.Capability.BUILT_IN) {
-                if (antSupport == AntSupport.Capability.NONE) {
-                    goToMarketANTUSBService();
-                }
-
-                SharedPreferences settings = getSharedPreferences(
-                        getPackageName() + "_preferences", Context.MODE_PRIVATE);
-                boolean neverNoAntMessage = settings.getBoolean("never_no_ant_msg", false);
-                if (!neverNoAntMessage) {
-                    boolean showMessage = true;
-                    UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
-                    if (manager != null) {
-                        HashMap<String, UsbDevice> deviceList = manager.getDeviceList();
-                        if (deviceList != null && !deviceList.isEmpty()) showMessage = false;
-                    }
-                    if (showMessage) showNoAntMessage();
-                }
-            }
-        }
+        showAntHardwareProblem(antHardwareAvailability(), true);
 
         if (!state.isLoaded()) new Thread(this::loadDB).start();
 
@@ -282,6 +258,51 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
+    boolean ensureAntHardwareAvailable() {
+        AntHardwareAvailability.Result availability = antHardwareAvailability();
+        if (availability == AntHardwareAvailability.Result.AVAILABLE) return true;
+        showAntHardwareProblem(availability, false);
+        return false;
+    }
+
+    private AntHardwareAvailability.Result antHardwareAvailability() {
+        boolean radioServiceInstalled = isPackageInstalled("com.dsi.ant.service.socket");
+        AntSupport.Capability capability = radioServiceInstalled
+                ? AntSupport.detect(this) : AntSupport.Capability.NONE;
+        boolean integratedAnt = capability == AntSupport.Capability.BUILT_IN;
+        boolean usbDeviceConnected = false;
+        if (radioServiceInstalled && !integratedAnt) {
+            UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+            usbDeviceConnected = manager != null && manager.getDeviceList() != null
+                    && !manager.getDeviceList().isEmpty();
+        }
+        boolean antUsbServiceInstalled = usbDeviceConnected
+                && capability == AntSupport.Capability.ADD_ON;
+        return AntHardwareAvailability.determine(radioServiceInstalled, integratedAnt,
+                usbDeviceConnected, antUsbServiceInstalled);
+    }
+
+    private void showAntHardwareProblem(AntHardwareAvailability.Result availability,
+                                        boolean allowSuppression) {
+        switch (availability) {
+            case RADIO_SERVICE_MISSING:
+                goToMarketANTRadioService();
+                break;
+            case USB_DEVICE_MISSING:
+                SharedPreferences settings = getSharedPreferences(
+                        getPackageName() + "_preferences", Context.MODE_PRIVATE);
+                if (!allowSuppression || !settings.getBoolean("never_no_ant_msg", false)) {
+                    showNoAntMessage(allowSuppression);
+                }
+                break;
+            case USB_SERVICE_MISSING:
+                goToMarketANTUSBService();
+                break;
+            default:
+                break;
+        }
+    }
+
     public void goToMarketANTRadioService() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage(String.format(getResources().getString(R.string.msg_problem_service_not_found), getResources().getString(R.string.ant_radio_service)))
@@ -334,19 +355,23 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    void showNoAntMessage() {
+    void showNoAntMessage(boolean allowSuppression) {
         if (!this.isFinishing()) {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
             builder.setMessage(R.string.msg_problem_usb_stick_not_detected)
-                    .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.dismiss())
-                    .setNeutralButton(R.string.msg_problem_usb_stick_not_detected_never, (dialog, id) -> {
-                        SharedPreferences settings = getSharedPreferences(getPackageName() + "_preferences", Context.MODE_PRIVATE);
-                        SharedPreferences.Editor editor = settings.edit();
-                        editor.putBoolean("never_no_ant_msg", true);
-                        editor.apply();
-                        dialog.dismiss();
-                    })
-                    .create().show();
+                    .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.dismiss());
+            if (allowSuppression) {
+                builder.setNeutralButton(R.string.msg_problem_usb_stick_not_detected_never,
+                        (dialog, id) -> {
+                            SharedPreferences settings = getSharedPreferences(
+                                    getPackageName() + "_preferences", Context.MODE_PRIVATE);
+                            SharedPreferences.Editor editor = settings.edit();
+                            editor.putBoolean("never_no_ant_msg", true);
+                            editor.apply();
+                            dialog.dismiss();
+                        });
+            }
+            builder.create().show();
         }
     }
 

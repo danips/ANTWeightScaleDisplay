@@ -41,7 +41,7 @@ public class AntMessageParserTest {
     }
 
     @Test
-    public void reportsScaleNotReadyAndNonBarefootData() {
+    public void reportsScaleNotReadyAndWeightOnlyCompletion() {
         AntMessageParser parser = new AntMessageParser(() -> 1L);
         Weight weight = new Weight();
         assertEquals(AntMessageParser.Outcome.SCALE_NOT_READY,
@@ -50,8 +50,9 @@ public class AntMessageParserTest {
         parser = new AntMessageParser(() -> 1L);
         weight = new Weight();
         parser.apply(page(1, 0, 0, 0, 0, 0, 0x10, 0x27), weight);
-        assertEquals(AntMessageParser.Outcome.NOT_BAREFOOT,
+        assertEquals(AntMessageParser.Outcome.WEIGHT_ONLY_COMPLETE,
                 parser.apply(page(0xf1, 0xff, 0xa2, 0, 0, 0, 0xff, 0xff), weight));
+        assertTrue(parser.isComplete());
     }
 
     @Test

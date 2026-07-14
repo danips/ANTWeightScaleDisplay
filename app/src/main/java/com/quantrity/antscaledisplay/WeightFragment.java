@@ -101,7 +101,9 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         AntWeightController controller = state.antWeightController();
         if (controller != null) {
             controller.attachListener(this);
-            if (controller.isRunning()) onAntProgress(controller.progress());
+            if (controller.isRunning() && controller.progress() != null) {
+                onAntProgress(controller.progress());
+            }
         }
         updateUi();
     }
@@ -361,6 +363,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                 return true;
             }
             if (getActivity() != null) {
+                MainActivity activity = (MainActivity) getActivity();
+                if (!activity.ensureAntHardwareAvailable()) return true;
                 AntWeightController rw = state.newAntWeightController(this);
                 rw.setProfile(user);
                 rw.start();
@@ -414,12 +418,18 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     }
 
     @Override
-    public void onAntSuccess(Weight weight, User user) {
+    public void onAntSuccess(Weight weight, User user, boolean compositionUnavailable) {
         if (!isAdded()) return;
         requireActivity().runOnUiThread(() -> {
             dismissAntProgress();
             userToUpload = user;
             updateUi();
+            if (compositionUnavailable && isAdded()) {
+                new AlertDialog.Builder(requireContext())
+                        .setMessage(R.string.weight_process_msg_problem_not_barefoot)
+                        .setPositiveButton(android.R.string.ok, null)
+                        .show();
+            }
         });
     }
 
@@ -470,7 +480,6 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             case WEIGHT_TIMEOUT: return R.string.weight_process_msg_problem_timeout_weight;
             case MEASUREMENT_TIMEOUT: return R.string.weight_process_msg_problem_timeout_measurements;
             case SCALE_NOT_READY: return R.string.weight_process_msg_problem_scale_not_ready;
-            case NOT_BAREFOOT: return R.string.weight_process_msg_problem_not_barefoot;
             default: return R.string.weight_process_msg_problem_timeout;
         }
     }

@@ -31,13 +31,14 @@ final class AntWeightController implements AntServiceClient.Listener {
     private IAnt_6 receiver;
     private ScheduledFuture<?> timeout;
     private boolean profileSent;
+    private boolean compositionUnavailable;
     private boolean finished;
     private boolean successful;
     private final CompletionDelivery completionDelivery = new CompletionDelivery();
     private AntWeightSession.Failure lastFailure;
     private String lastFailureDetail;
     private boolean failureDelivered;
-    private AntWeightSession.Progress currentProgress = AntWeightSession.Progress.SEARCHING;
+    private AntWeightSession.Progress currentProgress;
 
     Weight weight = new Weight();
     User user;
@@ -67,7 +68,6 @@ final class AntWeightController implements AntServiceClient.Listener {
         if (finished || session != null || user == null) return;
         session = new AntWeightSession(user);
         weight = session.weight();
-        notifyProgress(AntWeightSession.Progress.SEARCHING);
         schedule(5, () -> {
             if (session != null && session.state() == AntWeightSession.State.STARTING
                     && !service.antPermissionsGranted()) {
@@ -95,7 +95,11 @@ final class AntWeightController implements AntServiceClient.Listener {
                 fail(AntWeightSession.Failure.CONFIGURATION, "claimInterface");
                 return;
             }
-            if (!receiver.isEnabled()) receiver.enable();
+            if (!receiver.isEnabled() && !receiver.enable()) {
+                fail(AntWeightSession.Failure.CONFIGURATION, "enable");
+                return;
+            }
+            notifyProgress(AntWeightSession.Progress.SEARCHING);
             session.start();
             try {
                 receiver.ANTResetSystem();
@@ -170,6 +174,10 @@ final class AntWeightController implements AntServiceClient.Listener {
                 case COMPLETE:
                     succeed();
                     break;
+                case COMPLETE_WEIGHT_ONLY:
+                    compositionUnavailable = true;
+                    succeed();
+                    break;
                 case FAIL:
                     fail(action.failure, action.detail);
                     break;
@@ -188,7 +196,7 @@ final class AntWeightController implements AntServiceClient.Listener {
     private synchronized void succeed() {
         if (finished || !session.hasCompleteMeasurement()) return;
         Weight result = session.weight();
-        if (result.percentFat == -1) {
+        if (result.percentFat == -1 && !compositionUnavailable) {
             result.percentFat = 1.2 * (result.weight / Math.pow(user.height_cm / 100.0, 2))
                     + 0.23 * user.age - (user.isMale ? 10.8 : 0) - 5.4;
         }
@@ -214,7 +222,7 @@ final class AntWeightController implements AntServiceClient.Listener {
     private synchronized void deliverSuccessIfPending() {
         AntWeightListener listener = listenerRef.get();
         if (listener != null && completionDelivery.claim()) {
-            listener.onAntSuccess(weight, user);
+            listener.onAntSuccess(weight, user, compositionUnavailable);
         }
     }
 

@@ -4,7 +4,9 @@ package com.quantrity.antscaledisplay;
 final class AntMessageParser {
     interface Clock { long currentTimeMillis(); }
 
-    enum Outcome { IGNORED, UPDATED, FIRST_WEIGHT, COMPLETE, SCALE_NOT_READY, NOT_BAREFOOT }
+    enum Outcome {
+        IGNORED, UPDATED, FIRST_WEIGHT, COMPLETE, WEIGHT_ONLY_COMPLETE, SCALE_NOT_READY
+    }
 
     private final Clock clock;
     private boolean weightPage;
@@ -86,8 +88,11 @@ final class AntMessageParser {
         int type = message[5] & 0xff;
         if (message[4] == (byte) 0xff) {
             if (isSegmentType(type)) segmental = true;
-            return both(message[9], message[10], (byte) 0xff) && weight.weight != -1
-                    ? Outcome.NOT_BAREFOOT : Outcome.UPDATED;
+            if (both(message[9], message[10], (byte) 0xff) && weight.weight != -1) {
+                complete = true;
+                return Outcome.WEIGHT_ONLY_COMPLETE;
+            }
+            return Outcome.UPDATED;
         }
         if (type == 0xa2 && !compositionPage) {
             compositionPage = true;
