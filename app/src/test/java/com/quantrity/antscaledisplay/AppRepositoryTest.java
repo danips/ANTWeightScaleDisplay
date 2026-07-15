@@ -2,6 +2,7 @@ package com.quantrity.antscaledisplay;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.json.JSONArray;
@@ -97,6 +98,7 @@ public class AppRepositoryTest {
         renewedTokens.garminOauth2Token = "renewed-oauth2";
         renewedTokens.garminOauth2ExpiryTimestamp += 10_000;
         renewedTokens.garminDiRefreshToken = "rotated-refresh";
+        clearLegacyGarminTokens(renewedTokens);
 
         ExecutorService callers = Executors.newFixedThreadPool(2);
         CountDownLatch start = new CountDownLatch(1);
@@ -116,7 +118,8 @@ public class AppRepositoryTest {
 
         User stored = repository.loadUsers().value.get(0);
         assertEquals("Edited profile", stored.name);
-        assertEquals(original.garminOauth1Token, stored.garminOauth1Token);
+        assertNull(stored.garminOauth1Token);
+        assertNull(stored.garminOauth1TokenSecret);
         assertEquals("renewed-oauth2", stored.garminOauth2Token);
         assertEquals(renewedTokens.garminOauth2ExpiryTimestamp, stored.garminOauth2ExpiryTimestamp);
         assertEquals("rotated-refresh", stored.garminDiRefreshToken);
@@ -141,10 +144,14 @@ public class AppRepositoryTest {
 
         User staleProfile = new User(fixture.getJSONObject(0));
         staleProfile.name = "Profile saved later";
+        staleProfile.garminOauth2ExpiryTimestamp += 30_000;
+        staleProfile.garminDiRefreshToken = null;
+        staleProfile.garminDiClientId = null;
         User renewedTokens = new User(fixture.getJSONObject(0));
         renewedTokens.garminOauth2Token = "newest-token";
         renewedTokens.garminOauth2ExpiryTimestamp += 20_000;
         renewedTokens.garminDiRefreshToken = "newest-refresh";
+        clearLegacyGarminTokens(renewedTokens);
         assertTrue(repository.updateGarminTokensSynchronously(renewedTokens).isSuccess());
 
         assertTrue(repository.saveUsersSynchronously(Arrays.asList(staleProfile)).isSuccess());
@@ -154,6 +161,8 @@ public class AppRepositoryTest {
         assertEquals("newest-token", stored.garminOauth2Token);
         assertEquals(renewedTokens.garminOauth2ExpiryTimestamp, stored.garminOauth2ExpiryTimestamp);
         assertEquals("newest-refresh", stored.garminDiRefreshToken);
+        assertNull(stored.garminOauth1Token);
+        assertNull(stored.garminOauth1TokenSecret);
     }
 
     @Test
@@ -269,6 +278,13 @@ public class AppRepositoryTest {
     private void writeFixture(String filename, String fixture) throws Exception {
         Files.write(new File(temporaryFolder.getRoot(), filename).toPath(),
                 FixtureLoader.load(fixture).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static void clearLegacyGarminTokens(User user) {
+        user.garminOauth1Token = null;
+        user.garminOauth1TokenSecret = null;
+        user.garminOauth1MfaToken = null;
+        user.garminOauth1MfaExpirationTimestamp = -1;
     }
 
     private static final class FakeSelectionStore implements AppRepository.SelectionStore {

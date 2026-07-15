@@ -364,37 +364,42 @@ public class GarminAuthenticatorTest {
     }
 
     @Test
-    public void temporarySavedConnectionFailureDoesNotRequestFreshCredentials() {
-        FakeTransport transport = new FakeTransport(response(503, "unavailable"));
-        int[] promptCount = {0};
-
-        GarminAuthenticator.SignInReport report = authenticator(
-                transport, renewalTokens(), () -> {
-                    promptCount[0]++;
-                    return "123456";
-                }).signInDetailed("user", "password", false);
-
-        assertEquals(GarminAuthenticator.SignInResult.RETRY, report.result);
-        assertEquals(GarminAuthenticator.FailureKind.SERVER, report.failure);
-        assertEquals(GarminAuthenticator.Stage.SAVED_CONNECTION, report.stage);
-        assertEquals(1, transport.requests.size());
-        assertEquals(0, promptCount[0]);
-    }
-
-    @Test
-    public void rejectedSavedConnectionFallsBackToFreshCredentials() {
+    public void legacySessionIsDiscardedBeforeValidAccessAndFreshLoginIsForced() {
         FakeTransport transport = new FakeTransport(
-                response(401, "rejected"),
                 response(200, mobileSuccess("service-ticket")),
                 response(200, diResponse("access", "refresh", 3600)));
+        FakeTokenStore tokens = legacyTokens();
+        tokens.accessToken = "legacy-access";
+        tokens.accessExpiry = NOW + 3600;
 
         GarminAuthenticator.SignInReport report = authenticator(
-                transport, renewalTokens(), () -> null)
+                transport, tokens, () -> null)
                 .signInDetailed("user", "password", false);
 
         assertTrue(report.isSuccess());
-        assertEquals(3, transport.requests.size());
-        assertTrue(transport.requests.get(1).url.contains("/mobile/api/login"));
+        assertTrue(tokens.legacySessionDiscarded);
+        assertEquals(null, tokens.oauth1Token);
+        assertEquals(null, tokens.oauth1Secret);
+        assertEquals("access", tokens.accessToken);
+        assertEquals("refresh", tokens.diRefreshToken);
+        assertEquals(2, transport.requests.size());
+        assertTrue(transport.requests.get(0).url.contains("/mobile/api/login"));
+    }
+
+    @Test
+    public void legacySessionDiscardFailureStopsBeforeFreshLogin() {
+        FakeTokenStore tokens = legacyTokens();
+        tokens.discardLegacySucceeds = false;
+        FakeTransport transport = new FakeTransport();
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, tokens, () -> null)
+                .signInDetailed("user", "password", false);
+
+        assertEquals(GarminAuthenticator.SignInResult.RETRY, report.result);
+        assertEquals(GarminAuthenticator.FailureKind.STORAGE, report.failure);
+        assertEquals(GarminAuthenticator.Stage.SAVED_CONNECTION, report.stage);
+        assertEquals(0, transport.requests.size());
     }
 
     @Test
@@ -433,34 +438,15 @@ public class GarminAuthenticatorTest {
     }
 
     @Test
-    public void backgroundRenewalUsesSavedOAuthCredentials() {
-        FakeTransport transport = new FakeTransport(
-                response(200, "{\"access_token\":\"renewed\",\"expires_in\":7200}"));
-        FakeTokenStore tokens = renewalTokens();
+    public void backgroundRenewalRejectsLegacyOAuthCredentials() {
+        FakeTransport transport = new FakeTransport();
+        FakeTokenStore tokens = legacyTokens();
 
         GarminAuthenticator.RenewalResult result = authenticator(
                 transport, tokens, () -> null).renewInBackground();
 
-        assertEquals(GarminAuthenticator.RenewalResult.SUCCESS, result);
-        assertEquals("renewed", tokens.accessToken);
-        assertTrue(tokens.lastSaveWasTokensOnly);
-        assertTrue(transport.requests.get(0).headers.containsKey("Authorization"));
-    }
-
-    @Test
-    public void rejectedRenewalCredentialsAreInvalid() {
-        FakeTransport transport = new FakeTransport(response(401, "rejected"));
-
-        assertEquals(GarminAuthenticator.RenewalResult.INVALID,
-                authenticator(transport, renewalTokens(), () -> null).renewInBackground());
-    }
-
-    @Test
-    public void temporaryRenewalFailureCanBeRetried() {
-        FakeTransport transport = new FakeTransport(response(503, "unavailable"));
-
-        assertEquals(GarminAuthenticator.RenewalResult.RETRY,
-                authenticator(transport, renewalTokens(), () -> null).renewInBackground());
+        assertEquals(GarminAuthenticator.RenewalResult.INVALID, result);
+        assertEquals(0, transport.requests.size());
     }
 
     private static GarminAuthenticator authenticator(FakeTransport transport,
@@ -469,11 +455,10 @@ public class GarminAuthenticatorTest {
         return new GarminAuthenticator(new GarminHttpClient(transport), tokens, mfa, () -> NOW);
     }
 
-    private static FakeTokenStore renewalTokens() {
+    private static FakeTokenStore legacyTokens() {
         FakeTokenStore tokens = new FakeTokenStore();
         tokens.oauth1Token = "oauth-one";
         tokens.oauth1Secret = "oauth-secret";
-        tokens.mfaToken = "mfa-token";
         return tokens;
     }
 
@@ -500,11 +485,6 @@ public class GarminAuthenticatorTest {
 
     private static String mobileInvalid() {
         return "{\"responseStatus\":{\"type\":\"INVALID_USERNAME_PASSWORD\"}}";
-    }
-
-    private static String oauth1Response() {
-        return "oauth_token=oauth-one&oauth_token_secret=oauth-secret"
-                + "&mfa_token=mfa-token&mfa_expiration_timestamp=1767225600000";
     }
 
     private static String diResponse(String access, String refresh, long expiresIn) {
@@ -537,28 +517,26 @@ public class GarminAuthenticatorTest {
         long accessExpiry = -1;
         String oauth1Token;
         String oauth1Secret;
-        String mfaToken;
         String diRefreshToken;
         String diClientId;
         boolean lastSaveWasTokensOnly;
         boolean refreshScheduled;
+        boolean legacySessionDiscarded;
+        boolean discardLegacySucceeds = true;
 
         @Override public String accessToken() { return accessToken; }
         @Override public long accessExpiry() { return accessExpiry; }
         @Override public String oauth1Token() { return oauth1Token; }
         @Override public String oauth1Secret() { return oauth1Secret; }
-        @Override public String mfaToken() { return mfaToken; }
         @Override public String diRefreshToken() { return diRefreshToken; }
         @Override public String diClientId() { return diClientId; }
-        @Override public void storeOAuth1(String token, String secret, String mfa, long expiry) {
-            oauth1Token = token;
-            oauth1Secret = secret;
-            mfaToken = mfa;
-        }
-        @Override public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
-            accessToken = token;
-            accessExpiry = expiry;
-            lastSaveWasTokensOnly = tokensOnly;
+        @Override public boolean discardLegacySession() {
+            if (!discardLegacySucceeds) return false;
+            legacySessionDiscarded = true;
+            oauth1Token = null;
+            oauth1Secret = null;
+            accessToken = null;
+            accessExpiry = -1;
             return true;
         }
         @Override public boolean storeDi(String access, long expiry, String refresh,
@@ -567,6 +545,8 @@ public class GarminAuthenticatorTest {
             accessExpiry = expiry;
             diRefreshToken = refresh;
             diClientId = clientId;
+            oauth1Token = null;
+            oauth1Secret = null;
             lastSaveWasTokensOnly = tokensOnly;
             return true;
         }

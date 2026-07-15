@@ -372,17 +372,19 @@ final class AppRepository {
         for (User outgoing : users) {
             User latest = findUser(loaded.value, outgoing.uuid);
             if (latest == null) continue;
-            if (latest.garminOauth2ExpiryTimestamp > outgoing.garminOauth2ExpiryTimestamp) {
+            boolean latestHasDi = hasDiCredentials(latest);
+            boolean outgoingHasDi = hasDiCredentials(outgoing);
+            if ((latestHasDi && !outgoingHasDi)
+                    || latest.garminOauth2ExpiryTimestamp
+                    > outgoing.garminOauth2ExpiryTimestamp) {
                 outgoing.garminOauth2Token = latest.garminOauth2Token;
                 outgoing.garminOauth2ExpiryTimestamp = latest.garminOauth2ExpiryTimestamp;
                 outgoing.garminDiRefreshToken = latest.garminDiRefreshToken;
                 outgoing.garminDiClientId = latest.garminDiClientId;
+                outgoingHasDi = latestHasDi;
             }
-            if (latest.garminOauth1MfaExpirationTimestamp > outgoing.garminOauth1MfaExpirationTimestamp) {
-                outgoing.garminOauth1Token = latest.garminOauth1Token;
-                outgoing.garminOauth1TokenSecret = latest.garminOauth1TokenSecret;
-                outgoing.garminOauth1MfaToken = latest.garminOauth1MfaToken;
-                outgoing.garminOauth1MfaExpirationTimestamp = latest.garminOauth1MfaExpirationTimestamp;
+            if (latestHasDi || outgoingHasDi) {
+                clearLegacyGarminTokens(outgoing);
             }
         }
         return writeUsers(users);
@@ -472,10 +474,27 @@ final class AppRepository {
     }
 
     private static void copyGarminTokens(User source, User target) {
+        target.garminOauth1Token = source.garminOauth1Token;
+        target.garminOauth1TokenSecret = source.garminOauth1TokenSecret;
+        target.garminOauth1MfaToken = source.garminOauth1MfaToken;
+        target.garminOauth1MfaExpirationTimestamp =
+                source.garminOauth1MfaExpirationTimestamp;
         target.garminOauth2Token = source.garminOauth2Token;
         target.garminOauth2ExpiryTimestamp = source.garminOauth2ExpiryTimestamp;
         target.garminDiRefreshToken = source.garminDiRefreshToken;
         target.garminDiClientId = source.garminDiClientId;
+    }
+
+    private static boolean hasDiCredentials(User user) {
+        return user.garminDiRefreshToken != null && !user.garminDiRefreshToken.isEmpty()
+                && user.garminDiClientId != null && !user.garminDiClientId.isEmpty();
+    }
+
+    private static void clearLegacyGarminTokens(User user) {
+        user.garminOauth1Token = null;
+        user.garminOauth1TokenSecret = null;
+        user.garminOauth1MfaToken = null;
+        user.garminOauth1MfaExpirationTimestamp = -1;
     }
 
     private RepositoryResult<Void> await(Callable<RepositoryResult<Void>> operation) {

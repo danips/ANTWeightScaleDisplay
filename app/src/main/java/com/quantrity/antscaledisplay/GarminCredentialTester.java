@@ -13,20 +13,16 @@ final class GarminCredentialTester {
     }
 
     static final class VerifiedTokens {
-        private String oauth1Token;
-        private String oauth1Secret;
-        private String mfaToken;
-        private long mfaExpiry = -1;
         private String accessToken;
         private long accessExpiry = -1;
         private String diRefreshToken;
         private String diClientId;
 
         void applyTo(User user) {
-            user.garminOauth1Token = oauth1Token;
-            user.garminOauth1TokenSecret = oauth1Secret;
-            user.garminOauth1MfaToken = mfaToken;
-            user.garminOauth1MfaExpirationTimestamp = mfaExpiry;
+            user.garminOauth1Token = null;
+            user.garminOauth1TokenSecret = null;
+            user.garminOauth1MfaToken = null;
+            user.garminOauth1MfaExpirationTimestamp = -1;
             user.garminOauth2Token = accessToken;
             user.garminOauth2ExpiryTimestamp = accessExpiry;
             user.garminDiRefreshToken = diRefreshToken;
@@ -61,20 +57,9 @@ final class GarminCredentialTester {
         @Override public long accessExpiry() { return -1; }
         @Override public String oauth1Token() { return null; }
         @Override public String oauth1Secret() { return null; }
-        @Override public String mfaToken() { return tokens.mfaToken; }
         @Override public String diRefreshToken() { return tokens.diRefreshToken; }
         @Override public String diClientId() { return tokens.diClientId; }
-        @Override public void storeOAuth1(String token, String secret, String mfa, long expiry) {
-            tokens.oauth1Token = token;
-            tokens.oauth1Secret = secret;
-            tokens.mfaToken = mfa;
-            tokens.mfaExpiry = expiry;
-        }
-        @Override public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
-            tokens.accessToken = token;
-            tokens.accessExpiry = expiry;
-            return true;
-        }
+        @Override public boolean discardLegacySession() { return true; }
         @Override public boolean storeDi(String accessToken, long accessExpiry,
                                          String refreshToken, String clientId,
                                          boolean tokensOnly) {

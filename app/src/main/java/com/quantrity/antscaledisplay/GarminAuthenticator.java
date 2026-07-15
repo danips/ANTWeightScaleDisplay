@@ -5,32 +5,18 @@ import android.util.Log;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Objects;
-import java.util.TimeZone;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import oauth.signpost.OAuthConsumer;
-import oauth.signpost.basic.DefaultOAuthConsumer;
-import oauth.signpost.http.HttpRequest;
-import oauth.signpost.signature.HmacSha1MessageSigner;
 
 /** Garmin SSO/OAuth authentication independent of Android UI and persistence details. */
 final class GarminAuthenticator {
     private static final String TAG = "GarminAuth";
-    private static final String OAUTH1_CONSUMER_KEY = "fc3e99d2-118c-44b8-8ae3-03370dde24c0";
-    private static final String OAUTH1_CONSUMER_SECRET = "E08WAR897WEy2knn7aFBrvegVAf0AFdWBBF";
     private static final String MOBILE_LOGIN_URL = "https://sso.garmin.com/mobile/api/login";
     private static final String MOBILE_MFA_URL =
             "https://sso.garmin.com/mobile/api/mfa/verifyCode";
@@ -40,8 +26,6 @@ final class GarminAuthenticator {
     private static final String MOBILE_USER_AGENT =
             "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) "
                     + "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148";
-    private static final String OAUTH2_URL =
-            "https://connectapi.garmin.com/oauth-service/oauth/exchange/user/2.0";
     private static final String DI_TOKEN_URL =
             "https://diauth.garmin.com/di-oauth2-service/oauth/token";
     private static final String DI_GRANT_TYPE =
@@ -60,7 +44,7 @@ final class GarminAuthenticator {
     }
     enum Stage {
         INPUT, SAVED_ACCESS_TOKEN, SAVED_CONNECTION, CREDENTIALS, MFA,
-        OAUTH1_EXCHANGE, OAUTH2_EXCHANGE, DI_EXCHANGE
+        DI_EXCHANGE
     }
 
     static final class SignInReport {
@@ -103,11 +87,9 @@ final class GarminAuthenticator {
         long accessExpiry();
         String oauth1Token();
         String oauth1Secret();
-        String mfaToken();
         String diRefreshToken();
         String diClientId();
-        void storeOAuth1(String token, String secret, String mfaToken, long mfaExpiry);
-        boolean storeAccess(String token, long expiry, boolean tokensOnly);
+        boolean discardLegacySession();
         boolean storeDi(String accessToken, long accessExpiry, String refreshToken,
                         String clientId, boolean tokensOnly);
         void scheduleRefresh();
@@ -133,6 +115,10 @@ final class GarminAuthenticator {
     }
 
     SignInReport signInDetailed(String username, String password, boolean forceCredentials) {
+        if (hasLegacySession() && !tokens.discardLegacySession()) {
+            return report(SignInResult.RETRY, FailureKind.STORAGE, Stage.SAVED_CONNECTION,
+                    -1, "Legacy Garmin tokens could not be discarded", false);
+        }
         if (!hasText(username) || !hasText(password)) {
             return report(SignInResult.INVALID, FailureKind.INVALID_CREDENTIALS, Stage.INPUT,
                     -1, "Garmin username and password are required", false);
@@ -142,18 +128,6 @@ final class GarminAuthenticator {
             return report(SignInResult.SUCCESS, FailureKind.NONE, Stage.SAVED_ACCESS_TOKEN,
                     -1, "A saved Garmin access token is still valid", false);
         }
-        if (!forceCredentials && hasOAuth1()) {
-            RenewalAttempt renewal = renewDetailed(false);
-            if (renewal.result == RenewalResult.SUCCESS) {
-                return report(SignInResult.SUCCESS, FailureKind.NONE, Stage.SAVED_CONNECTION,
-                        renewal.httpStatus, "A saved Garmin connection was renewed", false);
-            }
-            if (renewal.result == RenewalResult.RETRY) {
-                return report(SignInResult.RETRY, renewal.failure, Stage.SAVED_CONNECTION,
-                        renewal.httpStatus, renewal.detail, false);
-            }
-        }
-
         boolean usedMfa = false;
         Stage currentStage = Stage.CREDENTIALS;
         try {
@@ -279,17 +253,8 @@ final class GarminAuthenticator {
 
     private RenewalAttempt renewDetailed(boolean tokensOnly) {
         if (hasDiRenewal()) return refreshDiDetailed(tokensOnly);
-        if (!hasOAuth1()) return new RenewalAttempt(RenewalResult.INVALID,
-                FailureKind.PROTOCOL, -1, "No saved Garmin renewal credentials are available");
-        try {
-            OAuthConsumer consumer = consumer();
-            consumer.setTokenWithSecret(tokens.oauth1Token(), tokens.oauth1Secret());
-            return exchangeOAuth2Detailed(consumer, tokensOnly);
-        } catch (Exception exception) {
-            return new RenewalAttempt(RenewalResult.RETRY,
-                    exception instanceof IOException ? FailureKind.NETWORK : FailureKind.PROTOCOL,
-                    -1, safeExceptionDetail(exception));
-        }
+        return new RenewalAttempt(RenewalResult.INVALID, FailureKind.PROTOCOL, -1,
+                "No saved Garmin DI renewal credentials are available");
     }
 
     private RenewalAttempt exchangeServiceTicketDetailed(String ticket, boolean tokensOnly) {
@@ -401,61 +366,18 @@ final class GarminAuthenticator {
         return result.toString();
     }
 
-    private RenewalAttempt exchangeOAuth2Detailed(OAuthConsumer consumer, boolean tokensOnly) {
-        try {
-            String body = hasText(tokens.mfaToken()) ? "mfa_token=" + URLEncoder.encode(
-                    tokens.mfaToken(), StandardCharsets.UTF_8.name()) : "";
-            VirtualRequest signed = new VirtualRequest(OAUTH2_URL, "POST", body,
-                    "application/x-www-form-urlencoded");
-            consumer.sign(signed);
-            Map<String, String> headers = new HashMap<>();
-            headers.put("Content-Type", "application/x-www-form-urlencoded");
-            String authorization = signed.getHeader("Authorization");
-            if (authorization != null) headers.put("Authorization", authorization);
-            GarminHttpClient.Response response = http.executeRaw("POST", OAUTH2_URL, headers,
-                    body.getBytes(StandardCharsets.UTF_8), true);
-            trace(Stage.OAUTH2_EXCHANGE, response);
-            if (response.code == 200) {
-                JSONObject json = new JSONObject(response.body);
-                String accessToken = json.getString("access_token");
-                long expiry = clock.epochSeconds() + json.optLong("expires_in", 3600);
-                if (tokens.storeAccess(accessToken, expiry, tokensOnly)) {
-                    return new RenewalAttempt(RenewalResult.SUCCESS, FailureKind.NONE,
-                            response.code, "Garmin OAuth2 exchange succeeded");
-                }
-                return new RenewalAttempt(RenewalResult.RETRY, FailureKind.STORAGE,
-                        response.code, "Garmin tokens could not be saved");
-            }
-            FailureKind failure = classify(response, false);
-            return new RenewalAttempt(temporary(response.code)
-                    ? RenewalResult.RETRY : RenewalResult.INVALID, failure, response.code,
-                    responseDetail(response, defaultResponseDetail(Stage.OAUTH2_EXCHANGE,
-                            response.code)));
-        } catch (Exception exception) {
-            return new RenewalAttempt(RenewalResult.RETRY,
-                    exception instanceof IOException ? FailureKind.NETWORK : FailureKind.PROTOCOL,
-                    -1, safeExceptionDetail(exception));
-        }
-    }
-
     private boolean hasValidAccessToken(long safetySeconds) {
         return hasText(tokens.accessToken())
                 && tokens.accessExpiry() > clock.epochSeconds() + safetySeconds;
     }
 
-    private boolean hasOAuth1() {
-        return hasText(tokens.oauth1Token()) && hasText(tokens.oauth1Secret());
+    private boolean hasLegacySession() {
+        return !hasDiRenewal()
+                && (hasText(tokens.oauth1Token()) || hasText(tokens.oauth1Secret()));
     }
 
     private boolean hasDiRenewal() {
         return hasText(tokens.diRefreshToken()) && hasText(tokens.diClientId());
-    }
-
-    private static OAuthConsumer consumer() {
-        OAuthConsumer consumer = new DefaultOAuthConsumer(
-                OAUTH1_CONSUMER_KEY, OAUTH1_CONSUMER_SECRET);
-        consumer.setMessageSigner(new HmacSha1MessageSigner());
-        return consumer;
     }
 
     private static boolean temporary(int code) { return code == 408 || code == 429 || code >= 500; }
@@ -653,18 +575,6 @@ final class GarminAuthenticator {
         }
     }
 
-    private static Map<String, String> parseForm(String form) throws Exception {
-        Map<String, String> values = new HashMap<>();
-        if (form == null) return values;
-        for (String pair : form.split("&")) {
-            String[] parts = pair.split("=", 2);
-            if (parts.length == 2) values.put(
-                    URLDecoder.decode(parts[0], StandardCharsets.UTF_8.name()),
-                    URLDecoder.decode(parts[1], StandardCharsets.UTF_8.name()));
-        }
-        return values;
-    }
-
     private static Map<String, String> mobileParameters() {
         Map<String, String> values = new HashMap<>();
         values.put("clientId", MOBILE_CLIENT_ID);
@@ -682,51 +592,4 @@ final class GarminAuthenticator {
         return headers;
     }
 
-    static long parseMfaExpirationTimestamp(String value) {
-        if (!hasText(value)) return -1;
-        try {
-            long numeric = Long.parseLong(value);
-            return numeric > 10_000_000_000L ? numeric / 1000 : numeric;
-        } catch (NumberFormatException ignored) {
-            // Try Garmin's timestamp representations below.
-        }
-        String[] patterns = {"yyyy-MM-dd'T'HH:mm:ss.SSSX", "yyyy-MM-dd'T'HH:mm:ssX",
-                "yyyy-MM-dd HH:mm:ss.SSS"};
-        for (String pattern : patterns) {
-            try {
-                SimpleDateFormat format = new SimpleDateFormat(pattern, Locale.US);
-                format.setTimeZone(TimeZone.getTimeZone("UTC"));
-                return Objects.requireNonNull(format.parse(value)).getTime() / 1000;
-            } catch (Exception ignored) {
-                // Try the next format.
-            }
-        }
-        return -1;
-    }
-
-    private static final class VirtualRequest implements HttpRequest {
-        private String url;
-        private final String method;
-        private final Map<String, String> headers = new HashMap<>();
-        private final byte[] payload;
-        private final String contentType;
-
-        VirtualRequest(String url, String method, String payload, String contentType) {
-            this.url = url;
-            this.method = method;
-            this.payload = payload.getBytes(StandardCharsets.UTF_8);
-            this.contentType = contentType;
-            headers.put("Content-Type", contentType);
-        }
-
-        @Override public String getMethod() { return method; }
-        @Override public String getRequestUrl() { return url; }
-        @Override public void setRequestUrl(String url) { this.url = url; }
-        @Override public void setHeader(String name, String value) { headers.put(name, value); }
-        @Override public String getHeader(String name) { return headers.get(name); }
-        @Override public Map<String, String> getAllHeaders() { return headers; }
-        @Override public InputStream getMessagePayload() { return new ByteArrayInputStream(payload); }
-        @Override public String getContentType() { return contentType; }
-        @Override public Object unwrap() { return null; }
-    }
 }

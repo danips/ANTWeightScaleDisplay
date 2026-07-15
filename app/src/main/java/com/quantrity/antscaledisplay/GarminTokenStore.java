@@ -26,25 +26,18 @@ final class GarminTokenStore implements GarminAuthenticator.TokenStore {
     @Override public String oauth1Secret() {
         return user == null ? null : user.garminOauth1TokenSecret;
     }
-    @Override public String mfaToken() { return user == null ? null : user.garminOauth1MfaToken; }
     @Override public String diRefreshToken() {
         return user == null ? null : user.garminDiRefreshToken;
     }
     @Override public String diClientId() { return user == null ? null : user.garminDiClientId; }
 
     @Override
-    public void storeOAuth1(String token, String secret, String mfaToken, long mfaExpiry) {
-        user.garminOauth1Token = token;
-        user.garminOauth1TokenSecret = secret;
-        user.garminOauth1MfaToken = mfaToken;
-        user.garminOauth1MfaExpirationTimestamp = mfaExpiry;
-    }
-
-    @Override
-    public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
-        user.garminOauth2Token = token;
-        user.garminOauth2ExpiryTimestamp = expiry;
-        return persist(tokensOnly);
+    public boolean discardLegacySession() {
+        if (user == null) return false;
+        clearLegacyTokens(user, true);
+        boolean saved = persist(true);
+        if (saved) GarminTokenRefreshScheduler.cancel(context, user);
+        return saved;
     }
 
     @Override
@@ -54,7 +47,19 @@ final class GarminTokenStore implements GarminAuthenticator.TokenStore {
         user.garminOauth2ExpiryTimestamp = accessExpiry;
         user.garminDiRefreshToken = refreshToken;
         user.garminDiClientId = clientId;
+        clearLegacyTokens(user, false);
         return persist(tokensOnly);
+    }
+
+    private static void clearLegacyTokens(User user, boolean clearAccess) {
+        user.garminOauth1Token = null;
+        user.garminOauth1TokenSecret = null;
+        user.garminOauth1MfaToken = null;
+        user.garminOauth1MfaExpirationTimestamp = -1;
+        if (clearAccess) {
+            user.garminOauth2Token = null;
+            user.garminOauth2ExpiryTimestamp = -1;
+        }
     }
 
     private boolean persist(boolean tokensOnly) {
