@@ -95,8 +95,12 @@ public class MainActivity extends AppCompatActivity
                         closeEditWeightFragment(null, null, ((EditWeightFragment) current_fragment).edit, false);
                     } else if (current_fragment instanceof EditUserFragment) {
                         closeEditUserFragment(null);
+                    } else if (current_fragment instanceof EditGoalFragment) {
+                        closeEditGoalFragment(null);
+                    } else if (!(current_fragment instanceof WeightFragment)) {
+                        navigate(NavigationDestination.WEIGHT);
                     } else {
-                        // Disable this callback and call default back behavior (finish activity)
+                        // Weight is the root destination, so Back uses the system exit behavior.
                         setEnabled(false);
                         getOnBackPressedDispatcher().onBackPressed();
                     }
