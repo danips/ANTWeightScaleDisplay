@@ -62,8 +62,12 @@ final class AntWeightSession {
         if (!AntMessageParser.isValid(message)) {
             return Action.fail(Failure.PROTOCOL, AntServiceClient.messageToString(message));
         }
+        // Enabling an ANT radio immediately before resetting it can produce two startup
+        // notifications. The second one is not the response to the command in flight.
+        if (isStartup(message) && isConfiguring()) return Action.of(ActionType.NONE);
         switch (state) {
             case STARTING:
+                if (!isStartup(message)) return Action.of(ActionType.NONE);
                 state = State.ASSIGNING_CHANNEL;
                 return Action.of(ActionType.ASSIGN_CHANNEL);
             case ASSIGNING_CHANNEL:
@@ -101,6 +105,25 @@ final class AntWeightSession {
         }
         state = next;
         return Action.of(action);
+    }
+
+    private static boolean isStartup(byte[] message) {
+        return message.length >= 2 && message[1] == (byte) 0x6f;
+    }
+
+    private boolean isConfiguring() {
+        switch (state) {
+            case ASSIGNING_CHANNEL:
+            case SETTING_POWER:
+            case SETTING_FREQUENCY:
+            case SETTING_PERIOD:
+            case SETTING_ID:
+            case SETTING_SEARCH_TIMEOUT:
+            case OPENING_CHANNEL:
+                return true;
+            default:
+                return false;
+        }
     }
 
     private Action searching(byte[] message) {

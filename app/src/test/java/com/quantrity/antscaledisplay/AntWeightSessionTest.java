@@ -47,6 +47,23 @@ public class AntWeightSessionTest {
     }
 
     @Test
+    public void ignoresMessagesBeforeStartupAndDuplicateStartupDuringConfiguration() {
+        AntWeightSession session = new AntWeightSession(
+                user(), new AntMessageParser(() -> 10L), (short) 0x1234);
+        session.start();
+
+        assertAction(AntWeightSession.ActionType.NONE, session.onMessage(ok()));
+        assertEquals(AntWeightSession.State.STARTING, session.state());
+        assertAction(AntWeightSession.ActionType.ASSIGN_CHANNEL, session.onMessage(startup()));
+        assertAction(AntWeightSession.ActionType.NONE, session.onMessage(startup()));
+        assertEquals(AntWeightSession.State.ASSIGNING_CHANNEL, session.state());
+        assertAction(AntWeightSession.ActionType.SET_POWER, session.onMessage(ok()));
+        assertAction(AntWeightSession.ActionType.NONE, session.onMessage(startup()));
+        assertEquals(AntWeightSession.State.SETTING_POWER, session.state());
+        assertAction(AntWeightSession.ActionType.SET_FREQUENCY, session.onMessage(ok()));
+    }
+
+    @Test
     public void unavailableCompositionCompletesWithWeight() {
         AntWeightSession session = receivingSession();
         assertAction(AntWeightSession.ActionType.MEASUREMENT_STARTED,
@@ -89,7 +106,7 @@ public class AntWeightSessionTest {
         user.isMale = true;
         return user;
     }
-    private static byte[] startup() { return new byte[]{2, 0x6f, 0, 0}; }
+    private static byte[] startup() { return new byte[]{1, 0x6f, 0x20}; }
     private static byte[] ok() { return new byte[]{3, 0x40, 0, 0, 0}; }
     private static byte[] profileConfirmation(short id) {
         return new byte[]{9, 0x4e, 0, 1, (byte) (id >> 8), (byte) id, 0, 0, 0, 0, 0};
