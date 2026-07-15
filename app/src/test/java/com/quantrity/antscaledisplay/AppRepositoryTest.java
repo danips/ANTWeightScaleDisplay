@@ -96,6 +96,7 @@ public class AppRepositoryTest {
         User renewedTokens = new User(fixture.getJSONObject(0));
         renewedTokens.garminOauth2Token = "renewed-oauth2";
         renewedTokens.garminOauth2ExpiryTimestamp += 10_000;
+        renewedTokens.garminDiRefreshToken = "rotated-refresh";
 
         ExecutorService callers = Executors.newFixedThreadPool(2);
         CountDownLatch start = new CountDownLatch(1);
@@ -118,6 +119,7 @@ public class AppRepositoryTest {
         assertEquals(original.garminOauth1Token, stored.garminOauth1Token);
         assertEquals("renewed-oauth2", stored.garminOauth2Token);
         assertEquals(renewedTokens.garminOauth2ExpiryTimestamp, stored.garminOauth2ExpiryTimestamp);
+        assertEquals("rotated-refresh", stored.garminDiRefreshToken);
     }
 
     @Test
@@ -142,6 +144,7 @@ public class AppRepositoryTest {
         User renewedTokens = new User(fixture.getJSONObject(0));
         renewedTokens.garminOauth2Token = "newest-token";
         renewedTokens.garminOauth2ExpiryTimestamp += 20_000;
+        renewedTokens.garminDiRefreshToken = "newest-refresh";
         assertTrue(repository.updateGarminTokensSynchronously(renewedTokens).isSuccess());
 
         assertTrue(repository.saveUsersSynchronously(Arrays.asList(staleProfile)).isSuccess());
@@ -150,6 +153,7 @@ public class AppRepositoryTest {
         assertEquals("Profile saved later", stored.name);
         assertEquals("newest-token", stored.garminOauth2Token);
         assertEquals(renewedTokens.garminOauth2ExpiryTimestamp, stored.garminOauth2ExpiryTimestamp);
+        assertEquals("newest-refresh", stored.garminDiRefreshToken);
     }
 
     @Test

@@ -547,6 +547,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         user.garminOauth1MfaExpirationTimestamp = -1;
         user.garminOauth2Token = null;
         user.garminOauth2ExpiryTimestamp = -1;
+        user.garminDiRefreshToken = null;
+        user.garminDiClientId = null;
     }
 
     @Override

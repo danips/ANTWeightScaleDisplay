@@ -330,12 +330,12 @@ final class AppRepository {
                 return RepositoryResult.failure("Could not find user for Garmin token update",
                         new IllegalArgumentException("Unknown user " + tokenSource.uuid));
             }
-            copyGarminAccessToken(tokenSource, target);
+            copyGarminTokens(tokenSource, target);
             RepositoryResult<Void> result = writeUsers(loaded.value);
             if (result.isSuccess()) {
                 synchronized (stateLock) {
                     User stateUser = findUser(users, tokenSource.uuid);
-                    if (stateUser != null) copyGarminAccessToken(tokenSource, stateUser);
+                    if (stateUser != null) copyGarminTokens(tokenSource, stateUser);
                 }
             }
             return result;
@@ -350,7 +350,7 @@ final class AppRepository {
                 return RepositoryResult.failure(loaded.message, loaded.error);
             }
             User latest = findUser(loaded.value, target.uuid);
-            if (latest != null) copyGarminAccessToken(latest, target);
+            if (latest != null) copyGarminTokens(latest, target);
             return RepositoryResult.success(null);
         }, callback);
     }
@@ -375,6 +375,8 @@ final class AppRepository {
             if (latest.garminOauth2ExpiryTimestamp > outgoing.garminOauth2ExpiryTimestamp) {
                 outgoing.garminOauth2Token = latest.garminOauth2Token;
                 outgoing.garminOauth2ExpiryTimestamp = latest.garminOauth2ExpiryTimestamp;
+                outgoing.garminDiRefreshToken = latest.garminDiRefreshToken;
+                outgoing.garminDiClientId = latest.garminDiClientId;
             }
             if (latest.garminOauth1MfaExpirationTimestamp > outgoing.garminOauth1MfaExpirationTimestamp) {
                 outgoing.garminOauth1Token = latest.garminOauth1Token;
@@ -469,9 +471,11 @@ final class AppRepository {
         }
     }
 
-    private static void copyGarminAccessToken(User source, User target) {
+    private static void copyGarminTokens(User source, User target) {
         target.garminOauth2Token = source.garminOauth2Token;
         target.garminOauth2ExpiryTimestamp = source.garminOauth2ExpiryTimestamp;
+        target.garminDiRefreshToken = source.garminDiRefreshToken;
+        target.garminDiClientId = source.garminDiClientId;
     }
 
     private RepositoryResult<Void> await(Callable<RepositoryResult<Void>> operation) {

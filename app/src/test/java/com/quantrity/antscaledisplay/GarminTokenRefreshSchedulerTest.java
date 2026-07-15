@@ -42,7 +42,7 @@ public class GarminTokenRefreshSchedulerTest {
     }
 
     @Test
-    public void requiresSavedOAuth1Credentials() {
+    public void requiresSavedRenewalCredentials() {
         User user = new User();
         assertFalse(GarminTokenRefreshScheduler.hasRenewalCredentials(user));
 
@@ -56,6 +56,16 @@ public class GarminTokenRefreshSchedulerTest {
 
         user.garminOauth1Token = "oauth1";
         user.uuid = "";
+        assertFalse(GarminTokenRefreshScheduler.hasRenewalCredentials(user));
+
+        user.garminOauth1Token = null;
+        user.garminOauth1TokenSecret = null;
+        user.uuid = "user";
+        user.garminDiRefreshToken = "refresh";
+        user.garminDiClientId = "client";
+        assertTrue(GarminTokenRefreshScheduler.hasRenewalCredentials(user));
+
+        user.garminDiClientId = "";
         assertFalse(GarminTokenRefreshScheduler.hasRenewalCredentials(user));
     }
 

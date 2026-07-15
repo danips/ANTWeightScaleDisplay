@@ -40,10 +40,18 @@ final class GarminAuthenticator {
     private static final String MOBILE_USER_AGENT =
             "Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) "
                     + "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148";
-    private static final String OAUTH1_URL =
-            "https://connectapi.garmin.com/oauth-service/oauth/preauthorized";
     private static final String OAUTH2_URL =
             "https://connectapi.garmin.com/oauth-service/oauth/exchange/user/2.0";
+    private static final String DI_TOKEN_URL =
+            "https://diauth.garmin.com/di-oauth2-service/oauth/token";
+    private static final String DI_GRANT_TYPE =
+            "https://connectapi.garmin.com/di-oauth2-service/oauth/grant/service_ticket";
+    private static final String[] DI_CLIENT_IDS = {
+            "GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2",
+            "GARMIN_CONNECT_MOBILE_ANDROID_DI_2024Q4",
+            "GARMIN_CONNECT_MOBILE_ANDROID_DI",
+            "GARMIN_CONNECT_MOBILE_IOS_DI"
+    };
 
     enum SignInResult { SUCCESS, CANCELLED, INVALID, RETRY }
     enum RenewalResult { SUCCESS, RETRY, INVALID }
@@ -52,7 +60,7 @@ final class GarminAuthenticator {
     }
     enum Stage {
         INPUT, SAVED_ACCESS_TOKEN, SAVED_CONNECTION, CREDENTIALS, MFA,
-        OAUTH1_EXCHANGE, OAUTH2_EXCHANGE
+        OAUTH1_EXCHANGE, OAUTH2_EXCHANGE, DI_EXCHANGE
     }
 
     static final class SignInReport {
@@ -96,8 +104,12 @@ final class GarminAuthenticator {
         String oauth1Token();
         String oauth1Secret();
         String mfaToken();
+        String diRefreshToken();
+        String diClientId();
         void storeOAuth1(String token, String secret, String mfaToken, long mfaExpiry);
         boolean storeAccess(String token, long expiry, boolean tokensOnly);
+        boolean storeDi(String accessToken, long accessExpiry, String refreshToken,
+                        String clientId, boolean tokensOnly);
         void scheduleRefresh();
     }
 
@@ -233,37 +245,17 @@ final class GarminAuthenticator {
                         usedMfa);
             }
 
-            OAuthConsumer consumer = consumer();
-            currentStage = Stage.OAUTH1_EXCHANGE;
-            GarminHttpClient.Response oauth1 = http.execute("GET",
-                    consumer.sign(OAUTH1_URL + "?ticket=" + ticket
-                            + "&login-url=" + MOBILE_SERVICE_URL
-                            + "&accepts-mfa-tokens=true"), null, null, null, true);
-            trace(Stage.OAUTH1_EXCHANGE, oauth1);
-            if (oauth1.code != 200) {
-                return responseFailure(Stage.OAUTH1_EXCHANGE, oauth1, false, usedMfa);
-            }
-            Map<String, String> oauth1Values = parseForm(oauth1.body);
-            String oauth1Token = oauth1Values.get("oauth_token");
-            String oauth1Secret = oauth1Values.get("oauth_token_secret");
-            if (!hasText(oauth1Token) || !hasText(oauth1Secret)) {
-                return report(SignInResult.INVALID, FailureKind.PROTOCOL, Stage.OAUTH1_EXCHANGE,
-                        oauth1.code, "Garmin's OAuth1 response did not contain both tokens", usedMfa);
-            }
-            tokens.storeOAuth1(oauth1Token, oauth1Secret, oauth1Values.get("mfa_token"),
-                    parseMfaExpirationTimestamp(oauth1Values.get("mfa_expiration_timestamp")));
-
-            consumer.setTokenWithSecret(oauth1Token, oauth1Secret);
-            RenewalAttempt exchange = exchangeOAuth2Detailed(consumer, false);
+            currentStage = Stage.DI_EXCHANGE;
+            RenewalAttempt exchange = exchangeServiceTicketDetailed(ticket, false);
             if (exchange.result == RenewalResult.SUCCESS) {
-                return report(SignInResult.SUCCESS, FailureKind.NONE, Stage.OAUTH2_EXCHANGE,
+                return report(SignInResult.SUCCESS, FailureKind.NONE, Stage.DI_EXCHANGE,
                         exchange.httpStatus, usedMfa
                                 ? "Garmin login and email/SMS verification succeeded"
                                 : "Garmin login succeeded without a verification code", usedMfa);
             }
             return report(exchange.result == RenewalResult.RETRY
                             ? SignInResult.RETRY : SignInResult.INVALID,
-                    exchange.failure, Stage.OAUTH2_EXCHANGE, exchange.httpStatus,
+                    exchange.failure, Stage.DI_EXCHANGE, exchange.httpStatus,
                     exchange.detail, usedMfa);
         } catch (InterruptedException exception) {
             Thread.currentThread().interrupt();
@@ -286,6 +278,7 @@ final class GarminAuthenticator {
     }
 
     private RenewalAttempt renewDetailed(boolean tokensOnly) {
+        if (hasDiRenewal()) return refreshDiDetailed(tokensOnly);
         if (!hasOAuth1()) return new RenewalAttempt(RenewalResult.INVALID,
                 FailureKind.PROTOCOL, -1, "No saved Garmin renewal credentials are available");
         try {
@@ -297,6 +290,115 @@ final class GarminAuthenticator {
                     exception instanceof IOException ? FailureKind.NETWORK : FailureKind.PROTOCOL,
                     -1, safeExceptionDetail(exception));
         }
+    }
+
+    private RenewalAttempt exchangeServiceTicketDetailed(String ticket, boolean tokensOnly) {
+        GarminHttpClient.Response lastResponse = null;
+        try {
+            for (String clientId : DI_CLIENT_IDS) {
+                Map<String, String> form = new HashMap<>();
+                form.put("client_id", clientId);
+                form.put("service_ticket", ticket);
+                form.put("grant_type", DI_GRANT_TYPE);
+                form.put("service_url", MOBILE_SERVICE_URL);
+                GarminHttpClient.Response response = http.execute("POST", DI_TOKEN_URL,
+                        null, form, diHeaders(clientId), true);
+                trace(Stage.DI_EXCHANGE, response);
+                lastResponse = response;
+                if (response.code == 200) {
+                    JSONObject json = new JSONObject(response.body);
+                    String access = json.optString("access_token", "");
+                    String refresh = json.optString("refresh_token", "");
+                    if (!hasText(access) || !hasText(refresh)) {
+                        return new RenewalAttempt(RenewalResult.INVALID, FailureKind.PROTOCOL,
+                                response.code, "Garmin's DI response did not contain both tokens");
+                    }
+                    long expiry = clock.epochSeconds() + json.optLong("expires_in", 3600);
+                    if (tokens.storeDi(access, expiry, refresh, clientId, tokensOnly)) {
+                        return new RenewalAttempt(RenewalResult.SUCCESS, FailureKind.NONE,
+                                response.code, "Garmin DI token exchange succeeded");
+                    }
+                    return new RenewalAttempt(RenewalResult.RETRY, FailureKind.STORAGE,
+                            response.code, "Garmin tokens could not be saved");
+                }
+                if (temporary(response.code)) return renewalFailure(Stage.DI_EXCHANGE, response);
+            }
+            return lastResponse == null
+                    ? new RenewalAttempt(RenewalResult.INVALID, FailureKind.PROTOCOL, -1,
+                            "No Garmin DI client configuration was available")
+                    : renewalFailure(Stage.DI_EXCHANGE, lastResponse);
+        } catch (Exception exception) {
+            return new RenewalAttempt(RenewalResult.RETRY,
+                    exception instanceof IOException ? FailureKind.NETWORK : FailureKind.PROTOCOL,
+                    -1, safeExceptionDetail(exception));
+        }
+    }
+
+    private RenewalAttempt refreshDiDetailed(boolean tokensOnly) {
+        try {
+            Map<String, String> form = new HashMap<>();
+            form.put("grant_type", "refresh_token");
+            form.put("client_id", tokens.diClientId());
+            form.put("refresh_token", tokens.diRefreshToken());
+            GarminHttpClient.Response response = http.execute("POST", DI_TOKEN_URL,
+                    null, form, diHeaders(tokens.diClientId()), true);
+            trace(Stage.DI_EXCHANGE, response);
+            if (response.code != 200) return renewalFailure(Stage.DI_EXCHANGE, response);
+            JSONObject json = new JSONObject(response.body);
+            String access = json.optString("access_token", "");
+            String refresh = json.optString("refresh_token", tokens.diRefreshToken());
+            if (!hasText(access) || !hasText(refresh)) {
+                return new RenewalAttempt(RenewalResult.INVALID, FailureKind.PROTOCOL,
+                        response.code, "Garmin's DI refresh response was incomplete");
+            }
+            long expiry = clock.epochSeconds() + json.optLong("expires_in", 3600);
+            if (tokens.storeDi(access, expiry, refresh, tokens.diClientId(), tokensOnly)) {
+                return new RenewalAttempt(RenewalResult.SUCCESS, FailureKind.NONE,
+                        response.code, "Garmin DI token refresh succeeded");
+            }
+            return new RenewalAttempt(RenewalResult.RETRY, FailureKind.STORAGE,
+                    response.code, "Garmin tokens could not be saved");
+        } catch (Exception exception) {
+            return new RenewalAttempt(RenewalResult.RETRY,
+                    exception instanceof IOException ? FailureKind.NETWORK : FailureKind.PROTOCOL,
+                    -1, safeExceptionDetail(exception));
+        }
+    }
+
+    private static RenewalAttempt renewalFailure(Stage stage,
+                                                  GarminHttpClient.Response response) {
+        FailureKind failure = classify(response, false);
+        return new RenewalAttempt(temporary(response.code)
+                ? RenewalResult.RETRY : RenewalResult.INVALID, failure, response.code,
+                response.code == 429 ? rateLimitDetail(response)
+                        : responseDetail(response, defaultResponseDetail(stage, response.code)));
+    }
+
+    private static Map<String, String> diHeaders(String clientId) {
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Authorization", "Basic " + base64Ascii(clientId + ":"));
+        headers.put("Accept", "application/json,text/html;q=0.9,*/*;q=0.8");
+        headers.put("Content-Type", "application/x-www-form-urlencoded");
+        headers.put("Cache-Control", "no-cache");
+        return headers;
+    }
+
+    private static String base64Ascii(String value) {
+        final char[] alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+                .toCharArray();
+        byte[] bytes = value.getBytes(StandardCharsets.US_ASCII);
+        StringBuilder result = new StringBuilder((bytes.length + 2) / 3 * 4);
+        for (int index = 0; index < bytes.length; index += 3) {
+            int first = bytes[index] & 0xff;
+            int second = index + 1 < bytes.length ? bytes[index + 1] & 0xff : 0;
+            int third = index + 2 < bytes.length ? bytes[index + 2] & 0xff : 0;
+            int block = (first << 16) | (second << 8) | third;
+            result.append(alphabet[(block >>> 18) & 0x3f]);
+            result.append(alphabet[(block >>> 12) & 0x3f]);
+            result.append(index + 1 < bytes.length ? alphabet[(block >>> 6) & 0x3f] : '=');
+            result.append(index + 2 < bytes.length ? alphabet[block & 0x3f] : '=');
+        }
+        return result.toString();
     }
 
     private RenewalAttempt exchangeOAuth2Detailed(OAuthConsumer consumer, boolean tokensOnly) {
@@ -343,6 +445,10 @@ final class GarminAuthenticator {
 
     private boolean hasOAuth1() {
         return hasText(tokens.oauth1Token()) && hasText(tokens.oauth1Secret());
+    }
+
+    private boolean hasDiRenewal() {
+        return hasText(tokens.diRefreshToken()) && hasText(tokens.diClientId());
     }
 
     private static OAuthConsumer consumer() {

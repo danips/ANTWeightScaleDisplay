@@ -45,6 +45,8 @@ public class User {
     long garminOauth1MfaExpirationTimestamp;
     String garminOauth2Token;
     long garminOauth2ExpiryTimestamp;
+    String garminDiRefreshToken;
+    String garminDiClientId;
     String email_to;
 
     public User() {}
@@ -105,6 +107,8 @@ public class User {
         if (obj.has("garminOauth1MfaExpirationTimestamp")) this.garminOauth1MfaExpirationTimestamp = obj.getLong("garminOauth1MfaExpirationTimestamp");
         if (obj.has("garminOauth2Token")) this.garminOauth2Token = obj.getString("garminOauth2Token");
         if (obj.has("garminOauth2ExpiryTimestamp")) this.garminOauth2ExpiryTimestamp = obj.getLong("garminOauth2ExpiryTimestamp");
+        if (obj.has("garminDiRefreshToken")) this.garminDiRefreshToken = obj.getString("garminDiRefreshToken");
+        if (obj.has("garminDiClientId")) this.garminDiClientId = obj.getString("garminDiClientId");
         if (obj.has("email_to")) this.email_to = obj.getString("email_to");
 
         this.autoupload = !obj.has("autoupload") || obj.getBoolean("autoupload");
@@ -135,6 +139,8 @@ public class User {
         serializedObj.put("garminOauth1MfaExpirationTimestamp",this.garminOauth1MfaExpirationTimestamp);
         serializedObj.put("garminOauth2Token",this.garminOauth2Token);
         serializedObj.put("garminOauth2ExpiryTimestamp",this.garminOauth2ExpiryTimestamp);
+        serializedObj.put("garminDiRefreshToken", this.garminDiRefreshToken);
+        serializedObj.put("garminDiClientId", this.garminDiClientId);
         serializedObj.put("gc_pass", this.gc_pass);
         serializedObj.put("email_to", this.email_to);
 

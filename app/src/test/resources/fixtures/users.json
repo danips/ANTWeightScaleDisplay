@@ -17,6 +17,8 @@
     "garminOauth1MfaExpirationTimestamp": 1893456000,
     "garminOauth2Token": "oauth2-access-placeholder",
     "garminOauth2ExpiryTimestamp": 1893452400,
+    "garminDiRefreshToken": "di-refresh-placeholder",
+    "garminDiClientId": "GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2",
     "email_to": "sample@example.invalid",
     "autoupload": true,
     "show_fat_mass": true

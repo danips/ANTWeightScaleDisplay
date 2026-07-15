@@ -87,10 +87,14 @@ final class GarminTokenRefreshScheduler {
         return user != null
                 && user.uuid != null
                 && !user.uuid.isEmpty()
-                && user.garminOauth1Token != null
-                && !user.garminOauth1Token.isEmpty()
-                && user.garminOauth1TokenSecret != null
-                && !user.garminOauth1TokenSecret.isEmpty();
+                && ((user.garminDiRefreshToken != null
+                        && !user.garminDiRefreshToken.isEmpty()
+                        && user.garminDiClientId != null
+                        && !user.garminDiClientId.isEmpty())
+                    || (user.garminOauth1Token != null
+                        && !user.garminOauth1Token.isEmpty()
+                        && user.garminOauth1TokenSecret != null
+                        && !user.garminOauth1TokenSecret.isEmpty()));
     }
 
     static int baseJobId(String userUuid) {

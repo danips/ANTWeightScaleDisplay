@@ -27,6 +27,10 @@ final class GarminTokenStore implements GarminAuthenticator.TokenStore {
         return user == null ? null : user.garminOauth1TokenSecret;
     }
     @Override public String mfaToken() { return user == null ? null : user.garminOauth1MfaToken; }
+    @Override public String diRefreshToken() {
+        return user == null ? null : user.garminDiRefreshToken;
+    }
+    @Override public String diClientId() { return user == null ? null : user.garminDiClientId; }
 
     @Override
     public void storeOAuth1(String token, String secret, String mfaToken, long mfaExpiry) {
@@ -40,6 +44,20 @@ final class GarminTokenStore implements GarminAuthenticator.TokenStore {
     public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
         user.garminOauth2Token = token;
         user.garminOauth2ExpiryTimestamp = expiry;
+        return persist(tokensOnly);
+    }
+
+    @Override
+    public boolean storeDi(String accessToken, long accessExpiry, String refreshToken,
+                           String clientId, boolean tokensOnly) {
+        user.garminOauth2Token = accessToken;
+        user.garminOauth2ExpiryTimestamp = accessExpiry;
+        user.garminDiRefreshToken = refreshToken;
+        user.garminDiClientId = clientId;
+        return persist(tokensOnly);
+    }
+
+    private boolean persist(boolean tokensOnly) {
         RepositoryResult<Void> result = tokensOnly
                 ? repository.updateGarminTokensSynchronously(user)
                 : repository.saveUsersSynchronously(users);

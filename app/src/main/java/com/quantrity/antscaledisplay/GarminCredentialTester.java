@@ -19,6 +19,8 @@ final class GarminCredentialTester {
         private long mfaExpiry = -1;
         private String accessToken;
         private long accessExpiry = -1;
+        private String diRefreshToken;
+        private String diClientId;
 
         void applyTo(User user) {
             user.garminOauth1Token = oauth1Token;
@@ -27,6 +29,8 @@ final class GarminCredentialTester {
             user.garminOauth1MfaExpirationTimestamp = mfaExpiry;
             user.garminOauth2Token = accessToken;
             user.garminOauth2ExpiryTimestamp = accessExpiry;
+            user.garminDiRefreshToken = diRefreshToken;
+            user.garminDiClientId = diClientId;
         }
     }
 
@@ -58,6 +62,8 @@ final class GarminCredentialTester {
         @Override public String oauth1Token() { return null; }
         @Override public String oauth1Secret() { return null; }
         @Override public String mfaToken() { return tokens.mfaToken; }
+        @Override public String diRefreshToken() { return tokens.diRefreshToken; }
+        @Override public String diClientId() { return tokens.diClientId; }
         @Override public void storeOAuth1(String token, String secret, String mfa, long expiry) {
             tokens.oauth1Token = token;
             tokens.oauth1Secret = secret;
@@ -67,6 +73,15 @@ final class GarminCredentialTester {
         @Override public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
             tokens.accessToken = token;
             tokens.accessExpiry = expiry;
+            return true;
+        }
+        @Override public boolean storeDi(String accessToken, long accessExpiry,
+                                         String refreshToken, String clientId,
+                                         boolean tokensOnly) {
+            tokens.accessToken = accessToken;
+            tokens.accessExpiry = accessExpiry;
+            tokens.diRefreshToken = refreshToken;
+            tokens.diClientId = clientId;
             return true;
         }
         @Override public void scheduleRefresh() {}

@@ -23,6 +23,9 @@ public class PersistenceCharacterizationTest {
         assertTrue(currentReloaded.show_fat_mass);
         assertEquals("oauth1-token-placeholder", currentReloaded.garminOauth1Token);
         assertEquals("oauth2-access-placeholder", currentReloaded.garminOauth2Token);
+        assertEquals("di-refresh-placeholder", currentReloaded.garminDiRefreshToken);
+        assertEquals("GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2",
+                currentReloaded.garminDiClientId);
 
         User legacy = new User(fixture.getJSONObject(1));
         assertEquals(User.MassUnit.LB, legacy.mass_unit);

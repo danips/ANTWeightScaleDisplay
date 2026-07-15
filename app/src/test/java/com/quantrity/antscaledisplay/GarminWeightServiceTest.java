@@ -109,9 +109,15 @@ public class GarminWeightServiceTest {
             @Override public String oauth1Token() { return null; }
             @Override public String oauth1Secret() { return null; }
             @Override public String mfaToken() { return null; }
+            @Override public String diRefreshToken() { return null; }
+            @Override public String diClientId() { return null; }
             @Override public void storeOAuth1(
                     String token, String secret, String mfaToken, long mfaExpiry) {}
             @Override public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
+                return true;
+            }
+            @Override public boolean storeDi(String access, long expiry, String refresh,
+                                             String clientId, boolean tokensOnly) {
                 return true;
             }
             @Override public void scheduleRefresh() {}

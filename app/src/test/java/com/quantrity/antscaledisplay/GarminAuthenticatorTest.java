@@ -24,22 +24,57 @@ public class GarminAuthenticatorTest {
     public void successfulLoginExchangesAndStoresTokens() {
         FakeTransport transport = new FakeTransport(
                 response(200, mobileSuccess("service-ticket")),
-                response(200, oauth1Response()),
-                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+                response(200, diResponse("access", "refresh", 3600)));
         FakeTokenStore tokens = new FakeTokenStore();
 
         GarminAuthenticator.SignInReport report = authenticator(transport, tokens, () -> null)
                 .signInDetailed(" user@example.com\n", "password\r", false);
 
         assertEquals(GarminAuthenticator.SignInResult.SUCCESS, report.result);
-        assertEquals("oauth-one", tokens.oauth1Token);
-        assertEquals("oauth-secret", tokens.oauth1Secret);
         assertEquals("access", tokens.accessToken);
+        assertEquals("refresh", tokens.diRefreshToken);
+        assertEquals("GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2", tokens.diClientId);
         assertEquals(NOW + 3600, tokens.accessExpiry);
-        assertEquals(3, transport.requests.size());
+        assertEquals(2, transport.requests.size());
         assertTrue(body(transport.requests.get(0)).contains("\"username\":\"user@example.com\""));
         assertFalse(body(transport.requests.get(0)).contains("\\n"));
         assertTrue(transport.requests.get(0).url.contains("/mobile/api/login"));
+        assertTrue(transport.requests.get(1).url.contains("diauth.garmin.com"));
+        assertEquals("Basic "
+                        + "R0FSTUlOX0NPTk5FQ1RfTU9CSUxFX0FORFJPSURfRElfMjAyNVEyOg==",
+                transport.requests.get(1).headers.get("Authorization"));
+        assertTrue(body(transport.requests.get(1)).contains("service_ticket=service-ticket"));
+    }
+
+    @Test
+    public void diExchangeFallsBackToAnAcceptedClientId() {
+        FakeTransport transport = new FakeTransport(
+                response(200, mobileSuccess("service-ticket")),
+                response(400, "{\"error\":\"invalid_client\"}"),
+                response(200, diResponse("access", "refresh", 3600)));
+        FakeTokenStore tokens = new FakeTokenStore();
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, tokens, () -> null).signInDetailed("user", "password", true);
+
+        assertTrue(report.isSuccess());
+        assertEquals("GARMIN_CONNECT_MOBILE_ANDROID_DI_2024Q4", tokens.diClientId);
+        assertEquals(3, transport.requests.size());
+    }
+
+    @Test
+    public void diRateLimitFailsFastWithoutTryingMoreClientIds() {
+        FakeTransport transport = new FakeTransport(
+                response(200, mobileSuccess("service-ticket")),
+                response(429, "too many requests"));
+
+        GarminAuthenticator.SignInReport report = authenticator(
+                transport, new FakeTokenStore(), () -> null)
+                .signInDetailed("user", "password", true);
+
+        assertEquals(GarminAuthenticator.FailureKind.RATE_LIMITED, report.failure);
+        assertEquals(GarminAuthenticator.Stage.DI_EXCHANGE, report.stage);
+        assertEquals(2, transport.requests.size());
     }
 
     @Test
@@ -47,8 +82,7 @@ public class GarminAuthenticatorTest {
         FakeTransport transport = new FakeTransport(
                 response(200, mobileMfaRequired()),
                 response(200, mobileSuccess("mfa-ticket")),
-                response(200, oauth1Response()),
-                response(200, "{\"access_token\":\"access\",\"expires_in\":60}"));
+                response(200, diResponse("access", "refresh", 60)));
         FakeTokenStore tokens = new FakeTokenStore();
 
         GarminAuthenticator.SignInReport report = authenticator(
@@ -87,15 +121,14 @@ public class GarminAuthenticatorTest {
     public void directLoginReportIdentifiesCompletedStageWithoutMfa() {
         FakeTransport transport = new FakeTransport(
                 response(200, mobileSuccess("service-ticket")),
-                response(200, oauth1Response()),
-                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+                response(200, diResponse("access", "refresh", 3600)));
 
         GarminAuthenticator.SignInReport report = authenticator(
                 transport, new FakeTokenStore(), () -> null)
                 .signInDetailed("user", "password", true);
 
         assertTrue(report.isSuccess());
-        assertEquals(GarminAuthenticator.Stage.OAUTH2_EXCHANGE, report.stage);
+        assertEquals(GarminAuthenticator.Stage.DI_EXCHANGE, report.stage);
         assertEquals(200, report.httpStatus);
         assertFalse(report.usedMfa);
     }
@@ -105,8 +138,7 @@ public class GarminAuthenticatorTest {
         FakeTransport transport = new FakeTransport(
                 response(200, mobileMfaRequired()),
                 response(200, mobileSuccess("mfa-ticket")),
-                response(200, oauth1Response()),
-                response(200, "{\"access_token\":\"access\",\"expires_in\":60}"));
+                response(200, diResponse("access", "refresh", 60)));
 
         GarminAuthenticator.SignInReport report = authenticator(
                 transport, new FakeTokenStore(), () -> "123456")
@@ -280,7 +312,7 @@ public class GarminAuthenticatorTest {
                     throws Exception {
                 requestCount++;
                 if (requestCount == 1) return response(200, mobileSuccess("service-ticket"));
-                throw new IOException("Failed https://connectapi.garmin.com/oauth?"
+                throw new IOException("Failed https://diauth.garmin.com/token?"
                         + "ticket=secret-ticket&oauth_signature=secret-signature");
             }
         };
@@ -290,7 +322,7 @@ public class GarminAuthenticatorTest {
                 .signInDetailed("user", "password", true);
 
         assertEquals(GarminAuthenticator.FailureKind.NETWORK, report.failure);
-        assertEquals(GarminAuthenticator.Stage.OAUTH1_EXCHANGE, report.stage);
+        assertEquals(GarminAuthenticator.Stage.DI_EXCHANGE, report.stage);
         assertFalse(report.detail.contains("secret-ticket"));
         assertFalse(report.detail.contains("secret-signature"));
         assertTrue(report.detail.contains("query-redacted"));
@@ -354,15 +386,14 @@ public class GarminAuthenticatorTest {
         FakeTransport transport = new FakeTransport(
                 response(401, "rejected"),
                 response(200, mobileSuccess("service-ticket")),
-                response(200, oauth1Response()),
-                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+                response(200, diResponse("access", "refresh", 3600)));
 
         GarminAuthenticator.SignInReport report = authenticator(
                 transport, renewalTokens(), () -> null)
                 .signInDetailed("user", "password", false);
 
         assertTrue(report.isSuccess());
-        assertEquals(4, transport.requests.size());
+        assertEquals(3, transport.requests.size());
         assertTrue(transport.requests.get(1).url.contains("/mobile/api/login"));
     }
 
@@ -370,8 +401,7 @@ public class GarminAuthenticatorTest {
     public void credentialTesterCapturesVerifiedTokensForLaterProfileSave() {
         FakeTransport transport = new FakeTransport(
                 response(200, mobileSuccess("service-ticket")),
-                response(200, oauth1Response()),
-                response(200, "{\"access_token\":\"access\",\"expires_in\":3600}"));
+                response(200, diResponse("access", "refresh", 3600)));
         GarminCredentialTester tester = new GarminCredentialTester(
                 new GarminHttpClient(transport), () -> null, () -> NOW);
 
@@ -380,10 +410,26 @@ public class GarminAuthenticatorTest {
         assertNotNull(attempt.tokens);
         attempt.tokens.applyTo(user);
 
-        assertEquals("oauth-one", user.garminOauth1Token);
-        assertEquals("oauth-secret", user.garminOauth1TokenSecret);
         assertEquals("access", user.garminOauth2Token);
         assertEquals(NOW + 3600, user.garminOauth2ExpiryTimestamp);
+        assertEquals("refresh", user.garminDiRefreshToken);
+        assertEquals("GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2", user.garminDiClientId);
+    }
+
+    @Test
+    public void backgroundRenewalPrefersSavedDiRefreshToken() {
+        FakeTransport transport = new FakeTransport(
+                response(200, diResponse("renewed", "rotated", 7200)));
+        FakeTokenStore tokens = diRenewalTokens();
+
+        GarminAuthenticator.RenewalResult result = authenticator(
+                transport, tokens, () -> null).renewInBackground();
+
+        assertEquals(GarminAuthenticator.RenewalResult.SUCCESS, result);
+        assertEquals("renewed", tokens.accessToken);
+        assertEquals("rotated", tokens.diRefreshToken);
+        assertTrue(tokens.lastSaveWasTokensOnly);
+        assertTrue(body(transport.requests.get(0)).contains("grant_type=refresh_token"));
     }
 
     @Test
@@ -431,6 +477,13 @@ public class GarminAuthenticatorTest {
         return tokens;
     }
 
+    private static FakeTokenStore diRenewalTokens() {
+        FakeTokenStore tokens = new FakeTokenStore();
+        tokens.diRefreshToken = "di-refresh";
+        tokens.diClientId = "GARMIN_CONNECT_MOBILE_ANDROID_DI_2025Q2";
+        return tokens;
+    }
+
     private static GarminHttpClient.Response response(int code, String body) {
         return new GarminHttpClient.Response(code, body, "https://response", null);
     }
@@ -452,6 +505,11 @@ public class GarminAuthenticatorTest {
     private static String oauth1Response() {
         return "oauth_token=oauth-one&oauth_token_secret=oauth-secret"
                 + "&mfa_token=mfa-token&mfa_expiration_timestamp=1767225600000";
+    }
+
+    private static String diResponse(String access, String refresh, long expiresIn) {
+        return "{\"access_token\":\"" + access + "\",\"refresh_token\":\""
+                + refresh + "\",\"expires_in\":" + expiresIn + "}";
     }
 
     private static String body(GarminHttpClient.Request request) {
@@ -480,6 +538,8 @@ public class GarminAuthenticatorTest {
         String oauth1Token;
         String oauth1Secret;
         String mfaToken;
+        String diRefreshToken;
+        String diClientId;
         boolean lastSaveWasTokensOnly;
         boolean refreshScheduled;
 
@@ -488,6 +548,8 @@ public class GarminAuthenticatorTest {
         @Override public String oauth1Token() { return oauth1Token; }
         @Override public String oauth1Secret() { return oauth1Secret; }
         @Override public String mfaToken() { return mfaToken; }
+        @Override public String diRefreshToken() { return diRefreshToken; }
+        @Override public String diClientId() { return diClientId; }
         @Override public void storeOAuth1(String token, String secret, String mfa, long expiry) {
             oauth1Token = token;
             oauth1Secret = secret;
@@ -496,6 +558,15 @@ public class GarminAuthenticatorTest {
         @Override public boolean storeAccess(String token, long expiry, boolean tokensOnly) {
             accessToken = token;
             accessExpiry = expiry;
+            lastSaveWasTokensOnly = tokensOnly;
+            return true;
+        }
+        @Override public boolean storeDi(String access, long expiry, String refresh,
+                                         String clientId, boolean tokensOnly) {
+            accessToken = access;
+            accessExpiry = expiry;
+            diRefreshToken = refresh;
+            diClientId = clientId;
             lastSaveWasTokensOnly = tokensOnly;
             return true;
         }
