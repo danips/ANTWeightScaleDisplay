@@ -52,6 +52,11 @@ overwriting concurrent state.
 history rows. `EditableWeightMetric` supplies editor-only setters and input policy without adding UI
 mutation concerns to `Weight`.
 
+Segment presentation treats fat percentage, derived fat mass, and muscle mass as distinct primary
+value kinds. Fat uses the profile's percentage/mass preference when available; muscle remains the
+secondary value when both exist and becomes primary only for a muscle-only segment. Availability is
+fat-or-muscle, and trend comparison always uses the same value kind on both measurements.
+
 Goal editing follows the same split: `GoalValueDefinition` derives layout mode, precision, unit
 labels, and canonical conversion from `Metric`, and two `GoalValueInput` controllers bind the start
 and end subviews. `GoalProgress` calculates total/on-track values without Android dependencies and

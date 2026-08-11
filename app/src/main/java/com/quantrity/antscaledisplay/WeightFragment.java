@@ -170,10 +170,10 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             for (BodySegment segment : BodySegment.values()) {
                 MeasurementPresentationFactory.SegmentDisplay display =
                         presentationFactory.segment(segment, displayUser, displayWeight, lastWeight);
-                hasData |= display.currentValue != -1;
+                hasData |= display.available;
                 updateSegmentUI(segmentBinding(segment), display);
             }
-            binding.segmentalData.setVisibility(hasData ? View.VISIBLE : View.GONE);
+            binding.cardSegmentalContainer.setVisibility(hasData ? View.VISIBLE : View.GONE);
 
             for (Metric metric : CARD_METRICS) {
                 updateCardData(cardBinding(metric), presentationFactory.metric(
@@ -290,6 +290,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         binding.bmiDescTV.setText("");
         binding.weightIVmini.setVisibility(View.INVISIBLE);
         binding.iconWeight.setBackgroundResource(R.drawable.rounded_blue);
+        binding.cardSegmentalContainer.setVisibility(View.GONE);
 
         for (BodySegment segment : BodySegment.values()) resetSegment(segmentBinding(segment));
         for (Metric metric : CARD_METRICS) resetCard(cardBinding(metric));

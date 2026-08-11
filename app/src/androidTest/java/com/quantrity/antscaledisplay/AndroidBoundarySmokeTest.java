@@ -16,7 +16,9 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.StrictMode;
 import android.security.NetworkSecurityPolicy;
+import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
@@ -37,6 +39,41 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class AndroidBoundarySmokeTest {
+    @Test
+    public void weightScreenShowsMuscleOnlySegmentData() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        AppRepository repository = AppRepository.get(context);
+        assertTrue(repository.reloadState().isSuccess());
+        User user = user("muscle-only-segment-user");
+        user.height_cm = 180;
+        Weight weight = new Weight();
+        weight.uuid = user.uuid;
+        weight.date = System.currentTimeMillis();
+        weight.weight = 75;
+        weight.height = user.height_cm;
+        weight.leftArmMuscleMass = 3.2;
+        awaitMutation(callback -> repository.upsertUser(user, callback));
+        awaitMutation(callback -> repository.upsertWeight(weight, null, callback));
+        repository.selectUser(user.uuid);
+
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            scenario.onActivity(activity -> {
+                activity.getSupportFragmentManager().executePendingTransactions();
+                Fragment fragment = activity.getSupportFragmentManager()
+                        .findFragmentById(R.id.content_frame);
+                assertTrue(fragment instanceof WeightFragment);
+                ((WeightFragment) fragment).updateUi();
+
+                View segmentSection = activity.findViewById(R.id.cardSegmentalContainer);
+                View leftArm = activity.findViewById(R.id.segLeftArm);
+                TextView value = leftArm.findViewById(R.id.metricValue);
+                assertEquals(View.VISIBLE, segmentSection.getVisibility());
+                assertFalse(value.getText().toString().isEmpty());
+                assertFalse("-".contentEquals(value.getText()));
+            });
+        }
+    }
+
     @Test
     public void retainedAntControllerIsExposedOnlyForItsSelectedProfile() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();

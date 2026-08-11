@@ -153,6 +153,9 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] Verify graphs for every metric, unit system, goal type, and segmental measurement.
 - [ ] Confirm fat percentage/mass preference is respected.
 - [ ] Confirm segmental values map to the correct body parts.
+- [ ] Verify fat-only, muscle-only, combined, and empty segment cards with both fat percentage and
+      fat mass preferences; confirm muscle-only sections remain visible and trends compare like
+      quantities.
 - [ ] Confirm goals appear on their matching graphs.
 - [ ] Open and complete the email-sharing workflow.
 - [ ] Confirm CSV and email output use the correct values and units.

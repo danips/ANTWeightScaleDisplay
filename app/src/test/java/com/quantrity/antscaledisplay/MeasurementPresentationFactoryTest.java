@@ -103,6 +103,8 @@ public class MeasurementPresentationFactoryTest {
             MeasurementPresentationFactory.SegmentDisplay display =
                     factory.segment(segment, user, weight, previous);
             assertTrue(display.available);
+            assertEquals(MeasurementPresentationFactory.SegmentValueKind.FAT_PERCENT,
+                    display.primaryKind);
             assertEquals(segment.fatMetric.value(weight), display.currentValue, 0.000001);
             assertEquals(segment.fatMetric.value(previous), display.previousValue, 0.000001);
             assertTrue(display.primaryText.endsWith("%"));
@@ -118,6 +120,98 @@ public class MeasurementPresentationFactoryTest {
                 Metric.LEFTLEGPERCENTFAT, Metric.LEFTLEGMUSCLEMASS);
         assertSegment(BodySegment.RIGHT_LEG,
                 Metric.RIGHTLEGPERCENTFAT, Metric.RIGHTLEGMUSCLEMASS);
+    }
+
+    @Test
+    public void segmentFatOnlyUsesTheConfiguredFatRepresentation() {
+        User user = user();
+        Weight current = segmentWeight(80, 20, -1);
+        Weight previous = segmentWeight(70, 10, 9);
+
+        MeasurementPresentationFactory.SegmentDisplay percentage = factory.segment(
+                BodySegment.LEFT_ARM, user, current, previous);
+        assertSegmentDisplay(percentage, true,
+                MeasurementPresentationFactory.SegmentValueKind.FAT_PERCENT,
+                "20.0 %", "", 20, 10);
+
+        user.show_fat_mass = true;
+        MeasurementPresentationFactory.SegmentDisplay mass = factory.segment(
+                BodySegment.LEFT_ARM, user, current, previous);
+        assertSegmentDisplay(mass, true,
+                MeasurementPresentationFactory.SegmentValueKind.FAT_MASS,
+                "16.0 kg", "", 16, 7);
+    }
+
+    @Test
+    public void segmentMuscleOnlyIsPrimaryForBothFatPreferences() {
+        User user = user();
+        Weight current = segmentWeight(80, -1, 4.5);
+        Weight previous = segmentWeight(70, 10, 4.0);
+
+        for (boolean showFatMass : new boolean[]{false, true}) {
+            user.show_fat_mass = showFatMass;
+            MeasurementPresentationFactory.SegmentDisplay display = factory.segment(
+                    BodySegment.LEFT_ARM, user, current, previous);
+            assertSegmentDisplay(display, true,
+                    MeasurementPresentationFactory.SegmentValueKind.MUSCLE_MASS,
+                    "4.5 kg", "", 4.5, 4.0);
+        }
+    }
+
+    @Test
+    public void segmentWithFatAndMuscleKeepsMuscleSecondary() {
+        User user = user();
+        Weight current = segmentWeight(80, 20, 4.5);
+        Weight previous = segmentWeight(70, 10, 4.0);
+
+        MeasurementPresentationFactory.SegmentDisplay percentage = factory.segment(
+                BodySegment.LEFT_ARM, user, current, previous);
+        assertSegmentDisplay(percentage, true,
+                MeasurementPresentationFactory.SegmentValueKind.FAT_PERCENT,
+                "20.0 %", "4.5 kg", 20, 10);
+
+        user.show_fat_mass = true;
+        MeasurementPresentationFactory.SegmentDisplay mass = factory.segment(
+                BodySegment.LEFT_ARM, user, current, previous);
+        assertSegmentDisplay(mass, true,
+                MeasurementPresentationFactory.SegmentValueKind.FAT_MASS,
+                "16.0 kg", "4.5 kg", 16, 7);
+    }
+
+    @Test
+    public void segmentWithNeitherValueIsUnavailableForBothFatPreferences() {
+        User user = user();
+        Weight current = segmentWeight(80, -1, -1);
+
+        for (boolean showFatMass : new boolean[]{false, true}) {
+            user.show_fat_mass = showFatMass;
+            MeasurementPresentationFactory.SegmentDisplay display = factory.segment(
+                    BodySegment.LEFT_ARM, user, current, null);
+            assertSegmentDisplay(display, false,
+                    MeasurementPresentationFactory.SegmentValueKind.NONE,
+                    "", "", -1, -1);
+        }
+    }
+
+    @Test
+    public void segmentTrendNeverComparesDifferentValueKinds() {
+        User user = user();
+        Weight previousMuscleOnly = segmentWeight(70, -1, 4.0);
+        MeasurementPresentationFactory.SegmentDisplay currentFat = factory.segment(
+                BodySegment.LEFT_ARM, user, segmentWeight(80, 20, -1), previousMuscleOnly);
+        assertEquals(-1, currentFat.previousValue, 0.000001);
+
+        Weight previousFatOnly = segmentWeight(70, 10, -1);
+        MeasurementPresentationFactory.SegmentDisplay currentMuscle = factory.segment(
+                BodySegment.LEFT_ARM, user, segmentWeight(80, -1, 4.5), previousFatOnly);
+        assertEquals(-1, currentMuscle.previousValue, 0.000001);
+
+        user.show_fat_mass = true;
+        Weight previousWithoutTotalMass = segmentWeight(-1, 10, 4.0);
+        MeasurementPresentationFactory.SegmentDisplay currentFatMass = factory.segment(
+                BodySegment.LEFT_ARM, user, segmentWeight(80, 20, 4.5),
+                previousWithoutTotalMass);
+        assertEquals(-1, currentFatMass.previousValue, 0.000001);
     }
 
     @Test
@@ -152,6 +246,26 @@ public class MeasurementPresentationFactoryTest {
     private static void assertSegment(BodySegment segment, Metric fat, Metric muscle) {
         assertEquals(fat, segment.fatMetric);
         assertEquals(muscle, segment.muscleMetric);
+    }
+
+    private static void assertSegmentDisplay(
+            MeasurementPresentationFactory.SegmentDisplay display, boolean available,
+            MeasurementPresentationFactory.SegmentValueKind primaryKind,
+            String primaryText, String secondaryText, double current, double previous) {
+        assertEquals(available, display.available);
+        assertEquals(primaryKind, display.primaryKind);
+        assertEquals(primaryText, display.primaryText);
+        assertEquals(secondaryText, display.secondaryText);
+        assertEquals(current, display.currentValue, 0.000001);
+        assertEquals(previous, display.previousValue, 0.000001);
+    }
+
+    private static Weight segmentWeight(double totalMass, double percentFat, double muscleMass) {
+        Weight weight = new Weight();
+        weight.weight = totalMass;
+        weight.leftArmPercentFat = percentFat;
+        weight.leftArmMuscleMass = muscleMass;
+        return weight;
     }
 
     private static Weight populatedWeight() {

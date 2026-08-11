@@ -20,6 +20,13 @@ final class MeasurementPresentationFactory {
         DANGER
     }
 
+    enum SegmentValueKind {
+        NONE,
+        FAT_PERCENT,
+        FAT_MASS,
+        MUSCLE_MASS
+    }
+
     static final class MetricDisplay {
         final Metric metric;
         final boolean available;
@@ -49,15 +56,18 @@ final class MeasurementPresentationFactory {
         final boolean available;
         final String primaryText;
         final String secondaryText;
+        final SegmentValueKind primaryKind;
         final double currentValue;
         final double previousValue;
 
         SegmentDisplay(BodySegment segment, boolean available, String primaryText,
-                       String secondaryText, double currentValue, double previousValue) {
+                       String secondaryText, SegmentValueKind primaryKind,
+                       double currentValue, double previousValue) {
             this.segment = segment;
             this.available = available;
             this.primaryText = primaryText;
             this.secondaryText = secondaryText;
+            this.primaryKind = primaryKind;
             this.currentValue = currentValue;
             this.previousValue = previousValue;
         }
@@ -100,24 +110,57 @@ final class MeasurementPresentationFactory {
     SegmentDisplay segment(BodySegment segment, User user, Weight weight, Weight previous) {
         double percent = segment.fatMetric.value(weight);
         double muscle = segment.muscleMetric.value(weight);
-        boolean available = percent != -1;
-        String primary = "";
-        String secondary = "";
-        if (available) {
-            primary = user.show_fat_mass
-                    ? mass(user, weight.weight * percent / 100.0)
-                    : strings.format(R.string.weight_fragment_percent_tag, percent);
-            if (muscle != -1) secondary = mass(user, muscle);
+        boolean hasFat = percent != -1;
+        boolean hasMuscle = muscle != -1;
+        if (!hasFat && !hasMuscle) {
+            return new SegmentDisplay(segment, false, "", "", SegmentValueKind.NONE,
+                    -1, -1);
         }
 
-        double current = user.show_fat_mass ? muscle : percent;
-        double previousValue = -1;
-        if (previous != null) {
-            previousValue = user.show_fat_mass
-                    ? segment.muscleMetric.value(previous)
-                    : segment.fatMetric.value(previous);
+        SegmentValueKind primaryKind;
+        String primary;
+        String secondary = "";
+        double current;
+        if (hasFat) {
+            if (user.show_fat_mass && weight.weight != -1) {
+                primaryKind = SegmentValueKind.FAT_MASS;
+                current = fatMass(weight.weight, percent);
+                primary = mass(user, current);
+            } else {
+                primaryKind = SegmentValueKind.FAT_PERCENT;
+                current = percent;
+                primary = strings.format(R.string.weight_fragment_percent_tag, percent);
+            }
+            if (hasMuscle) secondary = mass(user, muscle);
+        } else {
+            primaryKind = SegmentValueKind.MUSCLE_MASS;
+            current = muscle;
+            primary = mass(user, muscle);
         }
-        return new SegmentDisplay(segment, available, primary, secondary, current, previousValue);
+
+        return new SegmentDisplay(segment, true, primary, secondary, primaryKind,
+                current, previousSegmentValue(segment, previous, primaryKind));
+    }
+
+    private static double previousSegmentValue(BodySegment segment, Weight previous,
+                                               SegmentValueKind primaryKind) {
+        if (previous == null) return -1;
+        if (primaryKind == SegmentValueKind.FAT_PERCENT) {
+            return segment.fatMetric.value(previous);
+        }
+        if (primaryKind == SegmentValueKind.FAT_MASS) {
+            double percent = segment.fatMetric.value(previous);
+            return previous.weight == -1 || percent == -1
+                    ? -1 : fatMass(previous.weight, percent);
+        }
+        if (primaryKind == SegmentValueKind.MUSCLE_MASS) {
+            return segment.muscleMetric.value(previous);
+        }
+        return -1;
+    }
+
+    private static double fatMass(double totalMass, double percent) {
+        return totalMass * percent / 100.0;
     }
 
     static Set<Metric> availableMetrics(List<Weight> weights) {
