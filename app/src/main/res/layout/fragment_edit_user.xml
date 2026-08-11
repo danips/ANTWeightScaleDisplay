@@ -40,7 +40,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:autofillHints="personName"
-                    android:hint="@string/edit_user_fragment_user"
                     android:inputType="text"
                     android:maxLines="1" />
 
@@ -90,7 +89,6 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:autofillHints="birthDateFull"
-                    android:hint="@string/edit_user_fragment_birthdate"
                     android:inputType="date"
                     android:maxLines="1" />
 

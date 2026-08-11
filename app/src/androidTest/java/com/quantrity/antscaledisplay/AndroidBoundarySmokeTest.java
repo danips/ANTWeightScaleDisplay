@@ -16,6 +16,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.StrictMode;
 import android.security.NetworkSecurityPolicy;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.TextView;
@@ -39,6 +40,27 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class AndroidBoundarySmokeTest {
+    @Test
+    public void editableUserAndGoalFieldsHaveExactlyOneProgrammaticLabel() {
+        Context context = ApplicationProvider.getApplicationContext();
+        LayoutInflater inflater = LayoutInflater.from(context);
+        View goal = inflater.inflate(R.layout.fragment_edit_goal, null, false);
+        View user = inflater.inflate(R.layout.fragment_edit_user, null, false);
+
+        assertLabelFor(goal, R.id.tv_startdate, R.id.et_start_date);
+        assertLabelFor(goal, R.id.tv_enddate, R.id.et_end_date);
+        assertLabelFor(goal, R.id.tv_startValue, R.id.et_startValue00);
+        assertLabelFor(goal, R.id.tv_startValue10, R.id.et_startValue10);
+        assertLabelFor(goal, R.id.tv_startValue20, R.id.et_startValue20);
+        assertLabelFor(goal, R.id.tv_startValue21, R.id.et_startValue21);
+        assertLabelFor(goal, R.id.tv_endValue, R.id.et_endValue00);
+        assertLabelFor(goal, R.id.tv_endValue10, R.id.et_endValue10);
+        assertLabelFor(goal, R.id.tv_endValue20, R.id.et_endValue20);
+        assertLabelFor(goal, R.id.tv_endValue21, R.id.et_endValue21);
+        assertLabelFor(user, R.id.tv_name, R.id.et_name);
+        assertLabelFor(user, R.id.tv_birthdate, R.id.et_birthdate);
+    }
+
     @Test
     public void collapsedHistoryRowDefersAndExpansionPayloadBindsDetails() {
         Context context = ApplicationProvider.getApplicationContext();
@@ -340,6 +362,15 @@ public class AndroidBoundarySmokeTest {
         user.name = uuid;
         user.mass_unit = User.MassUnit.KG;
         return user;
+    }
+
+    private static void assertLabelFor(View root, int labelId, int fieldId) {
+        TextView label = root.findViewById(labelId);
+        TextView field = root.findViewById(fieldId);
+        assertNotNull(label);
+        assertNotNull(field);
+        assertEquals(fieldId, label.getLabelFor());
+        assertNull(field.getHint());
     }
 
     private static Goal goal(String uuid) {

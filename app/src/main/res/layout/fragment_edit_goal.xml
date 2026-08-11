@@ -57,7 +57,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:hint="@string/edit_goal_fragment_start"
                     android:inputType="date"
                     android:maxLines="1" />
 
@@ -76,7 +75,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
-                    android:hint="@string/edit_goal_fragment_end"
                     android:inputType="date"
                     android:maxLines="1" />
 
@@ -84,6 +82,7 @@
                     android:id="@+id/tv_startValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:labelFor="@id/et_startValue00"
                     android:text="@string/edit_goal_fragment_start"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="13sp"
@@ -129,6 +128,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
+                            android:labelFor="@id/et_startValue10"
                             android:text="@string/edit_user_fragment_units_tag_cm" />
                     </LinearLayout>
 
@@ -153,6 +153,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
+                            android:labelFor="@id/et_startValue20"
                             android:text="@string/edit_user_fragment_units_tag_ft" />
 
                         <EditText
@@ -169,6 +170,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
+                            android:labelFor="@id/et_startValue21"
                             android:text="@string/edit_user_fragment_units_tag_in" />
                     </LinearLayout>
                 </FrameLayout>
@@ -177,6 +179,7 @@
                     android:id="@+id/tv_endValue"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:labelFor="@id/et_endValue00"
                     android:text="@string/edit_goal_fragment_goal"
                     android:textColor="?android:attr/textColorSecondary"
                     android:textSize="13sp"
@@ -222,6 +225,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
+                            android:labelFor="@id/et_endValue10"
                             android:text="@string/edit_user_fragment_units_tag_cm" />
                     </LinearLayout>
 
@@ -246,6 +250,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
+                            android:labelFor="@id/et_endValue20"
                             android:text="@string/edit_user_fragment_units_tag_ft" />
 
                         <EditText
@@ -262,6 +267,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="6dp"
+                            android:labelFor="@id/et_endValue21"
                             android:text="@string/edit_user_fragment_units_tag_in" />
                     </LinearLayout>
                 </FrameLayout>
