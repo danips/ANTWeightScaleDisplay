@@ -293,6 +293,52 @@ public class AppRepositoryTest {
     }
 
     @Test
+    public void selectedRecordIndexesTrackReplacementDeletionAndProfileChanges() throws Exception {
+        writeFixture("users", "users.json");
+        writeFixture("history", "history.json");
+        writeFixture("goals", "goals.json");
+        assertTrue(repository.reloadState().isSuccess());
+        List<User> users = repository.usersSnapshot();
+        String firstUuid = users.get(0).uuid;
+        String secondUuid = users.get(1).uuid;
+        for (User user : users) {
+            repository.selectUser(user.uuid);
+            ArrayList<Goal> expected = new ArrayList<>();
+            for (Goal goal : repository.goalsSnapshot()) {
+                if (user.uuid.equals(goal.uuid)) expected.add(goal);
+            }
+            assertEquals(expected, repository.selectedUserGoals());
+        }
+        repository.selectUser(firstUuid);
+        if (!repository.selectedUserGoals().isEmpty()) {
+            Goal removedGoal = repository.selectedUserGoals().get(0);
+            assertTrue(deleteGoalAndWait(removedGoal).isSuccess());
+            assertFalse(repository.selectedUserGoals().contains(removedGoal));
+            assertNull(repository.findGoal(removedGoal.uuid, removedGoal.start_date,
+                    removedGoal.type.toString()));
+        }
+        Weight firstNewest = weightFor(firstUuid, 30, 73);
+        Weight firstOlder = weightFor(firstUuid, 20, 72);
+        Weight second = weightFor(secondUuid, 10, 71);
+
+        assertTrue(replaceWeightsAndWait(
+                Arrays.asList(second, firstOlder, firstNewest)).isSuccess());
+        repository.selectUser(firstUuid);
+        assertEquals(Arrays.asList(firstNewest, firstOlder), repository.selectedUserWeights());
+        assertEquals(firstNewest, repository.lastSelectedUserWeight());
+        assertEquals(firstOlder, repository.findWeight(firstUuid, 20));
+
+        assertTrue(deleteWeightAndWait(firstNewest).isSuccess());
+        assertEquals(Collections.singletonList(firstOlder), repository.selectedUserWeights());
+        assertEquals(firstOlder, repository.lastSelectedUserWeight());
+
+        repository.selectUser(secondUuid);
+        assertEquals(Collections.singletonList(second), repository.selectedUserWeights());
+        assertEquals(second, repository.findWeight(secondUuid, 10));
+        assertNull(repository.findWeight(firstUuid, 30));
+    }
+
+    @Test
     public void asynchronousMutationReportsSuccessAndPersistsBeforeCallback() throws Exception {
         assertTrue(repository.reloadState().isSuccess());
         Weight weight = new Weight();
@@ -602,6 +648,42 @@ public class AppRepositoryTest {
         return callbackResult.get();
     }
 
+    private RepositoryResult<Void> replaceWeightsAndWait(List<Weight> weights)
+            throws InterruptedException {
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<RepositoryResult<Void>> callbackResult = new AtomicReference<>();
+        repository.replaceWeights(weights, result -> {
+            callbackResult.set(result);
+            completed.countDown();
+        });
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        return callbackResult.get();
+    }
+
+    private RepositoryResult<Void> deleteWeightAndWait(Weight weight)
+            throws InterruptedException {
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<RepositoryResult<Void>> callbackResult = new AtomicReference<>();
+        repository.deleteWeight(weight, result -> {
+            callbackResult.set(result);
+            completed.countDown();
+        });
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        return callbackResult.get();
+    }
+
+    private RepositoryResult<Void> deleteGoalAndWait(Goal goal)
+            throws InterruptedException {
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<RepositoryResult<Void>> callbackResult = new AtomicReference<>();
+        repository.deleteGoal(goal, result -> {
+            callbackResult.set(result);
+            completed.countDown();
+        });
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        return callbackResult.get();
+    }
+
     private static Weight findWeight(List<Weight> weights, String uuid, long date) {
         for (Weight weight : weights) {
             if (date == weight.date && uuid.equals(weight.uuid)) return weight;
@@ -610,8 +692,12 @@ public class AppRepositoryTest {
     }
 
     private static Weight weight(long date, double value) {
+        return weightFor("user", date, value);
+    }
+
+    private static Weight weightFor(String uuid, long date, double value) {
         Weight weight = new Weight();
-        weight.uuid = "user";
+        weight.uuid = uuid;
         weight.date = date;
         weight.weight = value;
         return weight;

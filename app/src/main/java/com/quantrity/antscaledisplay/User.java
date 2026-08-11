@@ -55,6 +55,37 @@ public class User {
         deserializeFromObj(obj);
     }
 
+    /** Explicit complete copy used by repository mutation snapshots. */
+    User copy() {
+        User copy = new User();
+        copy.uuid = uuid;
+        copy.name = name;
+        copy.isMale = isMale;
+        copy.birthdate = birthdate;
+        copy.age = age;
+        copy.height_cm = height_cm;
+        copy.height_ft = height_ft;
+        copy.height_in = height_in;
+        copy.activity_level = activity_level;
+        copy.isLifetimeAthlete = isLifetimeAthlete;
+        copy.usesCm = usesCm;
+        copy.mass_unit = mass_unit;
+        copy.autoupload = autoupload;
+        copy.show_fat_mass = show_fat_mass;
+        copy.gc_user = gc_user;
+        copy.gc_pass = gc_pass;
+        copy.garminOauth1Token = garminOauth1Token;
+        copy.garminOauth1TokenSecret = garminOauth1TokenSecret;
+        copy.garminOauth1MfaToken = garminOauth1MfaToken;
+        copy.garminOauth1MfaExpirationTimestamp = garminOauth1MfaExpirationTimestamp;
+        copy.garminOauth2Token = garminOauth2Token;
+        copy.garminOauth2ExpiryTimestamp = garminOauth2ExpiryTimestamp;
+        copy.garminDiRefreshToken = garminDiRefreshToken;
+        copy.garminDiClientId = garminDiClientId;
+        copy.email_to = email_to;
+        return copy;
+    }
+
     static int calcAgeNow(long time_in_millis) {
         return calcAge(time_in_millis, Calendar.getInstance().getTimeInMillis());
     }

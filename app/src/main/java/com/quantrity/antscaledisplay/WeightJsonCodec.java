@@ -20,7 +20,7 @@ final class WeightJsonCodec {
     RepositoryResult<String> encode(List<Weight> weights) {
         try {
             JSONArray array = new JSONArray();
-            for (Weight weight : new ArrayList<>(weights)) array.put(weight.serializeToObj());
+            for (Weight weight : weights) array.put(weight.serializeToObj());
             return RepositoryResult.success(array.toString());
         } catch (Exception e) {
             return RepositoryResult.failure("Could not encode weight history", e);

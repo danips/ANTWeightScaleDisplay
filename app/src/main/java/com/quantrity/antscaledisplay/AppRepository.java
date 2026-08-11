@@ -43,6 +43,8 @@ final class AppRepository {
     private final ArrayList<User> users = new ArrayList<>();
     private final ArrayList<Weight> weights = new ArrayList<>();
     private final ArrayList<Goal> goals = new ArrayList<>();
+    private final Map<String, ArrayList<Weight>> weightsByUser = new LinkedHashMap<>();
+    private final Map<String, ArrayList<Goal>> goalsByUser = new LinkedHashMap<>();
     private String selectedUserUuid;
     private boolean stateLoaded;
 
@@ -138,6 +140,8 @@ final class AppRepository {
             goals.addAll(loadedGoals.value);
             sortUsers(users);
             Collections.sort(weights, new Weight.DateComparator());
+            rebuildWeightIndexLocked();
+            rebuildGoalIndexLocked();
             selectedUserUuid = resolveSelectedUserUuid(users);
             stateLoaded = true;
         }
@@ -189,7 +193,10 @@ final class AppRepository {
 
     Weight findWeight(String userUuid, long date) {
         synchronized (stateLock) {
-            for (Weight weight : weights) {
+            if (userUuid == null) return null;
+            List<Weight> selected = weightsByUser.get(userUuid);
+            if (selected == null) return null;
+            for (Weight weight : selected) {
                 if (date == weight.date && userUuid.equals(weight.uuid)) return weight;
             }
             return null;
@@ -198,7 +205,10 @@ final class AppRepository {
 
     Goal findGoal(String userUuid, long startDate, String type) {
         synchronized (stateLock) {
-            for (Goal goal : goals) {
+            if (userUuid == null) return null;
+            List<Goal> selected = goalsByUser.get(userUuid);
+            if (selected == null) return null;
+            for (Goal goal : selected) {
                 if (startDate == goal.start_date && userUuid.equals(goal.uuid)
                         && goal.type.toString().equals(type)) return goal;
             }
@@ -208,19 +218,15 @@ final class AppRepository {
 
     ArrayList<Weight> selectedUserWeights() {
         synchronized (stateLock) {
-            ArrayList<Weight> selected = new ArrayList<>();
-            if (selectedUserUuid == null) return selected;
-            for (Weight weight : weights) if (selectedUserUuid.equals(weight.uuid)) selected.add(weight);
-            return selected;
+            List<Weight> selected = weightsByUser.get(selectedUserUuid);
+            return selected == null ? new ArrayList<>() : new ArrayList<>(selected);
         }
     }
 
     ArrayList<Goal> selectedUserGoals() {
         synchronized (stateLock) {
-            ArrayList<Goal> selected = new ArrayList<>();
-            if (selectedUserUuid == null) return selected;
-            for (Goal goal : goals) if (selectedUserUuid.equals(goal.uuid)) selected.add(goal);
-            return selected;
+            List<Goal> selected = goalsByUser.get(selectedUserUuid);
+            return selected == null ? new ArrayList<>() : new ArrayList<>(selected);
         }
     }
 
@@ -286,6 +292,7 @@ final class AppRepository {
             synchronized (stateLock) {
                 weights.clear();
                 weights.addAll(candidate);
+                rebuildWeightIndexLocked();
             }
             return result;
         }, callback);
@@ -304,6 +311,7 @@ final class AppRepository {
             synchronized (stateLock) {
                 goals.clear();
                 goals.addAll(candidate);
+                rebuildGoalIndexLocked();
             }
             return result;
         }, callback);
@@ -320,6 +328,7 @@ final class AppRepository {
             synchronized (stateLock) {
                 weights.clear();
                 weights.addAll(candidate);
+                rebuildWeightIndexLocked();
             }
             return result;
         }, callback);
@@ -338,6 +347,7 @@ final class AppRepository {
             synchronized (stateLock) {
                 weights.clear();
                 weights.addAll(candidate);
+                rebuildWeightIndexLocked();
             }
             return result;
         }, callback);
@@ -356,6 +366,7 @@ final class AppRepository {
             synchronized (stateLock) {
                 goals.clear();
                 goals.addAll(candidate);
+                rebuildGoalIndexLocked();
             }
             return result;
         }, callback);
@@ -403,6 +414,8 @@ final class AppRepository {
                 weights.addAll(weightCandidate);
                 goals.clear();
                 goals.addAll(goalCandidate);
+                rebuildWeightIndexLocked();
+                rebuildGoalIndexLocked();
                 selectedUserUuid = candidateSelection;
                 persistSelectedUserUuid(selectedUserUuid);
             }
@@ -445,13 +458,13 @@ final class AppRepository {
     }
 
     private RepositoryResult<Void> writeWeights(List<Weight> weights) {
-        RepositoryResult<String> encoded = weightCodec.encode(new ArrayList<>(weights));
+        RepositoryResult<String> encoded = weightCodec.encode(weights);
         if (!encoded.isSuccess()) return RepositoryResult.failure(encoded.message, encoded.error);
         return historyFile.write(encoded.value);
     }
 
     private RepositoryResult<Void> writeGoals(List<Goal> goals) {
-        RepositoryResult<String> encoded = goalCodec.encode(new ArrayList<>(goals));
+        RepositoryResult<String> encoded = goalCodec.encode(goals);
         if (!encoded.isSuccess()) return RepositoryResult.failure(encoded.message, encoded.error);
         return goalsFile.write(encoded.value);
     }
@@ -589,6 +602,8 @@ final class AppRepository {
             weights.addAll(newWeights);
             goals.clear();
             goals.addAll(newGoals);
+            rebuildWeightIndexLocked();
+            rebuildGoalIndexLocked();
             selectedUserUuid = resolveSelectedUserUuid(users);
             stateLoaded = true;
         }
@@ -596,11 +611,33 @@ final class AppRepository {
     }
 
     private static ArrayList<User> copyUsers(List<User> users) {
-        UserJsonCodec codec = new UserJsonCodec();
-        RepositoryResult<String> encoded = codec.encode(users);
-        if (!encoded.isSuccess()) return new ArrayList<>(users);
-        RepositoryResult<List<User>> decoded = codec.decode(encoded.value);
-        return decoded.isSuccess() ? new ArrayList<>(decoded.value) : new ArrayList<>(users);
+        ArrayList<User> copies = new ArrayList<>(users.size());
+        for (User user : users) copies.add(user.copy());
+        return copies;
+    }
+
+    private void rebuildWeightIndexLocked() {
+        weightsByUser.clear();
+        for (Weight weight : weights) {
+            ArrayList<Weight> selected = weightsByUser.get(weight.uuid);
+            if (selected == null) {
+                selected = new ArrayList<>();
+                weightsByUser.put(weight.uuid, selected);
+            }
+            selected.add(weight);
+        }
+    }
+
+    private void rebuildGoalIndexLocked() {
+        goalsByUser.clear();
+        for (Goal goal : goals) {
+            ArrayList<Goal> selected = goalsByUser.get(goal.uuid);
+            if (selected == null) {
+                selected = new ArrayList<>();
+                goalsByUser.put(goal.uuid, selected);
+            }
+            selected.add(goal);
+        }
     }
 
     private static RepositoryResult<Void> mutationConflict(String message) {
