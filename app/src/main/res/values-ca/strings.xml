@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">Carregant</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">S\'ha produït un problema en generar el fitxer FIT</string>
 	<string name="weight_fragment_msg_waiting">Esperant la mesura del pes</string>
-	<string name="weight_fragment_msg_wrong_credentials">Error de nom d\'usuari o de mot de pas Garmin Connect!</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> anys</string>
 	<string name="weight_process_msg_error">Error</string>

@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">Ανεβάζει</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Παρουσιάστηκε πρόβλημα στη δημιουργία αρχείου FIT</string>
 	<string name="weight_fragment_msg_waiting">Αναμονή για μέτρηση βάρους</string>
-	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d έτη</string>
 	<string name="weight_process_msg_error">Σφάλμα</string>

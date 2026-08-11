@@ -193,7 +193,6 @@
 	<string name="weight_fragment_msg_uploading">Uploading</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">There has been a problem generating the FIT file</string>
 	<string name="weight_fragment_msg_waiting">Waiting for weight measurement</string>
-	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
     <string name="weight_fragment_years_tag" tools:ignore="PluralsCandidate"><xliff:g id="number">%1$d</xliff:g> years</string>
 	<string name="weight_process_msg_error">Error</string>

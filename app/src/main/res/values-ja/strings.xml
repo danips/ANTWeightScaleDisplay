@@ -159,7 +159,6 @@
     <string name="weight_fragment_msg_uploading">アップロード中</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">FITファイルの生成中に問題が発生しました</string>
     <string name="weight_fragment_msg_waiting">体重測定を待機中</string>
-    <string name="weight_fragment_msg_wrong_credentials">Garmin Connect のユーザー名またはパスワードが間違っています！</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> 歳</string>
     <string name="weight_process_msg_error">エラー</string>

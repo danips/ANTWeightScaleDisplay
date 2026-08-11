@@ -159,7 +159,6 @@
     <string name="weight_fragment_msg_uploading">Завантаження</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">Виникла проблема при створенні FIT-файлу</string>
     <string name="weight_fragment_msg_waiting">Очікування вимірювання ваги</string>
-    <string name="weight_fragment_msg_wrong_credentials">Неправильне ім\'я користувача або пароль Garmin Connect!</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> років</string>
     <string name="weight_process_msg_error">Помилка</string>

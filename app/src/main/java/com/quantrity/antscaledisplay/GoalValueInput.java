@@ -79,14 +79,6 @@ final class GoalValueInput {
                 definition.toCanonical(stones.value(), pounds.value()));
     }
 
-    void clear() {
-        unitlessValue.setText("");
-        singleValue.setText("");
-        stonesValue.setText("");
-        poundsValue.setText("");
-        clearErrors();
-    }
-
     private LocalizedNumberParser.Result parseSingle(EditText input) {
         LocalizedNumberParser.Result result = parse(input);
         return result.isValid()

@@ -84,21 +84,6 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
 
     }
 
-    public void add(int position, User item) {
-        mDataset.add(position, item);
-        notifyItemInserted(position);
-    }
-
-    public void update(User item) {
-        int position = mDataset.indexOf(item);
-        if (position != -1) notifyItemChanged(position);
-        else add(0, item);
-    }
-
-    public User get(User item) {
-        return mDataset.get(mDataset.indexOf(item));
-    }
-
     void replaceAll(ArrayList<User> users) {
         ArrayList<User> replacement = new ArrayList<>(users);
         int oldSize = mDataset.size();

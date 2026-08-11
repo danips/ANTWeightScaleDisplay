@@ -160,7 +160,6 @@
 	<string name="weight_fragment_msg_uploading">Laster opp</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Det har vært et problem med å generere FIT-filen</string>
 	<string name="weight_fragment_msg_waiting">Venter på vektmåling</string>
-	<string name="weight_fragment_msg_wrong_credentials">Wrong Garmin Connect username or password!</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d år</string>
 	<string name="weight_process_msg_error">Feil</string>

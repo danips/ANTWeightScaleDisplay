@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">In fase di upload</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">C\'è stato un problema nel generare il file FIT</string>
 	<string name="weight_fragment_msg_waiting">In attesa della misura del peso</string>
-	<string name="weight_fragment_msg_wrong_credentials">Nome utente o password per Garmin Connect non corrette !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d anni</string>
 	<string name="weight_process_msg_error">Errore</string>

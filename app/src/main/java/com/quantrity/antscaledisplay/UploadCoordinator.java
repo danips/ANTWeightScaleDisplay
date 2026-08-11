@@ -68,6 +68,6 @@ final class UploadCoordinator {
             }
         }
 
-        return new UploadResult(uploadToGarmin, garminSucceeded, garminError, email, emailError);
+        return new UploadResult(garminSucceeded, garminError, email, emailError);
     }
 }

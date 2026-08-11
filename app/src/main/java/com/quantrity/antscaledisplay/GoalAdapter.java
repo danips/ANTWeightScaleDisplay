@@ -83,11 +83,6 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         }
     }
 
-    public void add(int position, Goal item) {
-        dataset.add(position, item);
-        notifyItemInserted(position);
-    }
-
     void replaceAll(ArrayList<Goal> dataset, User user, Weight lastWeight) {
         this.user = user;
         this.lastWeight = lastWeight;
@@ -97,8 +92,6 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         this.dataset.addAll(dataset);
         if (!dataset.isEmpty()) notifyItemRangeInserted(0, dataset.size());
     }
-
-    public Goal get(Goal item) { return dataset.get(dataset.indexOf(item)); }
 
     @NonNull
     @Override

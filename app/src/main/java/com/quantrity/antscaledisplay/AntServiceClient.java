@@ -41,10 +41,6 @@ final class AntServiceClient {
         this.listener = listener;
     }
 
-    private final BroadcastReceiver statusReceiver = new BroadcastReceiver() {
-        @Override public void onReceive(Context context, Intent intent) { /* Status is diagnostic. */ }
-    };
-
     private final BroadcastReceiver dataReceiver = new BroadcastReceiver() {
         @Override public void onReceive(Context context, Intent intent) {
             if (RX_ACTION.equals(intent.getAction())) {
@@ -104,13 +100,6 @@ final class AntServiceClient {
 
     void registerReceivers() {
         if (receiversRegistered || !bound) return;
-        IntentFilter status = new IntentFilter();
-        status.addAction("com.dsi.ant.intent.action.ANT_ENABLED");
-        status.addAction("com.dsi.ant.intent.action.ANT_DISABLED");
-        status.addAction("com.dsi.ant.intent.action.ANT_INTERFACE_CLAIMED_ACTION");
-        status.addAction("com.dsi.ant.intent.action.ANT_RESET");
-        ContextCompat.registerReceiver(context, statusReceiver, status,
-                ContextCompat.RECEIVER_EXPORTED);
         IntentFilter data = new IntentFilter(RX_ACTION);
         ContextCompat.registerReceiver(context, dataReceiver, data,
                 ContextCompat.RECEIVER_EXPORTED);
@@ -119,7 +108,6 @@ final class AntServiceClient {
 
     void unregisterReceivers() {
         if (!receiversRegistered) return;
-        try { context.unregisterReceiver(statusReceiver); } catch (IllegalArgumentException ignored) { }
         try { context.unregisterReceiver(dataReceiver); } catch (IllegalArgumentException ignored) { }
         receiversRegistered = false;
     }

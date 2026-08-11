@@ -28,7 +28,6 @@ final class MeasurementPresentationFactory {
     }
 
     static final class MetricDisplay {
-        final Metric metric;
         final boolean available;
         final String primaryText;
         final String secondaryText;
@@ -37,10 +36,9 @@ final class MeasurementPresentationFactory {
         final double currentValue;
         final double previousValue;
 
-        MetricDisplay(Metric metric, boolean available, String primaryText, String secondaryText,
+        MetricDisplay(boolean available, String primaryText, String secondaryText,
                       Status status, Status compactStatus, double currentValue,
                       double previousValue) {
-            this.metric = metric;
             this.available = available;
             this.primaryText = primaryText;
             this.secondaryText = secondaryText;
@@ -52,7 +50,6 @@ final class MeasurementPresentationFactory {
     }
 
     static final class SegmentDisplay {
-        final BodySegment segment;
         final boolean available;
         final String primaryText;
         final String secondaryText;
@@ -60,10 +57,9 @@ final class MeasurementPresentationFactory {
         final double currentValue;
         final double previousValue;
 
-        SegmentDisplay(BodySegment segment, boolean available, String primaryText,
+        SegmentDisplay(boolean available, String primaryText,
                        String secondaryText, SegmentValueKind primaryKind,
                        double currentValue, double previousValue) {
-            this.segment = segment;
             this.available = available;
             this.primaryText = primaryText;
             this.secondaryText = secondaryText;
@@ -95,7 +91,7 @@ final class MeasurementPresentationFactory {
     private MetricDisplay metric(Metric metric, User user, Weight weight, double value,
                                  double previousValue, int age, boolean male) {
         if (value == -1) {
-            return new MetricDisplay(metric, false, "", "", Status.NEUTRAL,
+            return new MetricDisplay(false, "", "", Status.NEUTRAL,
                     Status.NEUTRAL, value, previousValue);
         }
 
@@ -103,7 +99,7 @@ final class MeasurementPresentationFactory {
         Status status = status(metric, weight, value, age, male, false);
         Status compactStatus = status(metric, weight, value, age, male, true);
         String secondary = secondary(metric, user, weight, value, age, male);
-        return new MetricDisplay(metric, true, primary, secondary, status, compactStatus,
+        return new MetricDisplay(true, primary, secondary, status, compactStatus,
                 value, previousValue);
     }
 
@@ -113,7 +109,7 @@ final class MeasurementPresentationFactory {
         boolean hasFat = percent != -1;
         boolean hasMuscle = muscle != -1;
         if (!hasFat && !hasMuscle) {
-            return new SegmentDisplay(segment, false, "", "", SegmentValueKind.NONE,
+            return new SegmentDisplay(false, "", "", SegmentValueKind.NONE,
                     -1, -1);
         }
 
@@ -138,7 +134,7 @@ final class MeasurementPresentationFactory {
             primary = mass(user, muscle);
         }
 
-        return new SegmentDisplay(segment, true, primary, secondary, primaryKind,
+        return new SegmentDisplay(true, primary, secondary, primaryKind,
                 current, previousSegmentValue(segment, previous, primaryKind));
     }
 

@@ -244,7 +244,6 @@ public class GraphsFragment extends Fragment implements OnChartGestureListener, 
         graphLayout.removeAllViews();
         graphPoints = GraphSeriesBuilder.rawPoints(weights, metric, the_user);
         if (graphPoints.isEmpty()) {
-            if (Debug.ON) Log.v(TAG, "(data.size() == 0) CLEAR GRAPH");
             return;
         }
         double oldest = graphPoints.get(0).x;

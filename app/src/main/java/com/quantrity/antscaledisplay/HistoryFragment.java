@@ -258,8 +258,6 @@ public class HistoryFragment extends Fragment implements MenuProvider,
     }
 
     private void export_history_csv() {
-        if (Debug.ON) Log.v(TAG, "export_history_csv");
-
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
         // Using new Launcher instead of deprecated startActivityForResult
         csvExportLauncher.launch(intent);

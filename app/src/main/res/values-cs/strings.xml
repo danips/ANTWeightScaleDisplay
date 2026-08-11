@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">Nahrát</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Nastal problém s generováním FIT souboru</string>
 	<string name="weight_fragment_msg_waiting">Čekejte na odezvu váhy</string>
-	<string name="weight_fragment_msg_wrong_credentials">Chybné jméno nebo heslo pro Garmin Connect !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d roků</string>
 	<string name="weight_process_msg_error">Chyba</string>

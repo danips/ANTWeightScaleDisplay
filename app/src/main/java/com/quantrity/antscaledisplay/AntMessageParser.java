@@ -149,6 +149,5 @@ final class AntMessageParser {
         return first == lowMarker && second == (byte) 0xff;
     }
 
-    boolean hasWeight() { return weightPage; }
     boolean isComplete() { return complete; }
 }

@@ -9,8 +9,6 @@ import org.json.JSONObject;
 
 import java.io.Serializable;
 import java.util.Calendar;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Locale;
 
 public class User {
@@ -184,14 +182,6 @@ public class User {
     @NonNull
     public String toString() {
         return name;
-    }
-
-    public static String[] toString(List<User> l) {
-        String[] users = new String[l.size()];
-        Iterator<User> it = l.iterator();
-        int i = 0;
-        while (it.hasNext()) users[i++] = it.next().name;
-        return users;
     }
 
     String printMass(Context c, double mass) {

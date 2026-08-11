@@ -149,10 +149,6 @@ public final class AppStateViewModel extends AndroidViewModel {
         repository.upsertUser(user, onMainThread(callback));
     }
 
-    void reloadGarminTokens(User user, AppRepository.MutationCallback callback) {
-        repository.reloadGarminTokens(user, onMainThread(callback));
-    }
-
     void saveWeight(Weight weight, Weight original, AppRepository.MutationCallback callback) {
         repository.upsertWeight(weight, original, onMainThread(callback));
     }

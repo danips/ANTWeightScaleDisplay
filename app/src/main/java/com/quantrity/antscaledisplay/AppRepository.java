@@ -490,26 +490,6 @@ final class AppRepository {
         });
     }
 
-    void reloadGarminTokens(User target, MutationCallback callback) {
-        execute(() -> {
-            if (target == null || target.uuid == null) return RepositoryResult.success(null);
-            RepositoryResult<List<User>> loaded = loadUsers();
-            if (!loaded.isSuccess()) {
-                return RepositoryResult.failure(loaded.message, loaded.error);
-            }
-            User latest = findUser(loaded.value, target.uuid);
-            if (latest != null) copyGarminTokens(latest, target);
-            return RepositoryResult.success(null);
-        }, callback);
-    }
-
-    List<File> dataFiles() {
-        return java.util.Arrays.asList(
-                new File(filesDirectory, USERS_FILE_NAME),
-                new File(filesDirectory, HISTORY_FILE_NAME),
-                new File(filesDirectory, GOALS_FILE_NAME));
-    }
-
     void close() {
         writeExecutor.shutdownNow();
     }

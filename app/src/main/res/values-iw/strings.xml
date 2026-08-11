@@ -159,7 +159,6 @@
     <string name="weight_fragment_msg_uploading">מעלה</string>
     <string name="weight_fragment_msg_uploading_encoding_failure">אירעה בעיה ביצירת קובץ ה-FIT</string>
     <string name="weight_fragment_msg_waiting">ממתין למדידת משקל</string>
-    <string name="weight_fragment_msg_wrong_credentials">שם משתמש או סיסמה שגויים ל-Garmin Connect!</string>
     <string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
     <string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> שנים</string>
     <string name="weight_process_msg_error">שגיאה</string>

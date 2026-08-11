@@ -146,7 +146,8 @@ every summary. Notification progress is emitted only when the whole-number perce
 
 ## ANT boundary
 
-`AntServiceClient` owns Android service discovery, binding, broadcast receivers, channel commands,
+`AntServiceClient` owns Android service discovery, binding, the ANT data broadcast receiver,
+channel commands,
 and idempotent cleanup. It forwards incoming protocol messages without holding a Fragment or
 Activity.
 

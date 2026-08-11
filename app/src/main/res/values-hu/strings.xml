@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">Feltöltés</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Probléma a FIT fájl előállítása során</string>
 	<string name="weight_fragment_msg_waiting">Mérésre várakozás</string>
-	<string name="weight_fragment_msg_wrong_credentials">Hibás Garmin Connect felhasználónév vagy jelszó!</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
 	<string name="weight_fragment_years_tag"><xliff:g id="number">%1$d</xliff:g> év</string>
 	<string name="weight_process_msg_error">Hiba</string>

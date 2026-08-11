@@ -14,7 +14,6 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.CheckedTextView;
 import android.widget.LinearLayout;
@@ -376,13 +375,7 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void dismissKeyboard() {
-        View focus = getCurrentFocus();
-        if (focus == null) return;
-        InputMethodManager inputMethodManager =
-                (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-        if (inputMethodManager != null) {
-            inputMethodManager.hideSoftInputFromWindow(focus.getWindowToken(), 0);
-        }
+        KeyboardUtils.hide(this);
     }
 
     void showNoAntMessage(boolean allowSuppression) {
@@ -411,7 +404,6 @@ public class MainActivity extends AppCompatActivity
 
         AntWeightController rw = state.antWeightController();
         if (rw != null) {
-            if (Debug.ON) Log.v(TAG, "onPause unregisterForAntIntents");
             rw.unregisterReceivers();
         }
     }
@@ -422,7 +414,6 @@ public class MainActivity extends AppCompatActivity
 
         AntWeightController rw = state.antWeightController();
         if (rw != null) {
-            if (Debug.ON) Log.v(TAG, "onResume registerForAntIntents " + rw.state());
             rw.registerReceivers();
         }
     }

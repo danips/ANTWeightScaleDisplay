@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">Uploading</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Er is een probleem om een FIT bestand te maken</string>
 	<string name="weight_fragment_msg_waiting">Wachten op gewichtmeting</string>
-	<string name="weight_fragment_msg_wrong_credentials">Foutieve Garmin Connect gebruikersnaam of wachtwoord !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d jaar</string>
 	<string name="weight_process_msg_error">Error</string>

@@ -97,7 +97,7 @@ final class ForegroundUploadManager implements AutoCloseable {
                     () -> incrementProgress(operationId),
                     () -> requestMfaCode(operationId));
             if (providerError != null) {
-                completed = new UploadResult(true, false, providerError,
+                completed = new UploadResult(false, providerError,
                         completed.emailMessage, completed.emailError);
             }
             finish(operationId, completed);

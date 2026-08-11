@@ -159,7 +159,6 @@
 	<string name="weight_fragment_msg_uploading">Hochladen</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">Es gibt ein Problem beim Erstellen der FIT Datei</string>
 	<string name="weight_fragment_msg_waiting">Warten für Gewichtsmessung</string>
-	<string name="weight_fragment_msg_wrong_credentials">Garmin Connect Benutzername oder Passwort falsch !</string>
 	<string name="weight_fragment_percent_tag">%1$.1f %%</string>
 	<string name="weight_fragment_years_tag">%1$d Jahre</string>
 	<string name="weight_process_msg_error">Fehler</string>

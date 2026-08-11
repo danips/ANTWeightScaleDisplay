@@ -109,6 +109,8 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] Search with the scale off and confirm timeout saves nothing.
 - [ ] Cancel during search and during measurement reception.
 - [ ] Disconnect the ANT service/radio during search and measurement reception.
+- [ ] Enable, disable, and reset ANT before and during a session; confirm bind, measurement data,
+      stop, and a subsequent rebind still work without the former no-op status receiver.
 - [ ] Submit a partial composition or non-barefoot measurement and confirm it is not saved or
       uploaded.
 - [ ] Recreate the Activity during search and confirm progress resumes without duplicate results or
