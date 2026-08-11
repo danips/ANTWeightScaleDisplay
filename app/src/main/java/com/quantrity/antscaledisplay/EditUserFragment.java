@@ -508,7 +508,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         Activity activity = requireActivity();
         garmin_test_task = garmin_test_executor.submit(() -> {
             GarminCredentialTester tester = new GarminCredentialTester(
-                    new GarminHttpClient(true), new DialogMfaCodeProvider(activity));
+                    new GarminHttpClient(), new DialogMfaCodeProvider(activity));
             GarminCredentialTester.Attempt attempt = tester.test(username, password);
             activity.runOnUiThread(() -> showGarminTestResult(username, password, attempt));
         });

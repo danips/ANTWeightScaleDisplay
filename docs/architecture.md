@@ -29,6 +29,11 @@ Three codecs define the persisted JSON contract:
 `AtomicJsonFile` writes UTF-8 data through a `.tmp` file, keeps a `.del` rollback file during
 replacement, synchronizes the file descriptor, and recovers interrupted replacements on the next
 read or write. Repository snapshots prevent callers from mutating shared collections accidentally.
+User mutation snapshots use an explicit all-field copy instead of a JSON encode/decode cycle.
+Committed weight and goal lists rebuild per-profile indexes, so selected-profile snapshots and
+record lookup scale with that profile rather than every stored record. History import remains one
+batched replacement/write. Device acceptance budgets and the host scale characterization are in
+`docs/repository-performance.md`; no database migration is justified without failing those gates.
 
 ## UI boundary
 
@@ -107,6 +112,10 @@ The foreground composition root is `GarminForegroundSession`. It constructs and 
 - `GarminTokenStore` for repository-backed credential updates and refresh scheduling;
 - `GarminWeightService` for FIT upload and weight-history download;
 - `DialogMfaCodeProvider` for the replaceable Android MFA interface.
+
+Each `GarminHttpClient` owns a private cookie jar. Redirects are followed explicitly with a
+ten-hop bound so cookies from every intermediate response are stored and replayed without changing
+the process-wide `CookieHandler`; clearing one client cannot affect another session.
 
 Notification autofill is registered only while the Garmin MFA input dialog is visible. The listener
 requires a Garmin keyword in the notification title or content, rejects notification timestamps

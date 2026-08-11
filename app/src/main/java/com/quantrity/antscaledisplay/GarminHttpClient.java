@@ -7,11 +7,10 @@ import java.io.DataOutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.CookieManager;
-import java.net.CookieHandler;
 import java.net.CookiePolicy;
 import java.net.HttpURLConnection;
+import java.net.ProtocolException;
 import java.net.URI;
-import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -20,6 +19,7 @@ import java.util.Map;
 
 /** Generic Garmin HTTP transport with explicit cookies, redirects, headers, and decoding. */
 class GarminHttpClient {
+    private static final int MAX_REDIRECTS = 10;
     static final String USER_AGENT = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 "
             + "(KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
 
@@ -71,11 +71,7 @@ class GarminHttpClient {
     private final Transport transport;
 
     GarminHttpClient() {
-        this(false);
-    }
-
-    GarminHttpClient(boolean installProcessCookieHandler) {
-        this(new UrlConnectionTransport(installProcessCookieHandler));
+        this(new UrlConnectionTransport());
     }
 
     GarminHttpClient(Transport transport) {
@@ -127,43 +123,53 @@ class GarminHttpClient {
     private static final class UrlConnectionTransport implements Transport {
         private final CookieManager cookies = new CookieManager(null, CookiePolicy.ACCEPT_ALL);
 
-        UrlConnectionTransport(boolean installProcessCookieHandler) {
-            if (installProcessCookieHandler) CookieHandler.setDefault(cookies);
-        }
-
         @Override
         public Response execute(Request request) throws Exception {
+            String method = request.method;
             URI uri = URI.create(request.url);
-            HttpURLConnection connection = (HttpURLConnection) new URL(request.url).openConnection();
-            connection.setRequestMethod(request.method);
-            connection.setInstanceFollowRedirects(request.followRedirects);
-            connection.setConnectTimeout(30_000);
-            connection.setReadTimeout(30_000);
-            connection.setRequestProperty("User-Agent", USER_AGENT);
-            for (Map.Entry<String, List<String>> cookie : cookies.get(uri,
-                    Collections.emptyMap()).entrySet()) {
-                connection.setRequestProperty(cookie.getKey(), join(cookie.getValue()));
-            }
-            for (Map.Entry<String, String> header : request.headers.entrySet()) {
-                connection.setRequestProperty(header.getKey(), header.getValue());
-            }
-            if (request.body != null) {
-                connection.setDoOutput(true);
-                connection.setFixedLengthStreamingMode(request.body.length);
-                try (DataOutputStream output = new DataOutputStream(connection.getOutputStream())) {
-                    output.write(request.body);
+            byte[] body = request.body;
+            for (int redirects = 0; ; redirects++) {
+                HttpURLConnection connection = (HttpURLConnection) uri.toURL().openConnection();
+                connection.setRequestMethod(method);
+                connection.setInstanceFollowRedirects(false);
+                connection.setConnectTimeout(30_000);
+                connection.setReadTimeout(30_000);
+                connection.setRequestProperty("User-Agent", USER_AGENT);
+                for (Map.Entry<String, List<String>> cookie : cookies.get(uri,
+                        Collections.emptyMap()).entrySet()) {
+                    connection.setRequestProperty(cookie.getKey(), join(cookie.getValue()));
+                }
+                for (Map.Entry<String, String> header : request.headers.entrySet()) {
+                    connection.setRequestProperty(header.getKey(), header.getValue());
+                }
+                if (body != null) {
+                    connection.setDoOutput(true);
+                    connection.setFixedLengthStreamingMode(body.length);
+                    try (DataOutputStream output =
+                                 new DataOutputStream(connection.getOutputStream())) {
+                        output.write(body);
+                    }
+                }
+
+                int code = connection.getResponseCode();
+                Map<String, List<String>> responseHeaders = connection.getHeaderFields();
+                cookies.put(uri, responseHeaders);
+                String responseBody = read(code >= 400
+                        ? connection.getErrorStream() : connection.getInputStream());
+                String location = firstHeader(responseHeaders, "Location");
+                connection.disconnect();
+                if (!request.followRedirects || !isRedirect(code) || location == null) {
+                    return new Response(code, responseBody, uri.toString(), responseHeaders);
+                }
+                if (redirects >= MAX_REDIRECTS) {
+                    throw new ProtocolException("Too many redirects for " + request.url);
+                }
+                uri = uri.resolve(location);
+                if (changesToGet(code, method)) {
+                    method = "GET";
+                    body = null;
                 }
             }
-
-            int code = connection.getResponseCode();
-            Map<String, List<String>> responseHeaders = connection.getHeaderFields();
-            cookies.put(uri, responseHeaders);
-            InputStream stream = code >= 400
-                    ? connection.getErrorStream() : connection.getInputStream();
-            String body = read(stream);
-            String finalUrl = connection.getURL().toString();
-            connection.disconnect();
-            return new Response(code, body, finalUrl, responseHeaders);
         }
 
         void clearCookies() { cookies.getCookieStore().removeAll(); }
@@ -175,6 +181,28 @@ class GarminHttpClient {
                 result.append(value);
             }
             return result.toString();
+        }
+
+        private static boolean isRedirect(int code) {
+            return code == HttpURLConnection.HTTP_MOVED_PERM
+                    || code == HttpURLConnection.HTTP_MOVED_TEMP
+                    || code == HttpURLConnection.HTTP_SEE_OTHER
+                    || code == 307 || code == 308;
+        }
+
+        private static boolean changesToGet(int code, String method) {
+            return code != 307 && code != 308
+                    && !"GET".equals(method) && !"HEAD".equals(method);
+        }
+
+        private static String firstHeader(Map<String, List<String>> headers, String name) {
+            for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+                if (entry.getKey() != null && name.equalsIgnoreCase(entry.getKey())
+                        && entry.getValue() != null && !entry.getValue().isEmpty()) {
+                    return entry.getValue().get(0);
+                }
+            }
+            return null;
         }
 
         private static String read(InputStream stream) throws Exception {

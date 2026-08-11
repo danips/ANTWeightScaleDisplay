@@ -84,7 +84,7 @@ public class GarminTokenRefreshJobService extends JobService {
             }
 
             GarminAuthenticator authenticator = new GarminAuthenticator(
-                    new GarminHttpClient(false),
+                    new GarminHttpClient(),
                     new GarminTokenStore(getApplicationContext(), user, users),
                     () -> null);
             GarminAuthenticator.RenewalResult result = authenticator.renewInBackground();

@@ -135,6 +135,8 @@ Repeat the failure-sensitive cases at least three times on a representative supp
       notification; confirm old, replayed, unrelated, pre-dialog, and post-cancellation codes do not
       autofill, while one fresh Garmin code received during the visible dialog does.
 - [ ] Upload with active and expired access tokens.
+- [ ] Against a controlled Garmin-compatible endpoint, verify redirect cookies are replayed,
+      clearing one session removes only its cookies, and simultaneous sessions remain isolated.
 - [ ] Rotate, background, and destroy/recreate the Activity during Garmin sign-in, upload, and email
       preparation; confirm one retained operation, a replaceable progress dialog, one result, no
       leaked window, and functional Cancel behavior.

@@ -19,7 +19,7 @@ final class GarminForegroundSession {
     GarminForegroundSession(User user, ArrayList<User> users, Context context,
                             MfaCodeProvider mfaCodeProvider) {
         this.user = user;
-        GarminHttpClient http = new GarminHttpClient(true);
+        GarminHttpClient http = new GarminHttpClient();
         GarminTokenStore tokenStore = new GarminTokenStore(
                 context.getApplicationContext(), user, users);
         authenticator = new GarminAuthenticator(
