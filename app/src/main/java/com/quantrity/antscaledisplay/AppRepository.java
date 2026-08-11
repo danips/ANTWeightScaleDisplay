@@ -4,11 +4,15 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -31,6 +35,7 @@ final class AppRepository {
     private final UserJsonCodec userCodec = new UserJsonCodec();
     private final WeightJsonCodec weightCodec = new WeightJsonCodec();
     private final GoalJsonCodec goalCodec = new GoalJsonCodec();
+    private final AtomicJsonDataset dataset;
     private final ExecutorService writeExecutor;
     private final SelectionStore selectionStore;
     private final File filesDirectory;
@@ -57,14 +62,20 @@ final class AppRepository {
     }
 
     AppRepository(File filesDirectory) {
-        this(filesDirectory, null);
+        this(filesDirectory, null, null);
     }
 
     AppRepository(File filesDirectory, SelectionStore selectionStore) {
+        this(filesDirectory, selectionStore, null);
+    }
+
+    AppRepository(File filesDirectory, SelectionStore selectionStore,
+                  AtomicJsonDataset.CommitObserver commitObserver) {
         this.filesDirectory = filesDirectory;
         usersFile = new AtomicJsonFile(new File(filesDirectory, USERS_FILE_NAME));
         historyFile = new AtomicJsonFile(new File(filesDirectory, HISTORY_FILE_NAME));
         goalsFile = new AtomicJsonFile(new File(filesDirectory, GOALS_FILE_NAME));
+        dataset = new AtomicJsonDataset(filesDirectory, BackupArchive.DATA_FILES, commitObserver);
         this.selectionStore = selectionStore;
         writeExecutor = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "app-repository-writes");
@@ -74,6 +85,10 @@ final class AppRepository {
     }
 
     RepositoryResult<List<User>> loadUsers() {
+        RepositoryResult<Void> recovered = dataset.recover();
+        if (!recovered.isSuccess()) {
+            return RepositoryResult.failure(recovered.message, recovered.error);
+        }
         RepositoryResult<String> read = usersFile.read();
         if (!read.isSuccess()) return RepositoryResult.failure(read.message, read.error);
         if (read.value == null || read.value.isEmpty()) return RepositoryResult.success(new ArrayList<>());
@@ -81,6 +96,10 @@ final class AppRepository {
     }
 
     RepositoryResult<List<Weight>> loadWeights() {
+        RepositoryResult<Void> recovered = dataset.recover();
+        if (!recovered.isSuccess()) {
+            return RepositoryResult.failure(recovered.message, recovered.error);
+        }
         RepositoryResult<String> read = historyFile.read();
         if (!read.isSuccess()) return RepositoryResult.failure(read.message, read.error);
         if (read.value == null || read.value.isEmpty()) return RepositoryResult.success(new ArrayList<>());
@@ -88,6 +107,10 @@ final class AppRepository {
     }
 
     RepositoryResult<List<Goal>> loadGoals() {
+        RepositoryResult<Void> recovered = dataset.recover();
+        if (!recovered.isSuccess()) {
+            return RepositoryResult.failure(recovered.message, recovered.error);
+        }
         RepositoryResult<String> read = goalsFile.read();
         if (!read.isSuccess()) return RepositoryResult.failure(read.message, read.error);
         if (read.value == null || read.value.isEmpty()) return RepositoryResult.success(new ArrayList<>());
@@ -95,6 +118,10 @@ final class AppRepository {
     }
 
     RepositoryResult<Void> reloadState() {
+        return await(this::reloadStateOnExecutor);
+    }
+
+    private RepositoryResult<Void> reloadStateOnExecutor() {
         RepositoryResult<List<User>> loadedUsers = loadUsers();
         if (!loadedUsers.isSuccess()) return RepositoryResult.failure(loadedUsers.message, loadedUsers.error);
         RepositoryResult<List<Weight>> loadedWeights = loadWeights();
@@ -359,11 +386,14 @@ final class AppRepository {
                     : previousSelection;
             ArrayList<User> persistedUsers = copyUsers(userCandidate);
 
-            RepositoryResult<Void> result = saveUsersPreservingNewerTokens(persistedUsers);
-            if (!result.isSuccess()) return result;
-            result = writeWeights(weightCandidate);
-            if (!result.isSuccess()) return result;
-            result = writeGoals(goalCandidate);
+            RepositoryResult<Void> tokenMerge = preserveNewerTokens(persistedUsers);
+            if (!tokenMerge.isSuccess()) return tokenMerge;
+            RepositoryResult<Map<String, String>> encoded = encodeDataset(
+                    persistedUsers, weightCandidate, goalCandidate);
+            if (!encoded.isSuccess()) {
+                return RepositoryResult.failure(encoded.message, encoded.error);
+            }
+            RepositoryResult<Void> result = dataset.commit(encoded.value);
             if (!result.isSuccess()) return result;
 
             synchronized (stateLock) {
@@ -393,6 +423,25 @@ final class AppRepository {
     RepositoryResult<Void> saveGoalsSynchronously(List<Goal> goals) {
         ArrayList<Goal> snapshot = new ArrayList<>(goals);
         return await(() -> writeGoals(snapshot));
+    }
+
+    RepositoryResult<Integer> createBackupSynchronously(OutputStream output) {
+        return await(() -> {
+            RepositoryResult<Map<String, String>> snapshot = dataset.snapshot();
+            if (!snapshot.isSuccess()) {
+                closeQuietly(output);
+                return RepositoryResult.failure(snapshot.message, snapshot.error);
+            }
+            return BackupArchive.create(output, snapshot.value);
+        });
+    }
+
+    RepositoryResult<Integer> restoreBackupSynchronously(InputStream input) {
+        RepositoryResult<Map<String, String>> archive = BackupArchive.read(input);
+        if (!archive.isSuccess()) {
+            return RepositoryResult.failure(archive.message, archive.error);
+        }
+        return await(() -> restoreDataset(archive.value));
     }
 
     private RepositoryResult<Void> writeWeights(List<Weight> weights) {
@@ -453,6 +502,11 @@ final class AppRepository {
     }
 
     private RepositoryResult<Void> saveUsersPreservingNewerTokens(List<User> users) {
+        RepositoryResult<Void> preserved = preserveNewerTokens(users);
+        return preserved.isSuccess() ? writeUsers(users) : preserved;
+    }
+
+    private RepositoryResult<Void> preserveNewerTokens(List<User> users) {
         RepositoryResult<List<User>> loaded = loadUsers();
         if (!loaded.isSuccess()) return RepositoryResult.failure(loaded.message, loaded.error);
         for (User outgoing : users) {
@@ -473,13 +527,72 @@ final class AppRepository {
                 clearLegacyGarminTokens(outgoing);
             }
         }
-        return writeUsers(users);
+        return RepositoryResult.success(null);
     }
 
     private RepositoryResult<Void> writeUsers(List<User> users) {
         RepositoryResult<String> encoded = userCodec.encode(users);
         if (!encoded.isSuccess()) return RepositoryResult.failure(encoded.message, encoded.error);
         return usersFile.write(encoded.value);
+    }
+
+    private RepositoryResult<Map<String, String>> encodeDataset(
+            List<User> users, List<Weight> weights, List<Goal> goals) {
+        RepositoryResult<String> encodedUsers = userCodec.encode(users);
+        if (!encodedUsers.isSuccess()) {
+            return RepositoryResult.failure(encodedUsers.message, encodedUsers.error);
+        }
+        RepositoryResult<String> encodedWeights = weightCodec.encode(weights);
+        if (!encodedWeights.isSuccess()) {
+            return RepositoryResult.failure(encodedWeights.message, encodedWeights.error);
+        }
+        RepositoryResult<String> encodedGoals = goalCodec.encode(goals);
+        if (!encodedGoals.isSuccess()) {
+            return RepositoryResult.failure(encodedGoals.message, encodedGoals.error);
+        }
+        Map<String, String> encoded = new LinkedHashMap<>();
+        encoded.put(USERS_FILE_NAME, encodedUsers.value);
+        encoded.put(HISTORY_FILE_NAME, encodedWeights.value);
+        encoded.put(GOALS_FILE_NAME, encodedGoals.value);
+        return RepositoryResult.success(encoded);
+    }
+
+    private RepositoryResult<Integer> restoreDataset(Map<String, String> archive) {
+        RepositoryResult<List<User>> restoredUsers = userCodec.decode(archive.get(USERS_FILE_NAME));
+        if (!restoredUsers.isSuccess()) {
+            return RepositoryResult.failure(restoredUsers.message, restoredUsers.error);
+        }
+        RepositoryResult<List<Weight>> restoredWeights =
+                weightCodec.decode(archive.get(HISTORY_FILE_NAME));
+        if (!restoredWeights.isSuccess()) {
+            return RepositoryResult.failure(restoredWeights.message, restoredWeights.error);
+        }
+        RepositoryResult<List<Goal>> restoredGoals = goalCodec.decode(archive.get(GOALS_FILE_NAME));
+        if (!restoredGoals.isSuccess()) {
+            return RepositoryResult.failure(restoredGoals.message, restoredGoals.error);
+        }
+
+        RepositoryResult<Void> committed = dataset.commit(archive);
+        if (!committed.isSuccess()) {
+            return RepositoryResult.failure(committed.message, committed.error);
+        }
+
+        ArrayList<User> newUsers = new ArrayList<>(restoredUsers.value);
+        ArrayList<Weight> newWeights = new ArrayList<>(restoredWeights.value);
+        ArrayList<Goal> newGoals = new ArrayList<>(restoredGoals.value);
+        sortUsers(newUsers);
+        Collections.sort(newWeights, new Weight.DateComparator());
+        synchronized (stateLock) {
+            users.clear();
+            users.addAll(newUsers);
+            weights.clear();
+            weights.addAll(newWeights);
+            goals.clear();
+            goals.addAll(newGoals);
+            selectedUserUuid = resolveSelectedUserUuid(users);
+            stateLoaded = true;
+        }
+        return RepositoryResult.success(BackupArchive.DATA_FILES.size());
     }
 
     private static ArrayList<User> copyUsers(List<User> users) {
@@ -595,7 +708,7 @@ final class AppRepository {
         user.garminOauth1MfaExpirationTimestamp = -1;
     }
 
-    private RepositoryResult<Void> await(Callable<RepositoryResult<Void>> operation) {
+    private <T> RepositoryResult<T> await(Callable<RepositoryResult<T>> operation) {
         try {
             return writeExecutor.submit(operation).get();
         } catch (InterruptedException e) {
@@ -606,6 +719,13 @@ final class AppRepository {
             Exception error = cause instanceof Exception ? (Exception) cause : e;
             return RepositoryResult.failure("Could not save application data", error);
         }
+    }
+
+    private static void closeQuietly(OutputStream output) {
+        if (output == null) return;
+        try {
+            output.close();
+        } catch (Exception ignored) { }
     }
 
     private void execute(Callable<RepositoryResult<Void>> operation, MutationCallback callback) {

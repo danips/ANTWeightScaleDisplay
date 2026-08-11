@@ -65,8 +65,13 @@ rendering only.
 ## Backup boundary
 
 `BackupArchive` is the only ZIP implementation. It owns the fixed `users`, `history`, and `goals`
-entry definition, compression, buffering, transferred-stream closure, JSON/size/path validation,
-and atomic restoration. Picker Fragments only open streams off the main thread and present results.
+entry definition, compression, buffering, transferred-stream closure, JSON/path validation, and a
+50 MiB aggregate uncompressed-data limit. Restore requires all three entries and decodes each with
+its production codec before persistence. `AtomicJsonDataset` journals the prior generation and
+rolls back all three files after a write failure or interrupted process. Backup snapshots, restore
+commits, delete-user commits, and ordinary writes share the repository's single executor, preventing
+mixed-generation archives and interleaved dataset replacement. Picker Fragments only open streams
+off the main thread and present results.
 
 `ForegroundUpload` is the UI owner for an interactive upload. It owns the progress dialog, one
 executor, cancellation, and final user-visible results. Pure FIT construction and message formatting

@@ -68,6 +68,15 @@ final class AtomicJsonFile {
         return RepositoryResult.success(null);
     }
 
+    synchronized RepositoryResult<Void> delete() {
+        RepositoryResult<Void> recovery = recover();
+        if (!recovery.isSuccess()) return recovery;
+        if (target.exists() && !target.delete()) {
+            return failure("Could not delete " + target);
+        }
+        return RepositoryResult.success(null);
+    }
+
     synchronized RepositoryResult<Void> recover() {
         if (target.exists()) {
             if (temporary.exists() && !temporary.delete()) {

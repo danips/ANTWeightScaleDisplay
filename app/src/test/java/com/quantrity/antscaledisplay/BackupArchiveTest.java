@@ -4,87 +4,82 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class BackupArchiveTest {
-    @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder();
-
     @Test
-    public void restoresRecognizedJsonFiles() throws Exception {
+    public void readsCompleteRecognizedDataset() throws Exception {
         Map<String, String> entries = new LinkedHashMap<>();
         entries.put("users", "[{\"uuid\":\"user-one\"}]");
         entries.put("history", "[]");
+        entries.put("goals", "[]");
 
-        RepositoryResult<Integer> result = BackupArchive.restore(
-                new ByteArrayInputStream(archive(entries)), temporaryFolder.getRoot());
+        RepositoryResult<Map<String, String>> result = BackupArchive.read(
+                new ByteArrayInputStream(archive(entries)));
 
         assertTrue(result.isSuccess());
-        assertEquals(Integer.valueOf(2), result.value);
-        assertEquals(entries.get("users"), read(new File(temporaryFolder.getRoot(), "users")));
-        assertEquals(entries.get("history"), read(new File(temporaryFolder.getRoot(), "history")));
+        assertEquals(entries, result.value);
+    }
+
+    @Test
+    public void partialDatasetIsRejected() throws Exception {
+        Map<String, String> entries = new LinkedHashMap<>();
+        entries.put("users", "[]");
+        entries.put("history", "[]");
+
+        RepositoryResult<Map<String, String>> result = BackupArchive.read(
+                new ByteArrayInputStream(archive(entries)));
+
+        assertFalse(result.isSuccess());
+        assertEquals("Backup does not contain the complete application dataset", result.message);
     }
 
     @Test
     public void createsAllSupportedEntriesAndRoundTripsThem() throws Exception {
-        File source = temporaryFolder.newFolder("source");
-        File restored = temporaryFolder.newFolder("restored");
         Map<String, String> expected = new LinkedHashMap<>();
         expected.put("users", "[{\"uuid\":\"user-one\"}]");
         expected.put("history", "[{\"date\":123}]");
         expected.put("goals", "[]");
-        for (Map.Entry<String, String> entry : expected.entrySet()) {
-            Files.write(new File(source, entry.getKey()).toPath(),
-                    entry.getValue().getBytes(StandardCharsets.UTF_8));
-        }
         ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        RepositoryResult<Integer> created = BackupArchive.create(output, source);
-        RepositoryResult<Integer> restoredResult = BackupArchive.restore(
-                new ByteArrayInputStream(output.toByteArray()), restored);
+        RepositoryResult<Integer> created = BackupArchive.create(output, expected);
+        RepositoryResult<Map<String, String>> restoredResult = BackupArchive.read(
+                new ByteArrayInputStream(output.toByteArray()));
 
         assertTrue(created.isSuccess());
         assertEquals(Integer.valueOf(3), created.value);
         assertTrue(restoredResult.isSuccess());
-        for (Map.Entry<String, String> entry : expected.entrySet()) {
-            assertEquals(entry.getValue(), read(new File(restored, entry.getKey())));
-        }
+        assertEquals(expected, restoredResult.value);
     }
 
     @Test
-    public void creationFailsWhenAnyRequiredSourceIsMissing() throws Exception {
-        File source = temporaryFolder.newFolder("incomplete");
-        Files.write(new File(source, "users").toPath(), "[]".getBytes(StandardCharsets.UTF_8));
+    public void creationFailsWhenAnyRequiredSourceIsMissing() {
+        Map<String, String> incomplete = new LinkedHashMap<>();
+        incomplete.put("users", "[]");
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
 
-        RepositoryResult<Integer> result = BackupArchive.create(
-                new ByteArrayOutputStream(), source);
+        RepositoryResult<Integer> result = BackupArchive.create(output, incomplete);
 
         assertFalse(result.isSuccess());
-        assertEquals("Could not read backup source: history", result.message);
+        assertEquals("Backup source does not contain the complete application dataset", result.message);
     }
 
     @Test
     public void creationReportsOutputFailureAndClosesTransferredStream() throws Exception {
-        File source = temporaryFolder.newFolder("output-failure");
-        for (String name : new String[]{"users", "history", "goals"}) {
-            Files.write(new File(source, name).toPath(), "[]".getBytes(StandardCharsets.UTF_8));
-        }
+        Map<String, String> data = emptyDataset();
         FailingOutputStream output = new FailingOutputStream();
 
-        RepositoryResult<Integer> result = BackupArchive.create(output, source);
+        RepositoryResult<Integer> result = BackupArchive.create(output, data);
 
         assertFalse(result.isSuccess());
         assertTrue(output.closed);
@@ -98,8 +93,8 @@ public class BackupArchiveTest {
         byte[] duplicate = archive(entries);
         replaceAscii(duplicate, "goals", "users");
 
-        RepositoryResult<Integer> result = BackupArchive.restore(
-                new ByteArrayInputStream(duplicate), temporaryFolder.getRoot());
+        RepositoryResult<Map<String, String>> result = BackupArchive.read(
+                new ByteArrayInputStream(duplicate));
 
         assertFalse(result.isSuccess());
     }
@@ -109,25 +104,34 @@ public class BackupArchiveTest {
         Map<String, String> entries = new LinkedHashMap<>();
         entries.put("../users", "[]");
 
-        RepositoryResult<Integer> result = BackupArchive.restore(
-                new ByteArrayInputStream(archive(entries)), temporaryFolder.getRoot());
+        RepositoryResult<Map<String, String>> result = BackupArchive.read(
+                new ByteArrayInputStream(archive(entries)));
 
         assertFalse(result.isSuccess());
-        assertFalse(new File(temporaryFolder.getRoot().getParentFile(), "users").exists());
     }
 
     @Test
-    public void invalidJsonDoesNotReplaceExistingData() throws Exception {
-        File users = new File(temporaryFolder.getRoot(), "users");
-        Files.write(users.toPath(), "[{\"existing\":true}]".getBytes(StandardCharsets.UTF_8));
+    public void invalidJsonIsRejected() throws Exception {
         Map<String, String> entries = new LinkedHashMap<>();
         entries.put("users", "not-json");
+        entries.put("history", "[]");
+        entries.put("goals", "[]");
 
-        RepositoryResult<Integer> result = BackupArchive.restore(
-                new ByteArrayInputStream(archive(entries)), temporaryFolder.getRoot());
+        RepositoryResult<Map<String, String>> result = BackupArchive.read(
+                new ByteArrayInputStream(archive(entries)));
 
         assertFalse(result.isSuccess());
-        assertEquals("[{\"existing\":true}]", read(users));
+    }
+
+    @Test
+    public void aggregateUncompressedLimitAppliesAcrossEntries() throws Exception {
+        Map<String, String> entries = emptyDataset();
+
+        RepositoryResult<Map<String, String>> result = BackupArchive.read(
+                new ByteArrayInputStream(archive(entries)), 100, 5);
+
+        assertFalse(result.isSuccess());
+        assertEquals("Backup application data is too large", result.message);
     }
 
     private static byte[] archive(Map<String, String> entries) throws Exception {
@@ -142,8 +146,12 @@ public class BackupArchiveTest {
         return output.toByteArray();
     }
 
-    private static String read(File file) throws Exception {
-        return new String(Files.readAllBytes(file.toPath()), StandardCharsets.UTF_8);
+    private static Map<String, String> emptyDataset() {
+        Map<String, String> data = new LinkedHashMap<>();
+        data.put("users", "[]");
+        data.put("history", "[]");
+        data.put("goals", "[]");
+        return data;
     }
 
     private static void replaceAscii(byte[] bytes, String from, String to) {

@@ -7,6 +7,8 @@ import android.os.Looper;
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,6 +104,18 @@ public final class AppStateViewModel extends AndroidViewModel {
 
     void deleteUser(User user, AppRepository.MutationCallback callback) {
         repository.deleteUser(user, onMainThread(callback));
+    }
+
+    RepositoryResult<Integer> createBackup(OutputStream output) {
+        return repository.createBackupSynchronously(output);
+    }
+
+    RepositoryResult<Integer> restoreBackup(InputStream input) {
+        RepositoryResult<Integer> result = repository.restoreBackupSynchronously(input);
+        if (result.isSuccess()) {
+            GarminTokenRefreshScheduler.scheduleAll(getApplication(), repository.usersSnapshot());
+        }
+        return result;
     }
 
     AntWeightController antWeightController() { return antWeightController; }

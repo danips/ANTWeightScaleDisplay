@@ -12,6 +12,8 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -19,11 +21,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public class AppRepositoryTest {
     @Rule
@@ -64,6 +69,97 @@ public class AppRepositoryTest {
         assertEquals(2, repository.loadUsers().value.size());
         assertEquals(2, repository.loadWeights().value.size());
         assertEquals(2, repository.loadGoals().value.size());
+    }
+
+    @Test
+    public void restoreDecodesEverySchemaBeforeReplacingDataset() throws Exception {
+        writeFixture("users", "users.json");
+        writeFixture("history", "history.json");
+        writeFixture("goals", "goals.json");
+        assertTrue(repository.reloadState().isSuccess());
+        String originalUsers = readFile("users");
+        String originalHistory = readFile("history");
+        String originalGoals = readFile("goals");
+        Map<String, String> invalid = new java.util.LinkedHashMap<>();
+        invalid.put("users", "[{}]");
+        invalid.put("history", FixtureLoader.load("history.json"));
+        invalid.put("goals", FixtureLoader.load("goals.json"));
+
+        RepositoryResult<Integer> result = repository.restoreBackupSynchronously(
+                new ByteArrayInputStream(archive(invalid)));
+
+        assertFalse(result.isSuccess());
+        assertEquals("Could not decode users", result.message);
+        assertEquals(originalUsers, readFile("users"));
+        assertEquals(originalHistory, readFile("history"));
+        assertEquals(originalGoals, readFile("goals"));
+        assertEquals(2, repository.usersSnapshot().size());
+    }
+
+    @Test
+    public void restoreCommitsAndPublishesCompleteDataset() throws Exception {
+        Map<String, String> restored = fixtureDataset();
+
+        RepositoryResult<Integer> result = repository.restoreBackupSynchronously(
+                new ByteArrayInputStream(archive(restored)));
+
+        assertTrue(result.isSuccess());
+        assertEquals(Integer.valueOf(3), result.value);
+        assertEquals(2, repository.usersSnapshot().size());
+        assertEquals(2, repository.weightsSnapshot().size());
+        assertEquals(2, repository.goalsSnapshot().size());
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals(2, repository.usersSnapshot().size());
+    }
+
+    @Test
+    public void backupRunsAfterEarlierQueuedMutationAndCapturesItsGeneration() throws Exception {
+        assertTrue(repository.saveUsersSynchronously(Collections.emptyList()).isSuccess());
+        assertTrue(repository.saveWeightsSynchronously(Collections.emptyList()).isSuccess());
+        assertTrue(repository.saveGoalsSynchronously(Collections.emptyList()).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+        Weight added = weight(456, 75);
+        CountDownLatch mutationCompleted = new CountDownLatch(1);
+        repository.upsertWeight(added, null, result -> mutationCompleted.countDown());
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+        RepositoryResult<Integer> result = repository.createBackupSynchronously(output);
+
+        assertTrue(result.isSuccess());
+        assertTrue(mutationCompleted.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        RepositoryResult<Map<String, String>> archived = BackupArchive.read(
+                new ByteArrayInputStream(output.toByteArray()));
+        assertTrue(archived.isSuccess());
+        assertEquals(1, new WeightJsonCodec().decode(archived.value.get("history")).value.size());
+    }
+
+    @Test
+    public void deleteUserRollsBackAtEveryDatasetCommitPosition() throws Exception {
+        for (int failedIndex = 0; failedIndex < BackupArchive.DATA_FILES.size(); failedIndex++) {
+            File directory = temporaryFolder.newFolder("delete-failure-" + failedIndex);
+            writeFixture(directory, "users", "users.json");
+            writeFixture(directory, "history", "history.json");
+            writeFixture(directory, "goals", "goals.json");
+            int position = failedIndex;
+            AppRepository failingRepository = new AppRepository(directory, null, (name, index) -> {
+                if (index == position) throw new Exception("injected failure at " + name);
+            });
+            try {
+                assertTrue(failingRepository.reloadState().isSuccess());
+                User removed = failingRepository.usersSnapshot().get(0);
+
+                RepositoryResult<Void> result = deleteUserAndWait(failingRepository, removed);
+
+                assertFalse(result.isSuccess());
+                assertEquals(2, failingRepository.loadUsers().value.size());
+                assertEquals(2, failingRepository.loadWeights().value.size());
+                assertEquals(2, failingRepository.loadGoals().value.size());
+                assertTrue(failingRepository.reloadState().isSuccess());
+                assertEquals(2, failingRepository.usersSnapshot().size());
+            } finally {
+                failingRepository.close();
+            }
+        }
     }
 
     @Test
@@ -448,8 +544,50 @@ public class AppRepositoryTest {
     }
 
     private void writeFixture(String filename, String fixture) throws Exception {
-        Files.write(new File(temporaryFolder.getRoot(), filename).toPath(),
+        writeFixture(temporaryFolder.getRoot(), filename, fixture);
+    }
+
+    private static void writeFixture(File directory, String filename, String fixture)
+            throws Exception {
+        Files.write(new File(directory, filename).toPath(),
                 FixtureLoader.load(fixture).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private String readFile(String filename) throws Exception {
+        return new String(Files.readAllBytes(
+                new File(temporaryFolder.getRoot(), filename).toPath()), StandardCharsets.UTF_8);
+    }
+
+    private static Map<String, String> fixtureDataset() throws Exception {
+        Map<String, String> data = new java.util.LinkedHashMap<>();
+        data.put("users", FixtureLoader.load("users.json"));
+        data.put("history", FixtureLoader.load("history.json"));
+        data.put("goals", FixtureLoader.load("goals.json"));
+        return data;
+    }
+
+    private static byte[] archive(Map<String, String> entries) throws Exception {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        try (ZipOutputStream zip = new ZipOutputStream(output)) {
+            for (Map.Entry<String, String> entry : entries.entrySet()) {
+                zip.putNextEntry(new ZipEntry(entry.getKey()));
+                zip.write(entry.getValue().getBytes(StandardCharsets.UTF_8));
+                zip.closeEntry();
+            }
+        }
+        return output.toByteArray();
+    }
+
+    private static RepositoryResult<Void> deleteUserAndWait(
+            AppRepository targetRepository, User user) throws InterruptedException {
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<RepositoryResult<Void>> callbackResult = new AtomicReference<>();
+        targetRepository.deleteUser(user, result -> {
+            callbackResult.set(result);
+            completed.countDown();
+        });
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        return callbackResult.get();
     }
 
     private RepositoryResult<Void> upsertWeightAndWait(Weight weight, Weight original)

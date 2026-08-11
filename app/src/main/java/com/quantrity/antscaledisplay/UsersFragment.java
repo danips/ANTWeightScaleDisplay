@@ -28,7 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.quantrity.antscaledisplay.databinding.FragmentUsersBinding;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -168,10 +167,9 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
     private void saveBackup(ParcelFileDescriptor destFileDesc) {
         if (getActivity() == null) return;
-        File directory = getActivity().getFilesDir();
         new Thread(() -> {
-            RepositoryResult<Integer> result = BackupArchive.create(
-                    new FileOutputStream(destFileDesc.getFileDescriptor()), directory);
+            RepositoryResult<Integer> result = state.createBackup(
+                    new FileOutputStream(destFileDesc.getFileDescriptor()));
             if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
             if (getActivity() != null) getActivity().runOnUiThread(() -> {
                 if (result.isSuccess()) Toast.makeText(getActivity(), String.format(
@@ -185,12 +183,11 @@ public class UsersFragment extends Fragment implements MenuProvider {
     private void restoreBackup(Uri uri) {
         if (getActivity() == null) return;
         ContentResolver resolver = getActivity().getContentResolver();
-        File directory = getActivity().getFilesDir();
         new Thread(() -> {
             RepositoryResult<Integer> result;
             try {
                 InputStream input = resolver.openInputStream(uri);
-                result = BackupArchive.restore(input, directory);
+                result = state.restoreBackup(input);
             } catch (IOException exception) {
                 result = RepositoryResult.failure("Unable to open the backup archive", exception);
             }
@@ -204,7 +201,6 @@ public class UsersFragment extends Fragment implements MenuProvider {
                 Toast.makeText(getActivity(),
                         R.string.history_fragment_action_database_restore_ok,
                         Toast.LENGTH_LONG).show();
-                AppHost.from(this).reloadDB();
                 getActivity().invalidateOptionsMenu();
                 if (mAdapter != null) mAdapter.replaceAll(state.users());
             });

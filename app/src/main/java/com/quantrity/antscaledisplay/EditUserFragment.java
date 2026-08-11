@@ -36,7 +36,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.quantrity.antscaledisplay.databinding.FragmentEditUserBinding;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -118,12 +117,11 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private void restoreBackup(Uri uri) {
         if (getActivity() == null) return;
         android.content.ContentResolver resolver = getActivity().getContentResolver();
-        File directory = getActivity().getFilesDir();
         new Thread(() -> {
             RepositoryResult<Integer> result;
             try {
                 InputStream input = resolver.openInputStream(uri);
-                result = BackupArchive.restore(input, directory);
+                result = state.restoreBackup(input);
             } catch (IOException exception) {
                 result = RepositoryResult.failure("Unable to open the backup archive", exception);
             }
@@ -137,7 +135,6 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 Toast.makeText(getActivity(),
                         R.string.history_fragment_action_database_restore_ok,
                         Toast.LENGTH_LONG).show();
-                AppHost.from(this).reloadDB();
                 getActivity().invalidateOptionsMenu();
                 AppHost.from(this).closeEditUserFragment(null);
             });
