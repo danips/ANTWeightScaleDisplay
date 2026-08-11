@@ -5,7 +5,6 @@ import android.graphics.Color;
 import android.graphics.LinearGradient;
 import android.graphics.Shader;
 import android.text.format.DateUtils;
-import android.util.SparseBooleanArray;
 import android.view.ContextMenu;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -23,9 +22,11 @@ import com.quantrity.antscaledisplay.databinding.RowWeightBinding;
 import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     //private static final String TAG = "HistoryAdapter";
+    static final Object EXPANSION_PAYLOAD = new Object();
 
     private final ArrayList<Weight> mDataset;
     private final Context mContext;
@@ -34,8 +35,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
     private final SimpleDateFormat dateFormatter;
     private final MeasurementPresentationFactory presentationFactory;
 
-    // Tracks the expanded/collapsed state of each item position
-    private final SparseBooleanArray expandedStates = new SparseBooleanArray();
+    private final HistoryExpansionState expansionState = new HistoryExpansionState();
 
     // Provide a suitable constructor (depends on the kind of dataset)
     HistoryAdapter(ArrayList<Weight> myDataset, Context mContext, User user,
@@ -62,10 +62,9 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         this.user = user;
         int oldSize = mDataset.size();
         mDataset.clear();
-        // Reset expanded states when data changes/reloads
-        expandedStates.clear();
         if (oldSize > 0) notifyItemRangeRemoved(0, oldSize);
         mDataset.addAll(myDataset);
+        expansionState.retainAll(mDataset);
         if (!myDataset.isEmpty()) notifyItemRangeInserted(0, myDataset.size());
     }
 
@@ -226,43 +225,53 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         final Weight item = mDataset.get(position);
         holder.weight = item;
         int age_then = User.calcAge(user.birthdate, item.date);
+        bindExpansion(holder, item);
+        bindHeader(holder, item, age_then);
+        if (isExpanded(item)) bindDetails(holder, item, age_then);
+    }
 
-        // --- EXPANSION LOGIC ---
-        final boolean hasAdditionalMeasurements = item.hasAdditionalMeasurements();
-        final boolean isExpanded = hasAdditionalMeasurements
-                && expandedStates.get(position, false);
-
-        // Show/Hide details based on state
-        if (holder.detailsContainer != null) {
-            holder.detailsContainer.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position,
+                                 @NonNull List<Object> payloads) {
+        if (!payloads.contains(EXPANSION_PAYLOAD)) {
+            super.onBindViewHolder(holder, position, payloads);
+            return;
         }
-
-        // Rotate arrow icon based on state
-        if (holder.expandIcon != null) {
-            holder.expandIcon.setVisibility(
-                    hasAdditionalMeasurements ? View.VISIBLE : View.GONE);
-            holder.expandIcon.setRotation(isExpanded ? 180f : 0f);
+        Weight item = mDataset.get(position);
+        holder.weight = item;
+        bindExpansion(holder, item);
+        if (isExpanded(item)) {
+            bindDetails(holder, item, User.calcAge(user.birthdate, item.date));
         }
+    }
 
-        // Click Listener for the Card/Row
-        holder.itemView.setOnClickListener(hasAdditionalMeasurements ? v -> {
-            // Use getBindingAdapterPosition() instead of the deprecated getAdapterPosition()
-            int pos = holder.getBindingAdapterPosition();
+    void toggleExpanded(int position) {
+        if (position < 0 || position >= mDataset.size()) return;
+        Weight item = mDataset.get(position);
+        if (!item.hasAdditionalMeasurements()) return;
+        expansionState.toggle(item);
+        notifyItemChanged(position, EXPANSION_PAYLOAD);
+    }
 
-            // Always check for NO_POSITION to prevent crashes during animations
-            if (pos != RecyclerView.NO_POSITION) {
-                boolean newState = !expandedStates.get(pos, false);
-                if (newState) {
-                    expandedStates.put(pos, true);
-                } else {
-                    expandedStates.delete(pos);
+    boolean isExpanded(Weight item) {
+        return item.hasAdditionalMeasurements() && expansionState.isExpanded(item);
+    }
+
+    private void bindExpansion(ViewHolder holder, Weight item) {
+        boolean hasAdditionalMeasurements = item.hasAdditionalMeasurements();
+        boolean expanded = isExpanded(item);
+        holder.detailsContainer.setVisibility(expanded ? View.VISIBLE : View.GONE);
+        holder.expandIcon.setVisibility(hasAdditionalMeasurements ? View.VISIBLE : View.GONE);
+        holder.expandIcon.setRotation(expanded ? 180f : 0f);
+        holder.itemView.setOnClickListener(hasAdditionalMeasurements
+                ? view -> {
+                    int position = holder.getBindingAdapterPosition();
+                    if (position != RecyclerView.NO_POSITION) toggleExpanded(position);
                 }
-                // Use notifyItemChanged to animate the specific row update
-                notifyItemChanged(pos);
-            }
-        } : null);
-        // -----------------------
+                : null);
+    }
 
+    private void bindHeader(ViewHolder holder, Weight item, int age_then) {
         holder.dateTV.setText(dateFormatter.format(item.date));
         holder.timeTV.setText(DateUtils.formatDateTime(mContext, item.date, DateUtils.FORMAT_SHOW_TIME));
 
@@ -273,14 +282,6 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         holder.bmiTV.setText(MessageFormat.format("{0} {1}",
                 mContext.getString(R.string.weight_fragment_bmi_tag), bmi.primaryText));
         holder.weightTV.setText(weight.primaryText);
-
-        // Note: The visibility logic below applies to the internal TableRows.
-        // Even if these are set to VISIBLE, they won't show up if detailsContainer is GONE.
-
-        bindCompact(holder.boneMassTV, holder.boneMassIV, presentationFactory.metric(
-                Metric.BONEMASS, user, item, null, age_then, item.isMale));
-        bindCompact(holder.muscleMassTV, null, presentationFactory.metric(
-                Metric.MUSCLEMASS, user, item, null, age_then, item.isMale));
 
         // BMI Color Logic
         Shader textShader;
@@ -306,6 +307,13 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
         textShader = new LinearGradient(0, 0, 0, holder.weightTV.getTextSize(),
                 new int[]{ c1, c2 }, null, Shader.TileMode.CLAMP);
         holder.weightTV.getPaint().setShader(textShader);
+    }
+
+    private void bindDetails(ViewHolder holder, Weight item, int age_then) {
+        bindCompact(holder.boneMassTV, holder.boneMassIV, presentationFactory.metric(
+                Metric.BONEMASS, user, item, null, age_then, item.isMale));
+        bindCompact(holder.muscleMassTV, null, presentationFactory.metric(
+                Metric.MUSCLEMASS, user, item, null, age_then, item.isMale));
 
         bindCompact(holder.percentFatTV, holder.percentFatIV, presentationFactory.metric(
                 Metric.PERCENTFAT, user, item, null, age_then, item.isMale));

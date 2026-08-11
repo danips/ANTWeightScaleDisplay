@@ -91,6 +91,9 @@ authenticated service state was changed, so the manual checks below remain pendi
 - [ ] Create, edit, select, and delete users.
 - [ ] Confirm the selected user is preserved after restart.
 - [ ] Confirm user switching updates weight, history, graphs, and goals.
+- [ ] Expand history rows before and after deleting, inserting, reordering, and refreshing records;
+      confirm expansion follows `(profile,date)`, never another position, and recycled rows display
+      details only for the current measurement.
 - [ ] Create, edit, and delete manual measurements.
 - [ ] Create, edit, display, and delete goals.
 - [ ] Restore an actual backup created by a pre-refactor version of the app.

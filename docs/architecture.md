@@ -44,6 +44,11 @@ immutable baseline copy, preserving both across recreation. Weight replacement u
 original `(uuid,date)` key and rejects a changed baseline or destination-key collision rather than
 overwriting concurrent state.
 
+History-row expansion is keyed by the exact persisted `(uuid,date)` identity rather than adapter
+position. Replacement prunes only identities no longer present, so deletion, insertion, and reorder
+cannot transfer expansion to another measurement. Collapsed rows bind only their header; opening a
+row uses an expansion payload to bind details without recomputing the header.
+
 ## Measurement presentation and conversion
 
 `Metric` is the authoritative read-only definition of supported measurements. `MassConverter` and

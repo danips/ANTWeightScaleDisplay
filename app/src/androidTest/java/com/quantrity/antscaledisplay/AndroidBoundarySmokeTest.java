@@ -40,6 +40,63 @@ import java.util.concurrent.atomic.AtomicReference;
 @RunWith(AndroidJUnit4.class)
 public class AndroidBoundarySmokeTest {
     @Test
+    public void collapsedHistoryRowDefersAndExpansionPayloadBindsDetails() {
+        Context context = ApplicationProvider.getApplicationContext();
+        User user = user("history-expansion-user");
+        user.birthdate = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(365 * 30L);
+        Weight weight = new Weight();
+        weight.uuid = user.uuid;
+        weight.date = System.currentTimeMillis();
+        weight.weight = 75;
+        weight.height = 180;
+        weight.boneMass = 3.2;
+        HistoryAdapter adapter = new HistoryAdapter(
+                new ArrayList<>(Collections.singletonList(weight)), context, user,
+                new HistoryFragment());
+        FrameLayout parent = new FrameLayout(context);
+        HistoryAdapter.ViewHolder holder = adapter.onCreateViewHolder(parent, 0);
+        holder.boneMassTV.setText("detail-not-bound");
+
+        adapter.onBindViewHolder(holder, 0);
+
+        assertEquals(View.GONE, holder.detailsContainer.getVisibility());
+        assertEquals("detail-not-bound", holder.boneMassTV.getText().toString());
+        holder.weightTV.setText("header-not-rebound");
+
+        adapter.toggleExpanded(0);
+        adapter.onBindViewHolder(holder, 0,
+                Collections.singletonList(HistoryAdapter.EXPANSION_PAYLOAD));
+
+        assertEquals(View.VISIBLE, holder.detailsContainer.getVisibility());
+        assertEquals("header-not-rebound", holder.weightTV.getText().toString());
+        assertFalse("detail-not-bound".contentEquals(holder.boneMassTV.getText()));
+        assertFalse(holder.boneMassTV.getText().toString().isEmpty());
+
+        adapter.toggleExpanded(0);
+        adapter.onBindViewHolder(holder, 0,
+                Collections.singletonList(HistoryAdapter.EXPANSION_PAYLOAD));
+        assertEquals(View.GONE, holder.detailsContainer.getVisibility());
+
+        Weight replacement = new Weight();
+        replacement.uuid = user.uuid;
+        replacement.date = weight.date + 1;
+        replacement.weight = 76;
+        replacement.height = 180;
+        replacement.boneMass = 4.1;
+        adapter.replaceAll(new ArrayList<>(Collections.singletonList(replacement)), user);
+        holder.boneMassTV.setText("recycled-detail-not-bound");
+        adapter.onBindViewHolder(holder, 0);
+        assertEquals(View.GONE, holder.detailsContainer.getVisibility());
+        assertEquals("recycled-detail-not-bound", holder.boneMassTV.getText().toString());
+
+        adapter.toggleExpanded(0);
+        adapter.onBindViewHolder(holder, 0,
+                Collections.singletonList(HistoryAdapter.EXPANSION_PAYLOAD));
+        assertEquals(View.VISIBLE, holder.detailsContainer.getVisibility());
+        assertFalse("recycled-detail-not-bound".contentEquals(holder.boneMassTV.getText()));
+    }
+
+    @Test
     public void weightScreenShowsMuscleOnlySegmentData() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();
         AppRepository repository = AppRepository.get(context);
