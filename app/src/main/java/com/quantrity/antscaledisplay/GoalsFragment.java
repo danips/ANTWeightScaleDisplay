@@ -66,7 +66,10 @@ public class GoalsFragment extends Fragment implements MenuProvider {
                 state.selectUser(user);
 
                 //Mostrar todos los pesos del usuario
-                mAdapter.replaceAll(state.selectedGoals(), user);
+                if (mAdapter != null) {
+                    mAdapter.replaceAll(
+                            state.selectedGoals(), user, state.lastSelectedWeight());
+                }
             }
         }
         @Override
@@ -96,7 +99,10 @@ public class GoalsFragment extends Fragment implements MenuProvider {
     void deleteGoal(Goal goal) {
         state.deleteGoal(goal, result -> {
             if (getActivity() == null || AppHost.from(this).handleMutationFailure(result)) return;
-            if (mAdapter != null) mAdapter.replaceAll(state.selectedGoals(), state.selectedUser());
+            if (mAdapter != null) {
+                mAdapter.replaceAll(state.selectedGoals(), state.selectedUser(),
+                        state.lastSelectedWeight());
+            }
         });
     }
 

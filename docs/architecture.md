@@ -51,7 +51,10 @@ mutation concerns to `Weight`.
 
 Goal editing follows the same split: `GoalValueDefinition` derives layout mode, precision, unit
 labels, and canonical conversion from `Metric`, and two `GoalValueInput` controllers bind the start
-and end subviews. Persisted mass values remain canonical kilograms.
+and end subviews. `GoalProgress` calculates total/on-track values without Android dependencies and
+represents a missing current measurement explicitly. Goal rows refresh the latest measurement with
+each selected profile and omit on-track values for inactive or invalid date ranges. Persisted mass
+values remain canonical kilograms.
 
 ## Graph boundary
 

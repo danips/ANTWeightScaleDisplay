@@ -26,7 +26,7 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
     private final Context context;
     private final GoalsFragment parent;
     private User user;
-    private final Weight lastWeight;
+    private Weight lastWeight;
     private final SimpleDateFormat dateFormatter;
 
     GoalAdapter(ArrayList<Goal> dataset, Context context, User user, Weight lastWeight,
@@ -88,8 +88,9 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         notifyItemInserted(position);
     }
 
-    void replaceAll(ArrayList<Goal> dataset, User user) {
+    void replaceAll(ArrayList<Goal> dataset, User user, Weight lastWeight) {
         this.user = user;
+        this.lastWeight = lastWeight;
         int oldSize = this.dataset.size();
         this.dataset.clear();
         if (oldSize > 0) notifyItemRangeRemoved(0, oldSize);
@@ -118,30 +119,32 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
         holder.onTrackProgressTV.setText("");
 
         Metric.Unit unit = goal.type.displayedUnit(goal.show_fat_mass);
-        double current = goal.type.goalValue(lastWeight, goal.show_fat_mass);
-        double expected = ((double) (lastWeight.date - goal.start_date)
-                / (goal.end_date - goal.start_date))
-                * (goal.end_value - goal.start_value) + goal.start_value;
-        double totalProgress = current - goal.start_value;
-        double onTrackProgress = current - expected;
+        GoalProgress progress = GoalProgress.calculate(goal, lastWeight, now);
 
         holder.startValueTV.setText(format(goal.start_value, unit, false));
         holder.endValueTV.setText(format(goal.end_value, unit, false));
+        if (!progress.hasCurrentValue) {
+            holder.totalProgressTV.setText(R.string.goal_progress_unavailable);
+            holder.totalProgressTV.setTextColor(holder.endValueTV.getCurrentTextColor());
+            holder.onTrackProgressTV.setText("");
+            return;
+        }
         holder.totalProgressTV.setText(context.getString(R.string.format_total_sigma,
-                totalProgress > 0 ? "+" : "", format(totalProgress, unit, true)));
+                progress.total > 0 ? "+" : "", format(progress.total, unit, true)));
 
-        boolean active = now <= goal.end_date && now >= goal.start_date;
-        if (active) {
+        if (progress.hasOnTrackValue) {
             holder.onTrackProgressTV.setText(context.getString(R.string.format_delta,
-                    onTrackProgress > 0 ? "+" : "", format(onTrackProgress, unit, true)));
+                    progress.onTrack > 0 ? "+" : "", format(progress.onTrack, unit, true)));
         } else {
             holder.onTrackProgressTV.setText("");
         }
 
         int upColor = goal.start_value >= goal.end_value ? Color.RED : Color.GREEN;
         int downColor = goal.start_value >= goal.end_value ? Color.GREEN : Color.RED;
-        holder.totalProgressTV.setTextColor(totalProgress <= 0 ? downColor : upColor);
-        if (active) holder.onTrackProgressTV.setTextColor(onTrackProgress <= 0 ? downColor : upColor);
+        holder.totalProgressTV.setTextColor(progress.total <= 0 ? downColor : upColor);
+        if (progress.hasOnTrackValue) {
+            holder.onTrackProgressTV.setTextColor(progress.onTrack <= 0 ? downColor : upColor);
+        }
     }
 
     private String format(double value, Metric.Unit unit, boolean difference) {
