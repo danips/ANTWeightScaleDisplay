@@ -132,6 +132,12 @@ public final class AppStateViewModel extends AndroidViewModel {
 
     void selectUser(User user) {
         repository.selectUser(user == null ? null : user.uuid);
+        User selectedUser = repository.selectedUser();
+        if (antWeightController != null && AntWeightSelectionPolicy.shouldDiscard(
+                antWeightController.isRunning(), antWeightController.completionDelivered(),
+                antWeightController.user, selectedUser)) {
+            antWeightController = null;
+        }
     }
 
     void saveUser(User user, AppRepository.MutationCallback callback) {
@@ -250,6 +256,13 @@ public final class AppStateViewModel extends AndroidViewModel {
     }
 
     AntWeightController antWeightController() { return antWeightController; }
+
+    AntWeightController selectedAntWeightController() {
+        User selectedUser = repository.selectedUser();
+        return antWeightController != null
+                && AntWeightSelectionPolicy.matches(antWeightController.user, selectedUser)
+                ? antWeightController : null;
+    }
 
     AntWeightController newAntWeightController(AntWeightListener listener) {
         if (antWeightController != null && antWeightController.isRunning()) {

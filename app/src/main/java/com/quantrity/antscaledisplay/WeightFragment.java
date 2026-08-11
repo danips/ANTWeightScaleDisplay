@@ -72,8 +72,8 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
 
         binding.fab.setOnClickListener(view -> {
             if (getActivity() != null) {
-                AntWeightController rw = state.antWeightController();
-                if (rw != null) {
+                AntWeightController rw = state.selectedAntWeightController();
+                if (rw != null && rw.hasDisplayableWeight()) {
                     AppHost.from(this).openEditWeightFragment(rw.weight, rw.user, true);
                 } else {
                     AppHost.from(this).openEditWeightFragment(null, null, false);
@@ -98,7 +98,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     @Override
     public void onResume() {
         super.onResume();
-        AntWeightController controller = state.antWeightController();
+        AntWeightController controller = state.selectedAntWeightController();
         if (controller != null) {
             controller.attachListener(this);
             if (controller.isRunning() && controller.progress() != null) {
@@ -112,16 +112,15 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         if (getActivity() == null || binding == null) return;
 
         final MainActivity mainActivity = (MainActivity) getActivity();
-        final AntWeightController rw = state.antWeightController();
-
         mainActivity.runOnUiThread(() -> {
             if (getActivity() == null || binding == null) return;
 
             Weight displayWeight = null;
             User displayUser = state.selectedUser();
+            AntWeightController rw = state.selectedAntWeightController();
 
             // 1. Live Data or 2. History
-            if (rw != null && rw.weight != null && rw.weight.weight != -1 && rw.user != null) {
+            if (rw != null && rw.hasDisplayableWeight()) {
                 displayWeight = rw.weight;
                 displayUser = rw.user;
             } else if (displayUser != null) {
@@ -137,7 +136,10 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             }
 
             if (displayWeight == null) {
+                enableUploadButton = false;
+                userToUpload = null;
                 resetAllCards();
+                mainActivity.invalidateOptionsMenu();
                 return;
             }
 
@@ -179,16 +181,18 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
                         displayUser.age, displayUser.isMale));
             }
 
-            if ((rw != null) && (displayUser.gc_user != null) && (displayUser.gc_pass != null)) {
+            if (rw != null && rw.hasDisplayableWeight()
+                    && displayUser.gc_user != null && displayUser.gc_pass != null) {
                 if ((userToUpload != null) && (!enableUploadButton) && (displayUser.autoupload)) {
-                    MainActivity.uploadButton(mainActivity, rw.weight, userToUpload);
+                    MainActivity.uploadButton(mainActivity, rw.weight, rw.user);
                 }
                 enableUploadButton = true;
                 userToUpload = displayUser;
             } else {
                 enableUploadButton = false;
+                if (rw == null) userToUpload = null;
             }
-            getActivity().invalidateOptionsMenu();
+            mainActivity.invalidateOptionsMenu();
         });
     }
 
@@ -345,7 +349,11 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         @Override
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             if (view != null && getActivity() != null) {
+                AntWeightController previous = state.antWeightController();
+                if (previous != null) previous.detachListener(WeightFragment.this);
                 state.selectUser((User)adapterView.getItemAtPosition(i));
+                AntWeightController selected = state.selectedAntWeightController();
+                if (selected != null) selected.attachListener(WeightFragment.this);
                 updateUi();
             }
         }
@@ -375,11 +383,11 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             return true;
         } else if (itemId == R.id.action_weight_upload) {
             if (getActivity() != null) {
-                AntWeightController controller = state.antWeightController();
-                if (controller != null) {
+                AntWeightController controller = state.selectedAntWeightController();
+                if (controller != null && controller.hasDisplayableWeight()) {
                     MainActivity.uploadButton((MainActivity)getActivity(),
                             controller.weight,
-                            userToUpload);
+                            controller.user);
                 }
             }
             enableUploadButton = false;

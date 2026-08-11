@@ -16,6 +16,7 @@ public class AntWeightControllerCompletionTest {
         delivery.markReady();
 
         assertTrue(delivery.claim());
+        assertTrue(delivery.wasClaimed());
         assertFalse(delivery.claim());
     }
 }

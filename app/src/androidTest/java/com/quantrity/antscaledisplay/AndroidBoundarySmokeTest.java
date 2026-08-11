@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import android.app.Notification;
@@ -36,6 +37,37 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class AndroidBoundarySmokeTest {
+    @Test
+    public void retainedAntControllerIsExposedOnlyForItsSelectedProfile() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        AppRepository repository = AppRepository.get(context);
+        assertTrue(repository.reloadState().isSuccess());
+        User firstUser = user("ant-controller-first");
+        User secondUser = user("ant-controller-second");
+        awaitMutation(callback -> repository.upsertUser(firstUser, callback));
+        awaitMutation(callback -> repository.upsertUser(secondUser, callback));
+
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            scenario.onActivity(activity -> {
+                AppStateViewModel state = new ViewModelProvider(activity)
+                        .get(AppStateViewModel.class);
+                state.selectUser(firstUser);
+                AntWeightController controller = state.newAntWeightController(null);
+                controller.setProfile(firstUser);
+                controller.weight.uuid = firstUser.uuid;
+                controller.weight.weight = 75;
+
+                assertSame(controller, state.selectedAntWeightController());
+
+                state.selectUser(secondUser);
+                assertNull(state.selectedAntWeightController());
+
+                state.selectUser(firstUser);
+                assertSame(controller, state.selectedAntWeightController());
+            });
+        }
+    }
+
     @Test
     public void mergedManifestKeepsUsbHostOptionalAndCleartextDisabled() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();

@@ -110,6 +110,9 @@ Repeat the failure-sensitive cases at least three times on a representative supp
       uploaded.
 - [ ] Recreate the Activity during search and confirm progress resumes without duplicate results or
       leaks.
+- [ ] Measure for profile A, then select profile B and navigate away/back; confirm profile B's
+      measurement is rendered and edit/upload cannot target profile A. Repeat after rotation during
+      and after profile A's measurement.
 - [ ] Confirm automatic upload runs only after a complete, successful measurement.
 
 ## Garmin

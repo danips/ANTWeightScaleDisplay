@@ -62,6 +62,8 @@ final class AntWeightController implements AntServiceClient.Listener {
         if (listenerRef.get() == listener) listenerRef.clear();
     }
     boolean isRunning() { return session != null && !finished; }
+    boolean hasDisplayableWeight() { return weight != null && weight.weight != -1; }
+    synchronized boolean completionDelivered() { return completionDelivery.wasClaimed(); }
     AntWeightSession.Progress progress() { return currentProgress; }
 
     synchronized void start() {
@@ -280,6 +282,8 @@ final class AntWeightController implements AntServiceClient.Listener {
             claimed = true;
             return true;
         }
+
+        boolean wasClaimed() { return claimed; }
     }
 
     private static final class CommandFailedException extends RuntimeException {
