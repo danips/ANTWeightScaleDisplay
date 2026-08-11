@@ -94,6 +94,11 @@ The foreground composition root is `GarminForegroundSession`. It constructs and 
 - `GarminWeightService` for FIT upload and weight-history download;
 - `DialogMfaCodeProvider` for the replaceable Android MFA interface.
 
+Notification autofill is registered only while the Garmin MFA input dialog is visible. The listener
+requires a Garmin keyword in the notification title or content, rejects notification timestamps
+older than the request, and delivers at most one code through that request-specific registration.
+Manual entry remains available regardless of notification source or listener access.
+
 `UploadCoordinator` invokes the foreground session synchronously on the executor owned by
 `ForegroundUpload`. Background access-token renewal uses `GarminTokenRefreshWorker` and constructs
 the same authenticator with a non-interactive MFA provider. `GarminTokenRefreshScheduler` is the

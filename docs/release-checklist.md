@@ -121,7 +121,10 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] On API 23–28 without Google Play services, confirm Garmin workflows stop safely without a
       crash or HTTPS request.
 - [ ] Confirm token status and expiration timestamps are accurate.
-- [ ] Log in with MFA and verify both code entry and cancellation.
+- [ ] Log in with MFA and verify manual code entry, scoped notification autofill, and cancellation.
+- [ ] Open sequential MFA dialogs and reconnect the notification listener with an old active Garmin
+      notification; confirm old, replayed, unrelated, pre-dialog, and post-cancellation codes do not
+      autofill, while one fresh Garmin code received during the visible dialog does.
 - [ ] Upload with active and expired access tokens.
 - [ ] Upload representative app-generated FIT files to Garmin Connect: one weight-only file and one
       containing every supported optional measurement.

@@ -19,12 +19,10 @@ import android.widget.FrameLayout;
 
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -140,31 +138,39 @@ public class AndroidBoundarySmokeTest {
     }
 
     @Test
-    public void notificationListenerPublishesAStandaloneMfaCode() throws Exception {
+    public void notificationListenerPublishesOnlyAFreshGarminMfaCode() {
         Context context = ApplicationProvider.getApplicationContext();
-        Notification notification = new NotificationCompat.Builder(context, "mfa-test")
+        Notification unrelated = new NotificationCompat.Builder(context, "mfa-test")
+                .setSmallIcon(R.drawable.ic_launcher)
+                .setContentText("Bank verification code: 111111")
+                .build();
+        Notification garmin = new NotificationCompat.Builder(context, "mfa-test")
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setContentText("Garmin verification code: 123456")
                 .build();
-        CountDownLatch delivered = new CountDownLatch(1);
         AtomicReference<String> observed = new AtomicReference<>();
-        Observer<String> observer = value -> {
-            observed.set(value);
-            delivered.countDown();
-        };
-        InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
-                NotificationRepository.getInstance().getLatestNotification()
-                        .observeForever(observer));
+        long requestStartedAt = System.currentTimeMillis();
+        NotificationRepository.MfaRequest request = NotificationRepository.getInstance()
+                .registerMfaRequest(requestStartedAt, observed::set);
+        NotificationListener listener = new NotificationListener();
 
         try {
-            new NotificationListener().processNotification(notification);
+            listener.processNotification(unrelated, requestStartedAt + 1);
+            assertNull(observed.get());
 
-            assertTrue("MFA event was not delivered", delivered.await(5, TimeUnit.SECONDS));
+            listener.processNotification(garmin, requestStartedAt - 1);
+            assertNull(observed.get());
+
+            listener.processNotification(garmin, requestStartedAt + 1);
+            assertEquals("123456", observed.get());
+
+            listener.processNotification(new NotificationCompat.Builder(context, "mfa-test")
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setContentText("Garmin verification code: 654321")
+                    .build(), requestStartedAt + 2);
             assertEquals("123456", observed.get());
         } finally {
-            InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
-                    NotificationRepository.getInstance().getLatestNotification()
-                            .removeObserver(observer));
+            request.close();
         }
     }
 

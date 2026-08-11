@@ -12,8 +12,6 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 
-import androidx.lifecycle.Observer;
-
 import java.lang.ref.WeakReference;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,11 +29,14 @@ final class DialogMfaCodeProvider implements MfaCodeProvider {
         Activity activity = activityRef.get();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return null;
         BlockingQueue<String> input = new LinkedBlockingQueue<>();
-        activity.runOnUiThread(() -> showPermissionOrInput(activity, input));
+        long requestStartedAt = System.currentTimeMillis();
+        activity.runOnUiThread(() ->
+                showPermissionOrInput(activity, input, requestStartedAt));
         return input.take();
     }
 
-    private void showPermissionOrInput(Activity activity, BlockingQueue<String> input) {
+    private void showPermissionOrInput(Activity activity, BlockingQueue<String> input,
+                                       long requestStartedAt) {
         if (!notificationAccessEnabled(activity)) {
             new AlertDialog.Builder(activity)
                     .setTitle(R.string.auth_notification_permission_title)
@@ -43,14 +44,16 @@ final class DialogMfaCodeProvider implements MfaCodeProvider {
                     .setPositiveButton(R.string.auth_notification_permission_enable,
                             (dialog, which) -> openNotificationSettings(activity))
                     .setNegativeButton(R.string.auth_notification_permission_skip, null)
-                    .setOnDismissListener(dialog -> showInput(activity, input))
+                    .setOnDismissListener(dialog ->
+                            showInput(activity, input, requestStartedAt))
                     .show();
         } else {
-            showInput(activity, input);
+            showInput(activity, input, requestStartedAt);
         }
     }
 
-    private void showInput(Activity activity, BlockingQueue<String> inputQueue) {
+    private void showInput(Activity activity, BlockingQueue<String> inputQueue,
+                           long requestStartedAt) {
         EditText input = new EditText(activity);
         input.setInputType(InputType.TYPE_CLASS_NUMBER);
         input.setHint(R.string.auth_garmin_verification_hint);
@@ -65,20 +68,20 @@ final class DialogMfaCodeProvider implements MfaCodeProvider {
                         (ignored, id) -> inputQueue.offer(""))
                 .create();
 
-        Observer<String> observer = code -> {
-            if (code != null && code.matches("\\d{6}") && dialog.isShowing()) {
-                input.setText(code);
-                inputQueue.offer(code);
-                dialog.dismiss();
-            }
-        };
-        NotificationRepository.getInstance().getLatestNotification().observeForever(observer);
+        NotificationRepository.MfaRequest[] notificationRequest =
+                new NotificationRepository.MfaRequest[1];
         dialog.setOnDismissListener(ignored -> {
-            NotificationRepository.getInstance().getLatestNotification()
-                    .removeObserver(observer);
+            if (notificationRequest[0] != null) notificationRequest[0].close();
             if (inputQueue.isEmpty()) inputQueue.offer("");
         });
         dialog.setOnShowListener(ignored -> {
+            notificationRequest[0] = NotificationRepository.getInstance().registerMfaRequest(
+                    requestStartedAt, code -> activity.runOnUiThread(() -> {
+                        if (dialog.isShowing() && inputQueue.offer(code)) {
+                            input.setText(code);
+                            dialog.dismiss();
+                        }
+                    }));
             input.requestFocus();
             InputMethodManager keyboard = (InputMethodManager) activity.getSystemService(
                     Context.INPUT_METHOD_SERVICE);

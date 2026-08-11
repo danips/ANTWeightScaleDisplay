@@ -5,9 +5,6 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 public class NotificationListener extends NotificationListenerService {
 
     @Override
@@ -19,7 +16,7 @@ public class NotificationListener extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        processNotification(sbn.getNotification());
+        processNotification(sbn.getNotification(), sbn.getPostTime());
     }
 
     private void fetchActiveNotifications() {
@@ -27,7 +24,7 @@ public class NotificationListener extends NotificationListenerService {
             StatusBarNotification[] active = getActiveNotifications();
             if (active != null) {
                 for (StatusBarNotification sbn : active) {
-                    processNotification(sbn.getNotification());
+                    processNotification(sbn.getNotification(), sbn.getPostTime());
                 }
             }
         } catch (Exception e) {
@@ -35,26 +32,17 @@ public class NotificationListener extends NotificationListenerService {
         }
     }
 
-    void processNotification(Notification notification) {
+    void processNotification(Notification notification, long postedAtMillis) {
         if (notification == null || notification.extras == null) return;
 
-        // 1. Get the content (Prefer Big Text, fallback to standard Text)
+        CharSequence title = notification.extras.getCharSequence(Notification.EXTRA_TITLE);
         CharSequence contentChar = notification.extras.getCharSequence(Notification.EXTRA_BIG_TEXT);
         if (contentChar == null) {
             contentChar = notification.extras.getCharSequence(Notification.EXTRA_TEXT);
         }
-        String content = (contentChar != null) ? contentChar.toString() : "";
-
-        // 2. Apply Regex directly (Look for ANY standalone 6-digit number)
-        // Pattern: No digit before, exactly 6 digits, no digit after
-        Pattern pattern = Pattern.compile("(?<!\\d)(\\d{6})(?!\\d)");
-        Matcher matcher = pattern.matcher(content);
-
-        if (matcher.find()) {
-            String code = matcher.group(1);
-
-            // 3. Post the code immediately
-            NotificationRepository.getInstance().postNotification(code);
+        String code = MfaNotificationParser.findCode(title, contentChar);
+        if (code != null) {
+            NotificationRepository.getInstance().postMfaCode(code, postedAtMillis);
         }
     }
 }
