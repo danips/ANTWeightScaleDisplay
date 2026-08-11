@@ -23,6 +23,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class AppRepositoryTest {
     @Rule
@@ -205,7 +206,7 @@ public class AppRepositoryTest {
         CountDownLatch completed = new CountDownLatch(1);
         RepositoryResult<?>[] callbackResult = new RepositoryResult<?>[1];
 
-        repository.upsertWeight(weight, false, result -> {
+        repository.upsertWeight(weight, null, result -> {
             callbackResult[0] = result;
             completed.countDown();
         });
@@ -226,7 +227,7 @@ public class AppRepositoryTest {
         CountDownLatch completed = new CountDownLatch(1);
         RepositoryResult<?>[] callbackResult = new RepositoryResult<?>[1];
 
-        repository.upsertWeight(weight, false, result -> {
+        repository.upsertWeight(weight, null, result -> {
             callbackResult[0] = result;
             completed.countDown();
         });
@@ -250,7 +251,7 @@ public class AppRepositoryTest {
         CountDownLatch completed = new CountDownLatch(1);
         RepositoryResult<?>[] callbackResult = new RepositoryResult<?>[1];
 
-        repository.upsertWeight(edited, true, result -> {
+        repository.upsertWeight(edited, original, result -> {
             callbackResult[0] = result;
             completed.countDown();
         });
@@ -262,6 +263,89 @@ public class AppRepositoryTest {
         assertEquals(75, repository.loadWeights().value.get(0).weight, 0);
         assertTrue(repository.reloadState().isSuccess());
         assertEquals(75, repository.weightsSnapshot().get(0).weight, 0);
+    }
+
+    @Test
+    public void detachedEditCanChangeDateAndBeDiscardedWithoutMutatingState() throws Exception {
+        Weight original = weight(456, 75);
+        assertTrue(repository.saveWeightsSynchronously(Collections.singletonList(original)).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+
+        Weight draft = repository.findWeight("user", 456).copy();
+        draft.date = 789;
+        draft.weight = 80;
+
+        Weight committed = repository.findWeight("user", 456);
+        assertEquals(456, committed.date);
+        assertEquals(75, committed.weight, 0);
+        assertNull(repository.findWeight("user", 789));
+        assertEquals(456, repository.loadWeights().value.get(0).date);
+    }
+
+    @Test
+    public void editReplacesOriginalKeyAfterDateChange() throws Exception {
+        Weight original = weight(456, 75);
+        assertTrue(repository.saveWeightsSynchronously(Collections.singletonList(original)).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+        Weight baseline = repository.findWeight("user", 456).copy();
+        Weight draft = baseline.copy();
+        draft.date = 789;
+        draft.weight = 80;
+
+        RepositoryResult<Void> result = upsertWeightAndWait(draft, baseline);
+
+        assertTrue(result.isSuccess());
+        assertNull(repository.findWeight("user", 456));
+        assertEquals(80, repository.findWeight("user", 789).weight, 0);
+        assertNull(findWeight(repository.loadWeights().value, "user", 456));
+        assertEquals(80, findWeight(repository.loadWeights().value, "user", 789).weight, 0);
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals(80, repository.findWeight("user", 789).weight, 0);
+    }
+
+    @Test
+    public void editRejectsCollisionAtChangedKey() throws Exception {
+        Weight original = weight(456, 75);
+        Weight collision = weight(789, 70);
+        assertTrue(repository.saveWeightsSynchronously(Arrays.asList(original, collision)).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+        Weight baseline = repository.findWeight("user", 456).copy();
+        Weight draft = baseline.copy();
+        draft.date = 789;
+        draft.weight = 80;
+
+        RepositoryResult<Void> result = upsertWeightAndWait(draft, baseline);
+
+        assertFalse(result.isSuccess());
+        assertEquals("A weight already exists for the selected user and date", result.message);
+        assertEquals(2, repository.weightsSnapshot().size());
+        assertEquals(75, repository.findWeight("user", 456).weight, 0);
+        assertEquals(70, repository.findWeight("user", 789).weight, 0);
+        assertEquals(2, repository.loadWeights().value.size());
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals(75, repository.findWeight("user", 456).weight, 0);
+    }
+
+    @Test
+    public void editRejectsConcurrentChangeToOriginalRecord() throws Exception {
+        Weight original = weight(456, 75);
+        assertTrue(repository.saveWeightsSynchronously(Collections.singletonList(original)).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+        Weight baseline = repository.findWeight("user", 456).copy();
+        Weight concurrent = baseline.copy();
+        concurrent.weight = 76;
+        assertTrue(upsertWeightAndWait(concurrent, baseline).isSuccess());
+        Weight staleDraft = baseline.copy();
+        staleDraft.weight = 80;
+
+        RepositoryResult<Void> result = upsertWeightAndWait(staleDraft, baseline);
+
+        assertFalse(result.isSuccess());
+        assertEquals("The weight changed while it was being edited", result.message);
+        assertEquals(76, repository.findWeight("user", 456).weight, 0);
+        assertEquals(76, repository.loadWeights().value.get(0).weight, 0);
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals(76, repository.findWeight("user", 456).weight, 0);
     }
 
     @Test
@@ -311,11 +395,11 @@ public class AppRepositoryTest {
         CountDownLatch completed = new CountDownLatch(2);
         List<Long> callbackOrder = Collections.synchronizedList(new ArrayList<>());
 
-        repository.upsertWeight(first, false, result -> {
+        repository.upsertWeight(first, null, result -> {
             callbackOrder.add(1L);
             completed.countDown();
         });
-        repository.upsertWeight(second, false, result -> {
+        repository.upsertWeight(second, null, result -> {
             callbackOrder.add(2L);
             completed.countDown();
         });
@@ -336,14 +420,14 @@ public class AppRepositoryTest {
         int[] stateSizes = new int[2];
         int[] diskSizes = new int[2];
 
-        repository.upsertWeight(failed, false, result -> {
+        repository.upsertWeight(failed, null, result -> {
             callbackResults[0] = result;
             stateSizes[0] = repository.weightsSnapshot().size();
             unblockWrites("history");
             diskSizes[0] = repository.loadWeights().value.size();
             completed.countDown();
         });
-        repository.upsertWeight(accepted, false, result -> {
+        repository.upsertWeight(accepted, null, result -> {
             callbackResults[1] = result;
             stateSizes[1] = repository.weightsSnapshot().size();
             diskSizes[1] = repository.loadWeights().value.size();
@@ -366,6 +450,25 @@ public class AppRepositoryTest {
     private void writeFixture(String filename, String fixture) throws Exception {
         Files.write(new File(temporaryFolder.getRoot(), filename).toPath(),
                 FixtureLoader.load(fixture).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private RepositoryResult<Void> upsertWeightAndWait(Weight weight, Weight original)
+            throws InterruptedException {
+        CountDownLatch completed = new CountDownLatch(1);
+        AtomicReference<RepositoryResult<Void>> callbackResult = new AtomicReference<>();
+        repository.upsertWeight(weight, original, result -> {
+            callbackResult.set(result);
+            completed.countDown();
+        });
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        return callbackResult.get();
+    }
+
+    private static Weight findWeight(List<Weight> weights, String uuid, long date) {
+        for (Weight weight : weights) {
+            if (date == weight.date && uuid.equals(weight.uuid)) return weight;
+        }
+        return null;
     }
 
     private static Weight weight(long date, double value) {

@@ -147,6 +147,14 @@ public class Weight implements Cloneable {
         return super.clone();
     }
 
+    Weight copy() {
+        try {
+            return (Weight) clone();
+        } catch (CloneNotSupportedException e) {
+            throw new IllegalStateException("Weight must remain cloneable", e);
+        }
+    }
+
     public boolean equals(Weight other) {
         return (other != null) && (this.date == other.date)
                 && (this.uuid.equals(other.uuid))

@@ -36,7 +36,10 @@ user-selection setup path and selection remains persisted by UUID.
 
 Fragments render state and forward user actions; generated View Binding objects exist only for the
 corresponding view lifecycle and are cleared in `onDestroyView`. RecyclerView adapters own shallow
-list snapshots and use typed row bindings.
+list snapshots and use typed row bindings. The weight editor owns a detached working copy and an
+immutable baseline copy, preserving both across recreation. Weight replacement uses the baseline's
+original `(uuid,date)` key and rejects a changed baseline or destination-key collision rather than
+overwriting concurrent state.
 
 ## Measurement presentation and conversion
 

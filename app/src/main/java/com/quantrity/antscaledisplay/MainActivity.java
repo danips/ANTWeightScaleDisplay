@@ -92,7 +92,8 @@ public class MainActivity extends AppCompatActivity
                 } else {
                     Fragment current_fragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
                     if (current_fragment instanceof EditWeightFragment) {
-                        closeEditWeightFragment(null, null, ((EditWeightFragment) current_fragment).edit, false);
+                        closeEditWeightFragment(null, null, null,
+                                ((EditWeightFragment) current_fragment).edit, false);
                     } else if (current_fragment instanceof EditUserFragment) {
                         closeEditUserFragment(null);
                     } else if (current_fragment instanceof EditGoalFragment) {
@@ -166,7 +167,8 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public void closeEditWeightFragment(Weight weight, User user, boolean edit, boolean change) {
+    public void closeEditWeightFragment(Weight weight, Weight original, User user,
+                                        boolean edit, boolean change) {
         dismissKeyboard();
         NavigationDestination destination = edit
                 ? NavigationDestination.HISTORY : NavigationDestination.WEIGHT;
@@ -174,7 +176,7 @@ public class MainActivity extends AppCompatActivity
             navigate(destination);
             return;
         }
-        state.saveWeight(weight, edit, result -> {
+        state.saveWeight(weight, original, result -> {
             if (handleMutationFailure(result)) return;
             navigate(destination);
             if (user != null && user.autoupload && change) uploadButton(this, weight, user);

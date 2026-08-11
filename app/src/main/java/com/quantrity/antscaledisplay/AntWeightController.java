@@ -208,7 +208,7 @@ final class AntWeightController implements AntServiceClient.Listener {
         finished = true;
         successful = true;
         cleanup();
-        AppRepository.get(context).upsertWeight(result, false, saveResult -> {
+        AppRepository.get(context).upsertWeight(result, null, saveResult -> {
             if (saveResult.isSuccess()) onMeasurementSaved();
             else notifyPersistenceFailure(saveResult.message);
         });

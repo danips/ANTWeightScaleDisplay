@@ -16,7 +16,8 @@ interface AppHost {
     void openEditUserFragment(User user);
     void closeEditUserFragment(User user);
     void openEditWeightFragment(Weight weight, User user, boolean edit);
-    void closeEditWeightFragment(Weight weight, User user, boolean edit, boolean change);
+    void closeEditWeightFragment(Weight weight, Weight original, User user,
+                                 boolean edit, boolean change);
     void openEditGoalFragment(Goal goal);
     void closeEditGoalFragment(Goal goal);
     Spinner addUsersSpinner(Menu menu, AdapterView.OnItemSelectedListener listener);

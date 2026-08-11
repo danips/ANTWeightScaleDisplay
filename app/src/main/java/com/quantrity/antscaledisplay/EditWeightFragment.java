@@ -27,6 +27,8 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.quantrity.antscaledisplay.databinding.FragmentEditWeightBinding;
 
+import org.json.JSONObject;
+
 import java.text.DecimalFormatSymbols;
 import java.util.Calendar;
 import java.util.EnumMap;
@@ -37,8 +39,8 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
     private static final String ARG_WEIGHT_DATE = "weight_date";
     private static final String ARG_USER_UUID = "user_uuid";
     private static final String ARG_EDIT = "edit";
-    private static final String STATE_WEIGHT_USER_UUID = "state_weight_user_uuid";
-    private static final String STATE_WEIGHT_DATE = "state_weight_date";
+    private static final String STATE_WORKING_WEIGHT = "state_working_weight";
+    private static final String STATE_ORIGINAL_WEIGHT = "state_original_weight";
     private static final String STATE_USER_UUID = "state_user_uuid";
 
     private Weight the_weight, old_weight;
@@ -80,29 +82,25 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
         if (!state.isLoaded()) state.reload();
         Bundle arguments = getArguments();
-        String weightUuid = savedInstanceState == null
-                ? (arguments == null ? null : arguments.getString(ARG_WEIGHT_USER_UUID))
-                : savedInstanceState.getString(STATE_WEIGHT_USER_UUID);
-        long weightDate = savedInstanceState == null
-                ? (arguments == null ? -1 : arguments.getLong(ARG_WEIGHT_DATE, -1))
-                : savedInstanceState.getLong(STATE_WEIGHT_DATE, -1);
+        String weightUuid = arguments == null ? null : arguments.getString(ARG_WEIGHT_USER_UUID);
+        long weightDate = arguments == null ? -1 : arguments.getLong(ARG_WEIGHT_DATE, -1);
         String userUuid = savedInstanceState == null
                 ? (arguments == null ? null : arguments.getString(ARG_USER_UUID))
                 : savedInstanceState.getString(STATE_USER_UUID);
         edit = arguments != null && arguments.getBoolean(ARG_EDIT, false);
         preserveRestoredViews = savedInstanceState != null;
-        the_weight = weightUuid == null ? null : state.findWeight(weightUuid, weightDate);
+        Weight storedWeight = weightUuid == null ? null : state.findWeight(weightUuid, weightDate);
+        if (savedInstanceState == null) {
+            old_weight = storedWeight == null ? null : storedWeight.copy();
+            the_weight = storedWeight == null ? null : storedWeight.copy();
+        } else {
+            old_weight = restoreWeight(savedInstanceState, STATE_ORIGINAL_WEIGHT);
+            the_weight = restoreWeight(savedInstanceState, STATE_WORKING_WEIGHT);
+        }
         the_user = userUuid == null ? state.selectedUser() : state.findUser(userUuid);
         if (savedInstanceState != null && the_weight == null && !edit) {
             the_weight = new Weight();
             the_weight.date = weightDate;
-        }
-        if (the_weight != null) {
-            try {
-                old_weight = (Weight) the_weight.clone();
-            } catch (CloneNotSupportedException e) {
-                Log.e(TAG, "Unable to copy the weight for editing", e);
-            }
         }
         binding = FragmentEditWeightBinding.inflate(inflater, container, false);
         bindMetricFields();
@@ -226,22 +224,24 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
     @Override
     public void onResume() {
         super.onResume();
-        if (preserveRestoredViews) preserveRestoredViews = false;
-        else updateUi();
+        updateUi(preserveRestoredViews);
+        preserveRestoredViews = false;
     }
 
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
-        if (the_weight != null) {
-            outState.putString(STATE_WEIGHT_USER_UUID, the_weight.uuid);
-            outState.putLong(STATE_WEIGHT_DATE, the_weight.date);
-        }
+        saveWeight(outState, STATE_WORKING_WEIGHT, the_weight);
+        saveWeight(outState, STATE_ORIGINAL_WEIGHT, old_weight);
         if (the_user != null) outState.putString(STATE_USER_UUID, the_user.uuid);
     }
 
     // updates UI to reflect model
     private void updateUi() {
+        updateUi(false);
+    }
+
+    private void updateUi(boolean preserveInputs) {
         if (getActivity() == null) {
             Log.v(TAG, "********** updateUi with getActivity NULL **********");
             return;
@@ -256,7 +256,7 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
                 }
                 if ((the_user = state.selectedUser()) == null)
                 {
-                    AppHost.from(this).closeEditWeightFragment(null, null, edit, false);
+                    AppHost.from(this).closeEditWeightFragment(null, null, null, edit, false);
                     return;
                 }
             }
@@ -265,9 +265,11 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
             {
                 the_weight = new Weight();
                 the_weight.date = System.currentTimeMillis();
-                for (MetricField field : metricFields.values()) field.input.getText().clear();
+                if (!preserveInputs) {
+                    for (MetricField field : metricFields.values()) field.input.getText().clear();
+                }
             }
-            else {
+            else if (!preserveInputs) {
                 for (MetricField field : metricFields.values()) {
                     field.input.setText(field.definition.displayText(the_weight, the_user));
                 }
@@ -289,9 +291,11 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
             if (view != null) {
                 if (getActivity() != null) {
-                    state.selectUser((User) adapterView.getItemAtPosition(i));
-                    the_user = (User)adapterView.getItemAtPosition(i);
-                    updateUi();
+                    User selected = (User) adapterView.getItemAtPosition(i);
+                    boolean changed = the_user == null || !selected.uuid.equals(the_user.uuid);
+                    state.selectUser(selected);
+                    the_user = selected;
+                    if (changed) updateUi();
                 }
             }
         }
@@ -314,11 +318,11 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         int itemId = menuItem.getItemId();
         if (itemId == R.id.action_editweight_cancel) {
             if (getActivity() != null)
-                AppHost.from(this).closeEditWeightFragment(null, null, edit, false);
+                AppHost.from(this).closeEditWeightFragment(null, null, null, edit, false);
             return true;
         } else if (itemId == R.id.action_editweight_done) {
             if (checkValues() && (getActivity() != null)) {
-                AppHost.from(this).closeEditWeightFragment(the_weight, the_user, edit,
+                AppHost.from(this).closeEditWeightFragment(the_weight, old_weight, the_user, edit,
                         !the_weight.equals(old_weight));
             }
             return true;
@@ -359,5 +363,25 @@ public class EditWeightFragment extends Fragment implements MenuProvider {
         }
 
         return true;
+    }
+
+    private static void saveWeight(Bundle state, String key, Weight weight) {
+        if (weight == null) return;
+        try {
+            state.putString(key, weight.serializeToObj().toString());
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to preserve the weight editor state", e);
+        }
+    }
+
+    private static Weight restoreWeight(Bundle state, String key) {
+        String serialized = state.getString(key);
+        if (serialized == null) return null;
+        try {
+            return new Weight(new JSONObject(serialized));
+        } catch (Exception e) {
+            Log.e(TAG, "Unable to restore the weight editor state", e);
+            return null;
+        }
     }
 }

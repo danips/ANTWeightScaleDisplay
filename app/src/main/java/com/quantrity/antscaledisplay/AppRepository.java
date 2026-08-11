@@ -227,16 +227,30 @@ final class AppRepository {
         }, callback);
     }
 
-    void upsertWeight(Weight weight, boolean editing, MutationCallback callback) {
+    void upsertWeight(Weight weight, Weight original, MutationCallback callback) {
+        Weight requested = weight.copy();
+        Weight expected = original == null ? null : original.copy();
         execute(() -> {
             ArrayList<Weight> candidate;
             synchronized (stateLock) {
                 candidate = new ArrayList<>(weights);
             }
-            Weight existing = findWeight(candidate, weight.uuid, weight.date);
-            if (!editing && existing == null) candidate.add(weight);
-            else if (existing != null && existing != weight) {
-                candidate.set(candidate.indexOf(existing), weight);
+
+            if (expected == null) {
+                if (findWeight(candidate, requested.uuid, requested.date) != null) {
+                    return mutationConflict("A weight already exists for the selected user and date");
+                }
+                candidate.add(requested);
+            } else {
+                Weight current = findWeight(candidate, expected.uuid, expected.date);
+                if (current == null || !current.equals(expected)) {
+                    return mutationConflict("The weight changed while it was being edited");
+                }
+                Weight collision = findWeight(candidate, requested.uuid, requested.date);
+                if (collision != null && collision != current) {
+                    return mutationConflict("A weight already exists for the selected user and date");
+                }
+                candidate.set(candidate.indexOf(current), requested);
             }
             Collections.sort(candidate, new Weight.DateComparator());
 
@@ -474,6 +488,10 @@ final class AppRepository {
         if (!encoded.isSuccess()) return new ArrayList<>(users);
         RepositoryResult<List<User>> decoded = codec.decode(encoded.value);
         return decoded.isSuccess() ? new ArrayList<>(decoded.value) : new ArrayList<>(users);
+    }
+
+    private static RepositoryResult<Void> mutationConflict(String message) {
+        return RepositoryResult.failure(message, new IllegalStateException(message));
     }
 
     private static User findUser(List<User> users, String uuid) {
