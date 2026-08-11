@@ -19,7 +19,7 @@ public class NotificationListener extends NotificationListenerService {
 
     @Override
     public void onNotificationPosted(StatusBarNotification sbn) {
-        processNotification(sbn);
+        processNotification(sbn.getNotification());
     }
 
     private void fetchActiveNotifications() {
@@ -27,7 +27,7 @@ public class NotificationListener extends NotificationListenerService {
             StatusBarNotification[] active = getActiveNotifications();
             if (active != null) {
                 for (StatusBarNotification sbn : active) {
-                    processNotification(sbn);
+                    processNotification(sbn.getNotification());
                 }
             }
         } catch (Exception e) {
@@ -35,8 +35,7 @@ public class NotificationListener extends NotificationListenerService {
         }
     }
 
-    private void processNotification(StatusBarNotification sbn) {
-        Notification notification = sbn.getNotification();
+    void processNotification(Notification notification) {
         if (notification == null || notification.extras == null) return;
 
         // 1. Get the content (Prefer Big Text, fallback to standard Text)

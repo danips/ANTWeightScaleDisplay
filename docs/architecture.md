@@ -134,6 +134,16 @@ Garmin credentials and tokens are currently stored in the `users` file so existi
 and backups remain compatible. Keystore encryption requires an explicit migration and recovery
 design and remains release-tracked technical debt.
 
+## Automated verification boundary
+
+Local JVM tests own Android-independent contracts and repository failure injection. The
+`androidTest` smoke suite exercises Android resource binding, selected-profile rebinding, editor
+cancel navigation, notification-to-MFA event delivery, and Activity recreation. GitHub Actions runs
+the JVM suite, lint, the minified release build, and test-APK compilation, then executes the smoke
+suite serially on Gradle-managed API 27 and API 35 devices. Physical ANT hardware, authenticated
+Garmin behavior, document-provider implementations, API 23 compatibility, and destructive process
+termination remain explicit manual release gates.
+
 ## Remaining release verification
 
 Automated tests cover persistence compatibility, metric behavior, FIT generation, Garmin
