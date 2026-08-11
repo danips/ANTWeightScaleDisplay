@@ -13,7 +13,7 @@ def translatedLocales = fileTree('src/main/res') {
 def supportedLocales = (['en'] + translatedLocales).sort()
 
 android {
-    namespace 'com.quantrity.antscaledisplay'
+    namespace = 'com.quantrity.antscaledisplay'
     compileSdk 37
 
     defaultConfig {
@@ -32,13 +32,13 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            shrinkResources true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
     buildFeatures {
-        viewBinding true
-        aidl true
+        viewBinding = true
+        aidl = true
     }
     testOptions {
         managedDevices {
