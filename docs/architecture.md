@@ -93,7 +93,7 @@ ViewModel I/O boundary; a success event is emitted only after the writer flushes
 `ForegroundUploadManager` is retained by the activity-scoped ViewModel and owns one executor,
 cancellation, immutable progress state, and one-shot results. It uses application context for file,
 repository, and formatting work and holds only a weak reference to the current Activity for
-interactive MFA/provider repair. `MainActivity` renders a replaceable cancelable progress dialog and
+interactive MFA. `MainActivity` renders a replaceable cancelable progress dialog and
 the final result, so rotation does not duplicate work or strand completion on the old Activity. Pure
 FIT construction and message formatting remain in `FitFileFactory` and
 `MeasurementTextFormatter`.
@@ -113,10 +113,18 @@ requires a Garmin keyword in the notification title or content, rejects notifica
 older than the request, and delivers at most one code through that request-specific registration.
 Manual entry remains available regardless of notification source or listener access.
 
+`SecurityProviderPreflight` is the single API 23–28 `ProviderInstaller` boundary. The
+activity-scoped `SecurityProviderCoordinator` runs it off the main thread, retains pending upload,
+history, or credential-test actions, and publishes one repair request to `MainActivity`'s Activity
+Result launcher. A successful repair rechecks the provider and resumes each still-current action
+once; cancellation, unavailability, or a second repair result fails safely. Background renewal uses
+the same preflight directly and maps any non-ready outcome to the job scheduler's retry policy.
+
 `UploadCoordinator` invokes the foreground session synchronously on the executor owned by
-`ForegroundUpload`. Background access-token renewal uses `GarminTokenRefreshWorker` and constructs
-the same authenticator with a non-interactive MFA provider. `GarminTokenRefreshScheduler` is the
-only component that defines WorkManager names and renewal timing.
+`ForegroundUploadManager`. Background access-token renewal uses
+`GarminTokenRefreshJobService` and constructs the same authenticator with a non-interactive MFA
+provider. `GarminTokenRefreshScheduler` is the only component that defines JobScheduler IDs and
+renewal timing.
 
 Interactive history download is owned by `GarminHistoryDownloadCoordinator`, which observes the
 History view lifecycle and owns its executor, cancellation, notification channel, progress updates,

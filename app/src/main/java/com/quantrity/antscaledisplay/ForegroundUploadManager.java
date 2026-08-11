@@ -1,15 +1,9 @@
 package com.quantrity.antscaledisplay;
 
 import android.app.Application;
-import android.content.Intent;
-import android.os.Build;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.security.ProviderInstaller;
 
 import java.lang.ref.WeakReference;
 import java.util.concurrent.ExecutorService;
@@ -18,9 +12,8 @@ import java.util.concurrent.Future;
 
 /** Activity-independent owner of one retained foreground upload operation. */
 final class ForegroundUploadManager implements AutoCloseable {
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
-
     private final Application application;
+    private final SecurityProviderCoordinator securityProvider;
     private final UploadCoordinator coordinator;
     private final ExecutorService executor = Executors.newSingleThreadExecutor(runnable -> {
         Thread thread = new Thread(runnable, "foreground-upload");
@@ -32,16 +25,21 @@ final class ForegroundUploadManager implements AutoCloseable {
     private final MutableLiveData<OperationEvent<UploadResult>> result = new MutableLiveData<>();
     private WeakReference<MainActivity> activityRef = new WeakReference<>(null);
     private ForegroundUploadState currentState = ForegroundUploadState.idle();
+    private SecurityProviderCoordinator.Request providerRequest;
     private Future<?> task;
     private long operationSequence;
     private long activeOperationId;
 
-    ForegroundUploadManager(Application application) {
-        this(application, new UploadCoordinator());
+    ForegroundUploadManager(Application application,
+                            SecurityProviderCoordinator securityProvider) {
+        this(application, securityProvider, new UploadCoordinator());
     }
 
-    ForegroundUploadManager(Application application, UploadCoordinator coordinator) {
+    ForegroundUploadManager(Application application,
+                            SecurityProviderCoordinator securityProvider,
+                            UploadCoordinator coordinator) {
         this.application = application;
+        this.securityProvider = securityProvider;
         this.coordinator = coordinator;
     }
 
@@ -70,21 +68,47 @@ final class ForegroundUploadManager implements AutoCloseable {
         currentState = ForegroundUploadState.running(
                 (uploadToGarmin ? 1 : 0) + (prepareEmail ? 1 : 0));
         state.setValue(currentState);
+        if (uploadToGarmin) {
+            providerRequest = securityProvider.request(new SecurityProviderCoordinator.Callback() {
+                @Override public void onReady() {
+                    submit(operationId, weight, user, true, prepareEmail, null);
+                }
+
+                @Override public void onUnavailable() {
+                    submit(operationId, weight, user, false, prepareEmail,
+                            application.getString(R.string.garmin_security_provider_unavailable));
+                }
+            });
+        } else {
+            submit(operationId, weight, user, false, prepareEmail, null);
+        }
+        return true;
+    }
+
+    private synchronized void submit(long operationId, Weight weight, User user,
+                                     boolean uploadToGarmin, boolean prepareEmail,
+                                     String providerError) {
+        if (activeOperationId != operationId) return;
+        providerRequest = null;
         task = executor.submit(() -> {
-            boolean uploadWithProvider = uploadToGarmin
-                    && installSecurityProvider(operationId);
+            if (providerError != null) incrementProgress(operationId);
             UploadResult completed = coordinator.run(application, weight, user,
-                    uploadWithProvider, prepareEmail,
+                    uploadToGarmin, prepareEmail,
                     () -> incrementProgress(operationId),
                     () -> requestMfaCode(operationId));
+            if (providerError != null) {
+                completed = new UploadResult(true, false, providerError,
+                        completed.emailMessage, completed.emailError);
+            }
             finish(operationId, completed);
         });
-        return true;
     }
 
     synchronized void cancel() {
         if (activeOperationId == 0) return;
         activeOperationId = 0;
+        if (providerRequest != null) providerRequest.cancel();
+        providerRequest = null;
         if (task != null) task.cancel(true);
         task = null;
         currentState = ForegroundUploadState.idle();
@@ -99,33 +123,6 @@ final class ForegroundUploadManager implements AutoCloseable {
         }
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return null;
         return new DialogMfaCodeProvider(activity).requestCode();
-    }
-
-    private boolean installSecurityProvider(long operationId) {
-        if (Build.VERSION.SDK_INT >= 29) return isActive(operationId);
-        if (!isActive(operationId)) return false;
-        try {
-            ProviderInstaller.installIfNeeded(application);
-            return isActive(operationId);
-        } catch (GooglePlayServicesRepairableException exception) {
-            Intent resolution = exception.getIntent();
-            MainActivity activity;
-            synchronized (this) {
-                activity = activityRef.get();
-            }
-            if (resolution != null && activity != null && !activity.isFinishing()
-                    && !activity.isDestroyed()) {
-                activity.runOnUiThread(() -> activity.startActivityForResult(
-                        resolution, PLAY_SERVICES_RESOLUTION_REQUEST));
-            }
-            return false;
-        } catch (GooglePlayServicesNotAvailableException exception) {
-            return false;
-        }
-    }
-
-    private synchronized boolean isActive(long operationId) {
-        return activeOperationId == operationId && !Thread.currentThread().isInterrupted();
     }
 
     private synchronized void incrementProgress(long operationId) {
@@ -146,6 +143,8 @@ final class ForegroundUploadManager implements AutoCloseable {
     @Override
     public synchronized void close() {
         activeOperationId = 0;
+        if (providerRequest != null) providerRequest.cancel();
+        providerRequest = null;
         if (task != null) task.cancel(true);
         task = null;
         executor.shutdownNow();

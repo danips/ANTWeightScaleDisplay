@@ -79,6 +79,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private FragmentEditUserBinding binding;
     private ExecutorService garmin_test_executor;
     private Future<?> garmin_test_task;
+    private SecurityProviderCoordinator.Request garmin_provider_request;
     private GarminCredentialTester.VerifiedTokens tested_garmin_tokens;
     private String tested_garmin_user;
     private String tested_garmin_password;
@@ -436,6 +437,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
 
     @Override public void onDestroyView() {
         modelReady = false;
+        if (garmin_provider_request != null) garmin_provider_request.cancel();
+        garmin_provider_request = null;
         if (garmin_test_task != null) garmin_test_task.cancel(true);
         if (garmin_test_executor != null) garmin_test_executor.shutdownNow();
         garmin_test_task = null;
@@ -453,7 +456,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     }
 
     private void testGarminLogin() {
-        if (garmin_test_task != null && !garmin_test_task.isDone()) return;
+        if (garmin_provider_request != null
+                || (garmin_test_task != null && !garmin_test_task.isDone())) return;
         String username = enteredGarminUsername();
         String password = enteredGarminPassword();
         if (username == null) {
@@ -476,6 +480,31 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         tested_garmin_user = null;
         tested_garmin_password = null;
 
+        garmin_provider_request = state.requestSecurityProvider(
+                new SecurityProviderCoordinator.Callback() {
+                    @Override public void onReady() {
+                        garmin_provider_request = null;
+                        if (!credentialsStillMatch(username, password)) {
+                            onGarminCredentialsChanged();
+                            return;
+                        }
+                        beginGarminLoginTest(username, password);
+                    }
+
+                    @Override public void onUnavailable() {
+                        garmin_provider_request = null;
+                        if (binding == null || !isAdded()) return;
+                        garmin_login_test.setEnabled(true);
+                        garmin_login_test.setText(R.string.garmin_login_test);
+                        garmin_login_test_status.setVisibility(View.VISIBLE);
+                        garmin_login_test_status.setText(
+                                R.string.garmin_security_provider_unavailable);
+                        showMessage(R.string.garmin_security_provider_unavailable);
+                    }
+                });
+    }
+
+    private void beginGarminLoginTest(String username, String password) {
         Activity activity = requireActivity();
         garmin_test_task = garmin_test_executor.submit(() -> {
             GarminCredentialTester tester = new GarminCredentialTester(
@@ -483,6 +512,12 @@ public class EditUserFragment extends Fragment implements MenuProvider {
             GarminCredentialTester.Attempt attempt = tester.test(username, password);
             activity.runOnUiThread(() -> showGarminTestResult(username, password, attempt));
         });
+    }
+
+    private boolean credentialsStillMatch(String username, String password) {
+        return binding != null && isAdded()
+                && Objects.equals(username, enteredGarminUsername())
+                && Objects.equals(password, enteredGarminPassword());
     }
 
     private void showGarminTestResult(String username, String password,
@@ -515,12 +550,15 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     }
 
     private void onGarminCredentialsChanged() {
+        if (garmin_provider_request != null) garmin_provider_request.cancel();
+        garmin_provider_request = null;
         tested_garmin_tokens = null;
         tested_garmin_user = null;
         tested_garmin_password = null;
         if (garmin_login_test == null || garmin_login_test_status == null) return;
 
-        boolean testInProgress = garmin_test_task != null && !garmin_test_task.isDone();
+        boolean testInProgress = garmin_provider_request != null
+                || (garmin_test_task != null && !garmin_test_task.isDone());
         garmin_login_test.setVisibility(View.VISIBLE);
         garmin_login_test.setEnabled(!testInProgress);
         garmin_login_test.setText(testInProgress

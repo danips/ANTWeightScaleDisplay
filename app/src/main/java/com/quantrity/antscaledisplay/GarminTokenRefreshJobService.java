@@ -2,12 +2,7 @@ package com.quantrity.antscaledisplay;
 
 import android.app.job.JobParameters;
 import android.app.job.JobService;
-import android.os.Build;
 import android.util.Log;
-
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.security.ProviderInstaller;
 
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,6 +13,8 @@ import java.util.concurrent.FutureTask;
 
 public class GarminTokenRefreshJobService extends JobService {
     private static final String TAG = "GarminTokenJob";
+    private final SecurityProviderPreflight securityProvider =
+            new SecurityProviderPreflight();
 
     private final ExecutorService executor = Executors.newCachedThreadPool(runnable -> {
         Thread thread = new Thread(runnable, "garmin-token-refresh");
@@ -64,7 +61,11 @@ public class GarminTokenRefreshJobService extends JobService {
 
     private void runRefresh(RunningJob job, String userUuid) {
         try {
-            if (!installSecurityProvider()) {
+            SecurityProviderPreflight.Outcome provider =
+                    securityProvider.install(getApplicationContext());
+            if (provider.status != SecurityProviderPreflight.Status.READY) {
+                Log.w(TAG, "Security provider is not ready for background token renewal: "
+                        + provider.status);
                 finish(job, true);
                 return;
             }
@@ -101,20 +102,6 @@ public class GarminTokenRefreshJobService extends JobService {
             finish(job, true);
         } finally {
             runningJobs.remove(job.parameters.getJobId(), job);
-        }
-    }
-
-    private boolean installSecurityProvider() {
-        if (Build.VERSION.SDK_INT >= 29) return true;
-        try {
-            ProviderInstaller.installIfNeeded(getApplicationContext());
-            return true;
-        } catch (GooglePlayServicesRepairableException exception) {
-            Log.w(TAG, "Google Play services needs repair before token renewal", exception);
-            return false;
-        } catch (GooglePlayServicesNotAvailableException exception) {
-            Log.w(TAG, "Google Play services is unavailable for token renewal", exception);
-            return false;
         }
     }
 

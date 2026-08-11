@@ -2,6 +2,7 @@ package com.quantrity.antscaledisplay;
 
 import android.app.Application;
 import android.content.ContentResolver;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -52,6 +53,7 @@ public final class AppStateViewModel extends AndroidViewModel {
     private final MutableLiveData<OperationEvent<OperationResult>> csvResult =
             new MutableLiveData<>();
     private final Object loadLock = new Object();
+    private final SecurityProviderCoordinator securityProvider;
     private final ForegroundUploadManager foregroundUpload;
     private boolean loading;
     private AntWeightController antWeightController;
@@ -59,7 +61,8 @@ public final class AppStateViewModel extends AndroidViewModel {
     public AppStateViewModel(@NonNull Application application) {
         super(application);
         repository = AppRepository.get(application);
-        foregroundUpload = new ForegroundUploadManager(application);
+        securityProvider = new SecurityProviderCoordinator(application);
+        foregroundUpload = new ForegroundUploadManager(application, securityProvider);
     }
 
     LiveData<RepositoryResult<Void>> loadResult() {
@@ -263,6 +266,27 @@ public final class AppStateViewModel extends AndroidViewModel {
         return foregroundUpload.state();
     }
 
+    LiveData<OperationEvent<SecurityProviderRepairRequest>> securityProviderRepairRequests() {
+        return securityProvider.repairRequests();
+    }
+
+    Intent claimSecurityProviderRepair(SecurityProviderRepairRequest request) {
+        return securityProvider.claimRepair(request);
+    }
+
+    void onSecurityProviderRepairResult(boolean succeeded) {
+        securityProvider.onRepairResult(succeeded);
+    }
+
+    SecurityProviderCoordinator.Request requestSecurityProvider(
+            SecurityProviderCoordinator.Callback callback) {
+        return securityProvider.request(callback);
+    }
+
+    SecurityProviderCoordinator securityProvider() {
+        return securityProvider;
+    }
+
     LiveData<OperationEvent<UploadResult>> foregroundUploadResult() {
         return foregroundUpload.result();
     }
@@ -309,6 +333,7 @@ public final class AppStateViewModel extends AndroidViewModel {
             antWeightController.cancel();
         }
         foregroundUpload.close();
+        securityProvider.close();
         ioExecutor.shutdownNow();
         super.onCleared();
     }

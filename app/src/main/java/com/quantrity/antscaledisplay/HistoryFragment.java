@@ -109,7 +109,8 @@ public class HistoryFragment extends Fragment implements MenuProvider,
     @Override
     public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        historyDownload = new GarminHistoryDownloadCoordinator(requireActivity(), this);
+        historyDownload = new GarminHistoryDownloadCoordinator(
+                requireActivity(), this, state.securityProvider());
         getViewLifecycleOwner().getLifecycle().addObserver(historyDownload);
     }
 

@@ -123,7 +123,10 @@ Repeat the failure-sensitive cases at least three times on a representative supp
 - [ ] On API 23–28, sign in, upload a measurement, renew a token, and download history with current
       Google Play services installed.
 - [ ] On API 23–28 with repairable Google Play services, confirm the supplied recovery action opens,
-      no Garmin HTTPS request starts before recovery completes, and retry succeeds afterward.
+      no Garmin HTTPS request starts before recovery completes, and credential test, upload, and
+      history retry exactly once afterward. Repeat across Activity recreation while repair is open.
+- [ ] Cancel the API 23–28 Google Play services recovery action and confirm no pending Garmin action
+      starts; repeat when repair still reports required and confirm there is no retry loop.
 - [ ] On API 23–28 without Google Play services, confirm Garmin workflows stop safely without a
       crash or HTTPS request.
 - [ ] Confirm token status and expiration timestamps are accurate.

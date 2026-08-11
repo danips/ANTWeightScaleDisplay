@@ -24,6 +24,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
@@ -48,6 +50,14 @@ public class MainActivity extends AppCompatActivity
     private ActivityMainBinding binding;
     private AlertDialog uploadProgressDialog;
     private ProgressBar uploadProgressBar;
+    private final ActivityResultLauncher<Intent> securityProviderRepairLauncher =
+            registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (state != null) {
+                            state.onSecurityProviderRepairResult(
+                                    result.getResultCode() == Activity.RESULT_OK);
+                        }
+                    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,6 +80,8 @@ public class MainActivity extends AppCompatActivity
         }
         state = new ViewModelProvider(this).get(AppStateViewModel.class);
         state.attachForegroundUpload(this);
+        state.securityProviderRepairRequests().observe(
+                this, this::launchSecurityProviderRepair);
         state.foregroundUploadState().observe(this, this::renderForegroundUploadState);
         state.foregroundUploadResult().observe(this, this::renderForegroundUploadResult);
         userSpinnerController = new UserSpinnerController(this, state);
@@ -257,10 +269,12 @@ public class MainActivity extends AppCompatActivity
         if (ab != null) ab.setTitle(title);
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (Debug.ON) Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
-        super.onActivityResult(requestCode, resultCode, data);
+    private void launchSecurityProviderRepair(
+            OperationEvent<SecurityProviderRepairRequest> event) {
+        SecurityProviderRepairRequest request = event.consume();
+        if (request == null) return;
+        Intent intent = state.claimSecurityProviderRepair(request);
+        if (intent != null) securityProviderRepairLauncher.launch(intent);
     }
 
     public boolean isPackageInstalled(String packageName) {

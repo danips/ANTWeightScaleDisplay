@@ -5,7 +5,6 @@ import android.app.Activity;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -21,10 +20,6 @@ import androidx.core.content.ContextCompat;
 import androidx.lifecycle.DefaultLifecycleObserver;
 import androidx.lifecycle.LifecycleOwner;
 
-import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
-import com.google.android.gms.common.GooglePlayServicesRepairableException;
-import com.google.android.gms.security.ProviderInstaller;
-
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,7 +32,6 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
     private static final String TAG = "GarminHistoryDownload";
     private static final String CHANNEL_ID = "GC";
     private static final int NOTIFICATION_ID = 0;
-    private static final int PLAY_SERVICES_RESOLUTION_REQUEST = 9000;
 
     interface Listener {
         void onHistoryImported(ArrayList<Weight> weights, int added);
@@ -48,6 +42,7 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
     private final WeakReference<Activity> activityRef;
     private volatile Listener listener;
     private final GarminHistoryImporter importer;
+    private final SecurityProviderCoordinator securityProvider;
     private final ExecutorService executor;
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final NotificationManager notificationManager;
@@ -55,19 +50,23 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
     private final ProgressUpdateThrottler progressUpdates = new ProgressUpdateThrottler();
 
     private Future<?> task;
+    private SecurityProviderCoordinator.Request providerRequest;
     private volatile boolean running;
     private volatile boolean closed;
 
-    GarminHistoryDownloadCoordinator(Activity activity, Listener listener) {
-        this(activity, listener, new GarminHistoryImporter());
+    GarminHistoryDownloadCoordinator(Activity activity, Listener listener,
+                                     SecurityProviderCoordinator securityProvider) {
+        this(activity, listener, new GarminHistoryImporter(), securityProvider);
     }
 
     GarminHistoryDownloadCoordinator(Activity activity, Listener listener,
-                                     GarminHistoryImporter importer) {
+                                     GarminHistoryImporter importer,
+                                     SecurityProviderCoordinator securityProvider) {
         context = activity.getApplicationContext();
         activityRef = new WeakReference<>(activity);
         this.listener = listener;
         this.importer = importer;
+        this.securityProvider = securityProvider;
         executor = Executors.newSingleThreadExecutor(runnable -> {
             Thread thread = new Thread(runnable, "garmin-history-download");
             thread.setDaemon(true);
@@ -107,8 +106,23 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         progressUpdates.reset();
         showProgress(0, 1);
         ArrayList<Weight> historySnapshot = new ArrayList<>(existing);
-        task = executor.submit(() -> download(user, users, historySnapshot));
+        providerRequest = securityProvider.request(new SecurityProviderCoordinator.Callback() {
+            @Override public void onReady() {
+                beginDownload(user, users, historySnapshot);
+            }
+
+            @Override public void onUnavailable() {
+                fail(context.getString(R.string.garmin_security_provider_unavailable));
+            }
+        });
         return true;
+    }
+
+    private synchronized void beginDownload(User user, ArrayList<User> users,
+                                            ArrayList<Weight> existing) {
+        if (closed || !running) return;
+        providerRequest = null;
+        task = executor.submit(() -> download(user, users, existing));
     }
 
     boolean isRunning() {
@@ -125,6 +139,8 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         if (closed) return;
         closed = true;
         running = false;
+        if (providerRequest != null) providerRequest.cancel();
+        providerRequest = null;
         if (task != null) task.cancel(true);
         executor.shutdownNow();
         mainHandler.removeCallbacksAndMessages(null);
@@ -136,10 +152,6 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         try {
             Activity activity = activityRef.get();
             if (closed || activity == null || activity.isFinishing() || activity.isDestroyed()) {
-                running = false;
-                return;
-            }
-            if (!installSecurityProvider(activity)) {
                 running = false;
                 return;
             }
@@ -240,26 +252,4 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         notificationManager.createNotificationChannel(channel);
     }
 
-    private boolean installSecurityProvider(Activity activity) {
-        if (Build.VERSION.SDK_INT >= 29) return true;
-        try {
-            ProviderInstaller.installIfNeeded(activity);
-            return true;
-        } catch (GooglePlayServicesRepairableException exception) {
-            Log.e(TAG, "Google Play services needs repair", exception);
-            Intent resolutionIntent = exception.getIntent();
-            if (resolutionIntent != null) {
-                mainHandler.post(() -> {
-                    if (!closed && !activity.isFinishing() && !activity.isDestroyed()) {
-                        activity.startActivityForResult(
-                                resolutionIntent, PLAY_SERVICES_RESOLUTION_REQUEST);
-                    }
-                });
-            }
-            return false;
-        } catch (GooglePlayServicesNotAvailableException exception) {
-            Log.e(TAG, "Google Play services is unavailable", exception);
-            return false;
-        }
-    }
 }
