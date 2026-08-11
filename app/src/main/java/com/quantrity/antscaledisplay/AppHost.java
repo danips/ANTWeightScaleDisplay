@@ -12,7 +12,6 @@ interface AppHost {
         return (AppHost) fragment.requireActivity();
     }
 
-    void reloadDB();
     void openEditUserFragment(User user);
     void closeEditUserFragment(User user);
     void openEditWeightFragment(Weight weight, User user, boolean edit);

@@ -1,12 +1,9 @@
 package com.quantrity.antscaledisplay;
 
 import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -28,18 +25,12 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.quantrity.antscaledisplay.databinding.FragmentUsersBinding;
 
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Locale;
 
 public class UsersFragment extends Fragment implements MenuProvider {
     private final static String TAG = "UsersFragment";
-
-    private String dst;
 
     private UsersAdapter mAdapter;
     private AppStateViewModel state;
@@ -55,21 +46,8 @@ public class UsersFragment extends Fragment implements MenuProvider {
                     SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
                     String displayName = "db_" + format1.format(cal.getTime()) + ".bin";
                     Uri uri = data.getData();
-                    ContentResolver contentResolver;
-                    if ((getActivity() != null) && ((contentResolver = getActivity().getContentResolver()) != null) && uri != null) {
-                        Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                        try {
-                            Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "application/octet-stream", displayName);
-                            if (fileUri != null) {
-                                ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
-                                if (destFileDesc != null) {
-                                    dst = displayName;
-                                    saveBackup(destFileDesc);
-                                }
-                            }
-                        } catch (FileNotFoundException e) {
-                            Log.e(TAG, "Unable to open the backup destination", e);
-                        }
+                    if (getActivity() != null && uri != null) {
+                        state.createBackup(getActivity().getContentResolver(), uri, displayName);
                     }
                 }
             }
@@ -83,7 +61,7 @@ public class UsersFragment extends Fragment implements MenuProvider {
                     Intent data = result.getData();
                     Uri uri = data.getData();
                     if (getActivity() != null && uri != null) {
-                        restoreBackup(uri);
+                        state.restoreBackup(getActivity().getContentResolver(), uri);
                     }
                 }
             }
@@ -110,6 +88,16 @@ public class UsersFragment extends Fragment implements MenuProvider {
 
         //Declare it has items for the actionbar
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+        state.loadResult().observe(getViewLifecycleOwner(), result -> {
+            if (result.isSuccess() && mAdapter != null) {
+                mAdapter.replaceAll(state.users());
+                requireActivity().invalidateOptionsMenu();
+            }
+        });
+        state.operationResult(AppStateViewModel.OperationKind.BACKUP)
+                .observe(getViewLifecycleOwner(), this::onOperationResult);
+        state.operationResult(AppStateViewModel.OperationKind.RESTORE)
+                .observe(getViewLifecycleOwner(), this::onOperationResult);
 
         return binding.getRoot();
     }
@@ -165,45 +153,26 @@ public class UsersFragment extends Fragment implements MenuProvider {
         });
     }
 
-    private void saveBackup(ParcelFileDescriptor destFileDesc) {
-        if (getActivity() == null) return;
-        new Thread(() -> {
-            RepositoryResult<Integer> result = state.createBackup(
-                    new FileOutputStream(destFileDesc.getFileDescriptor()));
-            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-            if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                if (result.isSuccess()) Toast.makeText(getActivity(), String.format(
-                        getString(R.string.history_fragment_action_database_backup_ok), dst),
-                        Toast.LENGTH_LONG).show();
-                else Toast.makeText(getActivity(), result.message, Toast.LENGTH_LONG).show();
-            });
-        }, "backup-archive-create").start();
-    }
-
-    private void restoreBackup(Uri uri) {
-        if (getActivity() == null) return;
-        ContentResolver resolver = getActivity().getContentResolver();
-        new Thread(() -> {
-            RepositoryResult<Integer> result;
-            try {
-                InputStream input = resolver.openInputStream(uri);
-                result = state.restoreBackup(input);
-            } catch (IOException exception) {
-                result = RepositoryResult.failure("Unable to open the backup archive", exception);
-            }
-            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-            RepositoryResult<Integer> completed = result;
-            if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                if (!completed.isSuccess()) {
-                    Toast.makeText(getActivity(), completed.message, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                Toast.makeText(getActivity(),
-                        R.string.history_fragment_action_database_restore_ok,
-                        Toast.LENGTH_LONG).show();
-                getActivity().invalidateOptionsMenu();
-                if (mAdapter != null) mAdapter.replaceAll(state.users());
-            });
-        }, "backup-archive-restore").start();
+    private void onOperationResult(OperationEvent<AppStateViewModel.OperationResult> event) {
+        AppStateViewModel.OperationResult pending = event.peek();
+        if (pending.kind != AppStateViewModel.OperationKind.BACKUP
+                && pending.kind != AppStateViewModel.OperationKind.RESTORE) return;
+        AppStateViewModel.OperationResult completed = event.consume();
+        if (completed == null || getActivity() == null) return;
+        if (!completed.result.isSuccess()) {
+            Log.e(TAG, completed.result.message, completed.result.error);
+            Toast.makeText(getActivity(), completed.result.message, Toast.LENGTH_LONG).show();
+            return;
+        }
+        if (completed.kind == AppStateViewModel.OperationKind.BACKUP) {
+            Toast.makeText(getActivity(), String.format(
+                    getString(R.string.history_fragment_action_database_backup_ok),
+                    completed.displayName), Toast.LENGTH_LONG).show();
+            return;
+        }
+        Toast.makeText(getActivity(), R.string.history_fragment_action_database_restore_ok,
+                Toast.LENGTH_LONG).show();
+        getActivity().invalidateOptionsMenu();
+        if (mAdapter != null) mAdapter.replaceAll(state.users());
     }
 }

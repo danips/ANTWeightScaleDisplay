@@ -30,8 +30,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 
-import java.util.ArrayList;
-
 public class MainActivity extends AppCompatActivity
         implements AppHost {
     private static final String TAG = "MainActivity";
@@ -39,27 +37,6 @@ public class MainActivity extends AppCompatActivity
     private AppStateViewModel state;
     private UserSpinnerController userSpinnerController;
     private ActivityMainBinding binding;
-
-    private void loadDB() {
-        RepositoryResult<Void> result = state.reload();
-        if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-        ArrayList<User> users = state.users();
-        GarminTokenRefreshScheduler.scheduleAll(getApplicationContext(), users);
-
-        //First time open users tab and request data
-        if (users.isEmpty()) {
-            runOnUiThread(() -> openEditUserFragment(null));
-        }
-
-        /* Get latest measurement for selected user */
-        // Notify the WeightFragment to refresh its data now that DB is loaded
-        runOnUiThread(() -> {
-            Fragment currentFragment = getSupportFragmentManager().findFragmentById(R.id.content_frame);
-            if (currentFragment instanceof WeightFragment) {
-                ((WeightFragment) currentFragment).updateUi();
-            }
-        });
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -82,6 +59,7 @@ public class MainActivity extends AppCompatActivity
         }
         state = new ViewModelProvider(this).get(AppStateViewModel.class);
         userSpinnerController = new UserSpinnerController(this, state);
+        state.loadResult().observe(this, this::onRepositoryLoaded);
 
         // Handle Back Press using OnBackPressedDispatcher
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
@@ -111,8 +89,6 @@ public class MainActivity extends AppCompatActivity
 
         showAntHardwareProblem(antHardwareAvailability(), true);
 
-        if (!state.isLoaded()) new Thread(this::loadDB).start();
-
         if (savedInstanceState == null) {
             navigate(NavigationDestination.WEIGHT);
         } else {
@@ -120,10 +96,22 @@ public class MainActivity extends AppCompatActivity
             NavigationDestination selected = NavigationDestination.forFragment(restored);
             if (selected != null) selectNavigationDestination(selected);
         }
+        state.ensureLoaded();
     }
 
-    public void reloadDB() {
-        loadDB();
+    private void onRepositoryLoaded(RepositoryResult<Void> result) {
+        if (!result.isSuccess()) {
+            Log.e(TAG, result.message, result.error);
+            showMessage(result.message);
+            return;
+        }
+        GarminTokenRefreshScheduler.scheduleAll(getApplicationContext(), state.users());
+        Fragment current = getSupportFragmentManager().findFragmentById(R.id.content_frame);
+        if (state.users().isEmpty() && current instanceof WeightFragment) {
+            openEditUserFragment(null);
+        } else if (current instanceof WeightFragment) {
+            ((WeightFragment) current).updateUi();
+        }
     }
 
     public void openEditUserFragment(User user) {

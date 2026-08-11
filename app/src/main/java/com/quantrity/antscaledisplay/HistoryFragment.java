@@ -5,8 +5,6 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
-import android.provider.DocumentsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -30,9 +28,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.quantrity.antscaledisplay.databinding.FragmentHistoryBinding;
 
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -66,24 +61,15 @@ public class HistoryFragment extends Fragment implements MenuProvider,
                         List<Weight> wl = state.selectedWeights();
                         Calendar cal = Calendar.getInstance();
                         User user = (User) usersSpinner.getSelectedItem();
-                        SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
-                        String displayName = user.name + "_" + format1.format(cal.getTime()) + ".csv";
+                        SimpleDateFormat filenameFormat =
+                                new SimpleDateFormat("yyyyMMdd'T'HHmmss", Locale.US);
+                        String displayName = user.name + "_"
+                                + filenameFormat.format(cal.getTime()) + ".csv";
                         Uri uri = data.getData();
                         ContentResolver contentResolver = getActivity().getContentResolver();
 
                         if (contentResolver != null && uri != null) {
-                            Uri docUri = DocumentsContract.buildDocumentUriUsingTree(uri, DocumentsContract.getTreeDocumentId(uri));
-                            try {
-                                Uri fileUri = DocumentsContract.createDocument(contentResolver, docUri, "text/csv", displayName);
-                                if (fileUri != null) {
-                                    ParcelFileDescriptor destFileDesc = contentResolver.openFileDescriptor(fileUri, "w", null);
-                                    if (destFileDesc != null) {
-                                        writeCSV(destFileDesc, user, format1, displayName, wl);
-                                    }
-                                }
-                            } catch (FileNotFoundException e) {
-                                Log.e(TAG, "Unable to open the CSV export destination", e);
-                            }
+                            state.exportCsv(contentResolver, uri, displayName, user, wl);
                         }
                     }
                 }
@@ -107,6 +93,15 @@ public class HistoryFragment extends Fragment implements MenuProvider,
         }
 
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
+        state.loadResult().observe(getViewLifecycleOwner(), result -> {
+            User selected = state.selectedUser();
+            if (result.isSuccess() && selected != null && mAdapter != null) {
+                mAdapter.replaceAll(state.selectedWeights(), selected);
+                requireActivity().invalidateOptionsMenu();
+            }
+        });
+        state.operationResult(AppStateViewModel.OperationKind.CSV_EXPORT)
+                .observe(getViewLifecycleOwner(), this::onOperationResult);
 
         return binding.getRoot();
     }
@@ -269,46 +264,19 @@ public class HistoryFragment extends Fragment implements MenuProvider,
         csvExportLauncher.launch(intent);
     }
 
-    private void writeCSV(ParcelFileDescriptor destFileDesc, User user, SimpleDateFormat format, String filename, List<Weight> wl) {
-        FileWriter fCsv = new FileWriter(destFileDesc.getFileDescriptor());
-        writeCSV(fCsv, user, format, filename, wl);
-    }
-
-    private void writeCSV(FileWriter fCsv, User user, SimpleDateFormat format, String filename, List<Weight> wl) {
-        try {
-            fCsv.append(getString(R.string.edit_user_fragment_user)).append(",");
-            fCsv.append(getString(R.string.history_fragment_date));
-            for (Metric metric : Metric.exportMetrics()) {
-                fCsv.append(",").append(getString(metric.getLabelRes()));
-            }
-            fCsv.append("\n");
-
-            DecimalFormat df = (DecimalFormat) DecimalFormat.getInstance(Locale.US);
-            df.applyPattern("#.##");
-            for (Weight w : wl) {
-                fCsv.append(user.name).append(",");
-                fCsv.append((w.date != -1) ? format.format(w.date) : "");
-                for (Metric metric : Metric.exportMetrics()) {
-                    fCsv.append(",").append(MetricFormatter.csv(df, user, w, metric));
-                }
-                fCsv.append("\n");
-            }
-
-            fCsv.flush();
-        } catch (Exception e) {
-            Log.e(TAG, "CSV_DIRECTORY_PICKER_RESULT :: " + e);
-        } finally {
-            try {
-                if (fCsv != null) fCsv.close();
-            } catch (Exception e) {
-                Log.e(TAG, "Unable to close the CSV export", e);
-            }
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() ->
-                        Toast.makeText(getActivity(), String.format(getString(R.string.history_fragment_action_database_backup_ok), filename), Toast.LENGTH_LONG).show()
-                );
-            }
+    private void onOperationResult(OperationEvent<AppStateViewModel.OperationResult> event) {
+        AppStateViewModel.OperationResult pending = event.peek();
+        if (pending.kind != AppStateViewModel.OperationKind.CSV_EXPORT) return;
+        AppStateViewModel.OperationResult completed = event.consume();
+        if (completed == null || getActivity() == null) return;
+        if (!completed.result.isSuccess()) {
+            Log.e(TAG, completed.result.message, completed.result.error);
+            Toast.makeText(getActivity(), completed.result.message, Toast.LENGTH_LONG).show();
+            return;
         }
+        Toast.makeText(getActivity(), String.format(
+                getString(R.string.history_fragment_action_database_backup_ok),
+                completed.displayName), Toast.LENGTH_LONG).show();
     }
 
     private void downloadGarminHistory() {

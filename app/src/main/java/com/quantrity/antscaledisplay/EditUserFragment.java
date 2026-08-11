@@ -36,8 +36,6 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.quantrity.antscaledisplay.databinding.FragmentEditUserBinding;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Locale;
@@ -59,6 +57,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     private User the_user;
     private AppStateViewModel state;
     private boolean needs_to_sync;
+    private boolean modelReady;
+    private String requestedUserUuid;
     private EditText et_name;
     private RadioGroup rg_gender;
     private EditText et_birthdate;
@@ -98,7 +98,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                     Uri uri = result.getData().getData();
                     if (getActivity() != null && uri != null) {
-                        restoreBackup(uri);
+                        state.restoreBackup(getActivity().getContentResolver(), uri);
                     }
                 }
             }
@@ -114,34 +114,8 @@ public class EditUserFragment extends Fragment implements MenuProvider {
                 .setPositiveButton(android.R.string.yes, (dialog, id) -> dialog.cancel()).create().show();
     }
 
-    private void restoreBackup(Uri uri) {
-        if (getActivity() == null) return;
-        android.content.ContentResolver resolver = getActivity().getContentResolver();
-        new Thread(() -> {
-            RepositoryResult<Integer> result;
-            try {
-                InputStream input = resolver.openInputStream(uri);
-                result = state.restoreBackup(input);
-            } catch (IOException exception) {
-                result = RepositoryResult.failure("Unable to open the backup archive", exception);
-            }
-            if (!result.isSuccess()) Log.e(TAG, result.message, result.error);
-            RepositoryResult<Integer> completed = result;
-            if (getActivity() != null) getActivity().runOnUiThread(() -> {
-                if (!completed.isSuccess()) {
-                    Toast.makeText(getActivity(), completed.message, Toast.LENGTH_LONG).show();
-                    return;
-                }
-                Toast.makeText(getActivity(),
-                        R.string.history_fragment_action_database_restore_ok,
-                        Toast.LENGTH_LONG).show();
-                getActivity().invalidateOptionsMenu();
-                AppHost.from(this).closeEditUserFragment(null);
-            });
-        }, "backup-archive-restore").start();
-    }
-
     private User checkValues() {
+        if (!modelReady) return null;
         User tmp = new User();
 
         if (et_name.getText().length() == 0) {
@@ -320,14 +294,14 @@ public class EditUserFragment extends Fragment implements MenuProvider {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
-        if (!state.isLoaded()) state.reload();
-        String userUuid = getArguments() == null ? null : getArguments().getString(ARG_USER_UUID);
-        the_user = userUuid == null ? null : state.findUser(userUuid);
+        requestedUserUuid = getArguments() == null
+                ? null : getArguments().getString(ARG_USER_UUID);
         if (savedInstanceState != null) {
             birthdate_millis = savedInstanceState.getLong(STATE_BIRTHDATE, -1);
         }
         binding = FragmentEditUserBinding.inflate(inflater, container, false);
         View rootView = binding.getRoot();
+        rootView.setVisibility(View.INVISIBLE);
 
         //Close keyboard when clicking any other item on screen
         KeyboardUtils.dismissOnTouchOutsideInputs(rootView, requireActivity());
@@ -419,7 +393,49 @@ public class EditUserFragment extends Fragment implements MenuProvider {
         return rootView;
     }
 
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        state.loadResult().observe(getViewLifecycleOwner(), result -> {
+            if (!result.isSuccess()) {
+                Log.e(TAG, result.message, result.error);
+                if (getActivity() != null) {
+                    Toast.makeText(getActivity(), result.message, Toast.LENGTH_LONG).show();
+                }
+                return;
+            }
+            if (modelReady) return;
+            the_user = requestedUserUuid == null ? null : state.findUser(requestedUserUuid);
+            modelReady = true;
+            binding.getRoot().setVisibility(View.VISIBLE);
+            if (needs_to_sync && binding != null) {
+                setValues(the_user);
+                needs_to_sync = false;
+            }
+        });
+        state.operationResult(AppStateViewModel.OperationKind.RESTORE)
+                .observe(getViewLifecycleOwner(), this::onOperationResult);
+        state.ensureLoaded();
+    }
+
+    private void onOperationResult(OperationEvent<AppStateViewModel.OperationResult> event) {
+        AppStateViewModel.OperationResult pending = event.peek();
+        if (pending.kind != AppStateViewModel.OperationKind.RESTORE) return;
+        AppStateViewModel.OperationResult completed = event.consume();
+        if (completed == null || getActivity() == null) return;
+        if (!completed.result.isSuccess()) {
+            Log.e(TAG, completed.result.message, completed.result.error);
+            Toast.makeText(getActivity(), completed.result.message, Toast.LENGTH_LONG).show();
+            return;
+        }
+        Toast.makeText(getActivity(), R.string.history_fragment_action_database_restore_ok,
+                Toast.LENGTH_LONG).show();
+        getActivity().invalidateOptionsMenu();
+        AppHost.from(this).closeEditUserFragment(null);
+    }
+
     @Override public void onDestroyView() {
+        modelReady = false;
         if (garmin_test_task != null) garmin_test_task.cancel(true);
         if (garmin_test_executor != null) garmin_test_executor.shutdownNow();
         garmin_test_task = null;
@@ -550,7 +566,7 @@ public class EditUserFragment extends Fragment implements MenuProvider {
 
     @Override
     public void onResume() {
-        if (needs_to_sync) {
+        if (modelReady && needs_to_sync) {
             setValues(the_user);
             needs_to_sync = false;
         }

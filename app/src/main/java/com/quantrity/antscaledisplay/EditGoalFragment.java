@@ -39,6 +39,11 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     private Weight last;
     private AppStateViewModel state;
     private boolean needsSync;
+    private boolean modelReady;
+    private String requestedGoalUuid;
+    private long requestedGoalStart;
+    private String requestedGoalType;
+    private String requestedUserUuid;
 
     private Spinner typeSpinner;
     private EditText startDate;
@@ -63,7 +68,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     }
 
     private Goal validatedGoal() {
-        if (getActivity() == null || !datesAreValid()) return null;
+        if (!modelReady || getActivity() == null || !datesAreValid()) return null;
         LocalizedNumberParser.Result parsedStart = startValue.readCanonicalValue();
         LocalizedNumberParser.Result parsedEnd = endValue.readCanonicalValue();
         if (!parsedStart.isValid() || !parsedEnd.isValid()) return null;
@@ -154,15 +159,13 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         state = new ViewModelProvider(requireActivity()).get(AppStateViewModel.class);
-        if (!state.isLoaded()) state.reload();
         Bundle arguments = getArguments();
-        String goalUuid = arguments == null ? null : arguments.getString(ARG_GOAL_USER_UUID);
-        long goalStart = arguments == null ? -1 : arguments.getLong(ARG_GOAL_START_DATE, -1);
-        String goalType = arguments == null ? null : arguments.getString(ARG_GOAL_TYPE);
-        String userUuid = arguments == null ? null : arguments.getString(ARG_USER_UUID);
-        goal = goalUuid == null ? null : state.findGoal(goalUuid, goalStart, goalType);
-        user = state.findUser(userUuid);
-        last = state.lastSelectedWeight();
+        requestedGoalUuid = arguments == null
+                ? null : arguments.getString(ARG_GOAL_USER_UUID);
+        requestedGoalStart = arguments == null
+                ? -1 : arguments.getLong(ARG_GOAL_START_DATE, -1);
+        requestedGoalType = arguments == null ? null : arguments.getString(ARG_GOAL_TYPE);
+        requestedUserUuid = arguments == null ? null : arguments.getString(ARG_USER_UUID);
         if (savedInstanceState != null) {
             startDateMillis = savedInstanceState.getLong(STATE_START_DATE, -1);
             endDateMillis = savedInstanceState.getLong(STATE_END_DATE, -1);
@@ -170,19 +173,47 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
 
         binding = FragmentEditGoalBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+        root.setVisibility(View.INVISIBLE);
         KeyboardUtils.dismissOnTouchOutsideInputs(root, requireActivity());
         bindViews();
         requireActivity().addMenuProvider(this, getViewLifecycleOwner(), Lifecycle.State.RESUMED);
         needsSync = savedInstanceState == null;
 
+        bindDatePicker(startDate, true);
+        bindDatePicker(endDate, false);
+        return root;
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        state.loadResult().observe(getViewLifecycleOwner(), result -> {
+            if (!result.isSuccess()) return;
+            initializeModels();
+        });
+        state.ensureLoaded();
+    }
+
+    private void initializeModels() {
+        if (modelReady) return;
+        goal = requestedGoalUuid == null ? null
+                : state.findGoal(requestedGoalUuid, requestedGoalStart, requestedGoalType);
+        user = state.findUser(requestedUserUuid);
+        if (user == null) {
+            if (getActivity() != null) AppHost.from(this).closeEditGoalFragment(null);
+            return;
+        }
+        last = state.lastSelectedWeight();
+        typeSpinner.setEnabled(goal == null);
         Metric initialMetric = goal == null ? Metric.WEIGHT : goal.type;
         boolean showFatMass = goal == null ? user.show_fat_mass : goal.show_fat_mass;
         startValue.configure(initialMetric, user, showFatMass);
         endValue.configure(initialMetric, user, showFatMass);
-        bindDatePicker(startDate, true);
-        bindDatePicker(endDate, false);
         bindTypeSelection();
-        return root;
+        modelReady = true;
+        binding.getRoot().setVisibility(View.VISIBLE);
+        requireActivity().invalidateOptionsMenu();
+        if (isResumed()) syncGoalUi();
     }
 
     private void bindViews() {
@@ -243,6 +274,11 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
 
     @Override public void onResume() {
         super.onResume();
+        if (!modelReady) return;
+        syncGoalUi();
+    }
+
+    private void syncGoalUi() {
         if (!needsSync) {
             if (goal == null) {
                 goal = new Goal();
@@ -264,6 +300,7 @@ public class EditGoalFragment extends Fragment implements MenuProvider {
     }
 
     @Override public void onDestroyView() {
+        modelReady = false;
         typeSpinner = null;
         startDate = endDate = null;
         startValue = endValue = null;

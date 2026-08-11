@@ -9,11 +9,14 @@ import static org.junit.Assert.assertTrue;
 import android.app.Notification;
 import android.content.Context;
 import android.graphics.Color;
+import android.net.Uri;
+import android.os.StrictMode;
 import android.widget.FrameLayout;
 
 import androidx.core.app.NotificationCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.test.core.app.ActivityScenario;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
@@ -135,6 +138,29 @@ public class AndroidBoundarySmokeTest {
             InstrumentationRegistry.getInstrumentation().runOnMainSync(() ->
                     NotificationRepository.getInstance().getLatestNotification()
                             .removeObserver(observer));
+        }
+    }
+
+    @Test
+    public void csvProviderWorkIsNotStartedOnTheMainThread() {
+        try (ActivityScenario<MainActivity> scenario = ActivityScenario.launch(MainActivity.class)) {
+            Uri destination = Uri.parse("content://invalid.test/tree/root");
+            scenario.onActivity(activity -> {
+                AppStateViewModel state = new ViewModelProvider(activity)
+                        .get(AppStateViewModel.class);
+                StrictMode.ThreadPolicy original = StrictMode.getThreadPolicy();
+                StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder(original)
+                        .detectDiskReads()
+                        .detectDiskWrites()
+                        .penaltyDeath()
+                        .build());
+                try {
+                    state.exportCsv(activity.getContentResolver(), destination, "history.csv",
+                            user("strict-mode-user"), Collections.emptyList());
+                } finally {
+                    StrictMode.setThreadPolicy(original);
+                }
+            });
         }
     }
 

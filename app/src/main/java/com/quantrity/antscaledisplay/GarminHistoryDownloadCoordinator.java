@@ -103,7 +103,6 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         Activity activity = activityRef.get();
         if (activity == null || activity.isFinishing() || activity.isDestroyed()) return false;
 
-        if (!installSecurityProvider(activity)) return false;
         running = true;
         progressUpdates.reset();
         showProgress(0, 1);
@@ -137,6 +136,10 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         try {
             Activity activity = activityRef.get();
             if (closed || activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                running = false;
+                return;
+            }
+            if (!installSecurityProvider(activity)) {
                 running = false;
                 return;
             }
@@ -237,7 +240,7 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
         notificationManager.createNotificationChannel(channel);
     }
 
-    private static boolean installSecurityProvider(Activity activity) {
+    private boolean installSecurityProvider(Activity activity) {
         if (Build.VERSION.SDK_INT >= 29) return true;
         try {
             ProviderInstaller.installIfNeeded(activity);
@@ -246,8 +249,12 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
             Log.e(TAG, "Google Play services needs repair", exception);
             Intent resolutionIntent = exception.getIntent();
             if (resolutionIntent != null) {
-                activity.startActivityForResult(
-                        resolutionIntent, PLAY_SERVICES_RESOLUTION_REQUEST);
+                mainHandler.post(() -> {
+                    if (!closed && !activity.isFinishing() && !activity.isDestroyed()) {
+                        activity.startActivityForResult(
+                                resolutionIntent, PLAY_SERVICES_RESOLUTION_REQUEST);
+                    }
+                });
             }
             return false;
         } catch (GooglePlayServicesNotAvailableException exception) {

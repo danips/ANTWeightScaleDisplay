@@ -8,7 +8,10 @@ retaining the existing fragments and XML layouts.
 
 `AppStateViewModel` is the lifecycle-aware entry point used by activities and fragments. It delegates
 all model lookup and mutation to the process-wide `AppRepository`; UI classes do not read or replace
-data files directly. The repository keeps in-memory snapshots, serializes writes on one executor, and
+data files directly. Initial/recovery loading and document-provider operations run on one ViewModel
+I/O executor. Replayable load state lets restored editor views defer model binding without blocking
+the main thread, while typed one-shot operation results are delivered to the current view lifecycle
+after rotation or navigation. The repository keeps in-memory snapshots, serializes writes on one executor, and
 returns `RepositoryResult` values for operations that can fail. UI mutations use
 `AppRepository.MutationCallback`: work is serialized on the repository executor and
 `AppStateViewModel` delivers completion on the main thread. Callers never receive an ignored
@@ -74,7 +77,8 @@ its production codec before persistence. `AtomicJsonDataset` journals the prior 
 rolls back all three files after a write failure or interrupted process. Backup snapshots, restore
 commits, delete-user commits, and ordinary writes share the repository's single executor, preventing
 mixed-generation archives and interleaved dataset replacement. Picker Fragments only open streams
-off the main thread and present results.
+off the main thread and present results. CSV document creation and UTF-8 row encoding use the same
+ViewModel I/O boundary; a success event is emitted only after the writer flushes and closes cleanly.
 
 `ForegroundUpload` is the UI owner for an interactive upload. It owns the progress dialog, one
 executor, cancellation, and final user-visible results. Pure FIT construction and message formatting
