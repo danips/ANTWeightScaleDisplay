@@ -72,6 +72,10 @@ authenticated service state was changed, so the manual checks below remain pendi
 
 ## Android lifecycle and compatibility
 
+- [x] Confirm the merged manifest advertises USB host support as optional, omits USB accessory mode,
+      and disables cleartext traffic (covered by the Android smoke suite).
+- [ ] Compare the Play Console device catalog before and after the USB feature correction; confirm
+      built-in-ANT devices without advertised USB host support remain eligible.
 - [ ] Smoke-test API 23, 29, 33, and 37 where devices or emulators are available.
 - [ ] Rotate the device during editing and active operations.
 - [ ] Move the app between foreground and background during active operations.
@@ -96,6 +100,8 @@ authenticated service state was changed, so the manual checks below remain pendi
 
 Repeat the failure-sensitive cases at least three times on a representative supported device.
 
+- [ ] Install and launch on both a built-in-ANT device and a USB-host device with an external ANT
+      adapter; confirm each hardware path remains available.
 - [ ] Complete a measurement and confirm it is saved exactly once.
 - [ ] Search with the scale off and confirm timeout saves nothing.
 - [ ] Cancel during search and during measurement reception.

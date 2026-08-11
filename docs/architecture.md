@@ -120,6 +120,10 @@ persists only protocol-complete measurements, and reports success only after per
 through `AntWeightListener`. The activity-scoped ViewModel owns the controller so a measurement can survive
 Activity recreation; `WeightFragment` attaches only while its UI is active.
 
+Built-in ANT support does not depend on USB. External ANT adapters use Android USB host mode, which
+is advertised as an optional capability so distribution does not exclude built-in-ANT devices.
+In-process networking is HTTPS-only; browser fallbacks for ANT service installation also use HTTPS.
+
 ## Persisted-data compatibility
 
 The internal filenames and JSON structures are intentionally unchanged. Backups remain ZIP archives
@@ -142,7 +146,8 @@ design and remains release-tracked technical debt.
 
 Local JVM tests own Android-independent contracts and repository failure injection. The
 `androidTest` smoke suite exercises Android resource binding, selected-profile rebinding, editor
-cancel navigation, notification-to-MFA event delivery, and Activity recreation. GitHub Actions runs
+cancel navigation, notification-to-MFA event delivery, Activity recreation, and the merged
+USB/cleartext manifest policy. GitHub Actions runs
 the JVM suite, lint, the minified release build, and test-APK compilation, then executes the smoke
 suite serially on Gradle-managed API 27 and API 35 devices. Physical ANT hardware, authenticated
 Garmin behavior, document-provider implementations, API 23 compatibility, and destructive process

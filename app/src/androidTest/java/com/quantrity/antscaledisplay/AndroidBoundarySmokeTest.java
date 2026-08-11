@@ -8,9 +8,13 @@ import static org.junit.Assert.assertTrue;
 
 import android.app.Notification;
 import android.content.Context;
+import android.content.pm.FeatureInfo;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.StrictMode;
+import android.security.NetworkSecurityPolicy;
 import android.widget.FrameLayout;
 
 import androidx.core.app.NotificationCompat;
@@ -34,6 +38,29 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @RunWith(AndroidJUnit4.class)
 public class AndroidBoundarySmokeTest {
+    @Test
+    public void mergedManifestKeepsUsbHostOptionalAndCleartextDisabled() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        PackageInfo packageInfo = context.getPackageManager().getPackageInfo(
+                context.getPackageName(), PackageManager.GET_CONFIGURATIONS);
+        boolean foundUsbHost = false;
+
+        assertNotNull(packageInfo.reqFeatures);
+        for (FeatureInfo feature : packageInfo.reqFeatures) {
+            assertFalse("USB accessory mode must not be required",
+                    PackageManager.FEATURE_USB_ACCESSORY.equals(feature.name));
+            if (PackageManager.FEATURE_USB_HOST.equals(feature.name)) {
+                foundUsbHost = true;
+                assertEquals("USB host support must remain optional", 0,
+                        feature.flags & FeatureInfo.FLAG_REQUIRED);
+            }
+        }
+
+        assertTrue("Optional USB host capability is missing", foundUsbHost);
+        assertFalse("Cleartext traffic must remain disabled",
+                NetworkSecurityPolicy.getInstance().isCleartextTrafficPermitted());
+    }
+
     @Test
     public void cancellingTheWeightEditorDiscardsItsWorkingCopy() throws Exception {
         Context context = ApplicationProvider.getApplicationContext();

@@ -33,6 +33,10 @@ import com.quantrity.antscaledisplay.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity
         implements AppHost {
     private static final String TAG = "MainActivity";
+    static final String ANT_RADIO_PLAY_STORE_URL =
+            "https://play.google.com/store/apps/details?id=com.dsi.ant.service.socket";
+    static final String ANT_USB_PLAY_STORE_URL =
+            "https://play.google.com/store/apps/details?id=com.dsi.ant.usbservice";
     private View navigationView;
     private AppStateViewModel state;
     private UserSpinnerController userSpinnerController;
@@ -310,7 +314,8 @@ public class MainActivity extends AppCompatActivity
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.dsi.ant.service.socket")));
                     } catch (android.content.ActivityNotFoundException e) {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=com.dsi.ant.service.socket")));
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                Uri.parse(ANT_RADIO_PLAY_STORE_URL)));
                     }
                     dialog.cancel();
                     finish();
@@ -324,7 +329,8 @@ public class MainActivity extends AppCompatActivity
                     try {
                         startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=com.dsi.ant.usbservice")));
                     } catch (android.content.ActivityNotFoundException e) {
-                        startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=com.dsi.ant.usbservice")));
+                        startActivity(new Intent(Intent.ACTION_VIEW,
+                                Uri.parse(ANT_USB_PLAY_STORE_URL)));
                     }
                     dialog.cancel();
                     finish();
