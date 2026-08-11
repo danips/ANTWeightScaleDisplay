@@ -643,7 +643,8 @@ opportunities table rather than this results log.
 | 2026-07-14 | Prefer `JobScheduler` for WorkManager replacement | API 23 is already the minimum and only one job family is needed | Revisit if scheduling requirements expand |
 | 2026-07-14 | Keep API 23 and provider updates; use `play-services-basement` directly | Security updates remain available on API 23–28 while the smaller official artifact saves 80,163 bytes | Revisit when API 23–28 usage is known to be negligible or the minimum rises to API 29 |
 | 2026-07-14 | Implement the FIT writer independently and keep Garmin's SDK test-only | The supplied SDK license is unsuitable for copying source into GPLv3; official decoding still provides compatibility validation | Revisit field/profile constants when upgrading the test SDK or adding FIT fields |
-| 2026-07-14 | Keep Signpost by default | Maximum saving is only 4.35 KB | Revisit for maintenance/security reasons, not size |
+| 2026-07-14 | Keep Signpost by default (superseded 2026-08-11) | The experiment measured a maximum saving of only 4.35 KB | Superseded after the Garmin transport/authentication implementation no longer used Signpost |
+| 2026-08-11 | Record Signpost as already removed | Current source and `releaseRuntimeClasspath` contain no Signpost classes or artifact; authentication is covered by app-owned tests | Revisit only if a future OAuth implementation adds a library |
 | 2026-07-14 | Keep MPAndroidChart by default | Maximum measured saving including graph code is 44.7 KB | Revisit only with a planned graph redesign |
 | 2026-07-14 | Keep release line metadata | It costs only 564 bytes | Revisit only if measurement changes materially |
 | 2026-07-14 | Skip bitmap optimization | Visual validation was unavailable and the remaining saving is small beside the UI dependency opportunity | Revisit during an artwork refresh or with representative screenshot tests |

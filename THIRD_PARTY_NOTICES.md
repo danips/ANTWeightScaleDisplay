@@ -3,16 +3,17 @@
 This file lists the direct third-party components used to build or run the application. Transitive
 Android dependencies retain the notices and license metadata distributed with their artifacts.
 
-## ANT Android Library
+## ANT service interface
 
-- Component: ANT Android Library
-- Version: 4.16.0
-- Repository artifact: `app/libs/android_antlib_4-16-0.aar`
-- Source and SDK distribution: https://github.com/ant-wireless/ANT-Android-SDKs
-- Copyright: Garmin Canada Inc. and its subsidiaries
-- License/terms: distributed with the ANT Android SDK
+- Component: `IAnt_6` Android Interface Definition Language interface
+- Repository source: `app/src/main/aidl/com/dsi/ant/IAnt_6.aidl`
+- Upstream SDK: https://github.com/ant-wireless/ANT-Android-SDKs
+- Copyright: 2011 Dynastream Innovations Inc.
+- License: Apache License 2.0 (included in the source-file header)
 
-The AAR is committed because it is not consumed from the project's configured Maven repositories.
+No ANT AAR is committed or packaged. The app compiles the interface definition and communicates
+with ANT Radio Service or ANT USB Service installed separately by the user; those service apps are
+not distributed in this APK.
 
 ## Garmin FIT Java SDK
 
@@ -26,45 +27,35 @@ The AAR is committed because it is not consumed from the project's configured Ma
 - License: Flexible and Interoperable Data Transfer (FIT) Protocol License Agreement
 - License text: https://github.com/garmin/fit-java-sdk/blob/main/LICENSE.txt
 
-The SDK is consumed from Garmin's official Maven Central publication; its source or binary is not
-committed to this repository. FIT integrity, decoded weight fields, and deterministic output are
-covered by the characterization test. Garmin's license applies to the SDK and its use.
+The SDK is a test-only dependency consumed from Garmin's official Maven Central publication; its
+source or binary is not committed to this repository or packaged in the release APK. FIT integrity,
+decoded weight fields, and deterministic output are covered by the characterization test. Garmin's
+license applies to the SDK and its use.
 
-## AndroidX and Material Components
+## AndroidX
 
-- Components: AndroidX AppCompat 1.7.1 and WorkManager Runtime 2.11.2
-- Sources: https://github.com/androidx/androidx
-- License: Apache License 2.0
-- Component: Material Components for Android 1.14.0
-- Source: https://github.com/material-components/material-components-android
+- Components: AppCompat 1.7.1, CardView 1.0.0, ConstraintLayout 2.2.1, and RecyclerView 1.4.0
+- Source: https://github.com/androidx/androidx
 - License: Apache License 2.0
 
-## Charts and color picker
+## Charts
 
 - Component: MPAndroidChart 3.1.0
 - Source: https://github.com/PhilJay/MPAndroidChart
 - License: Apache License 2.0
-- Component: HoloColorPicker 1.5
-- Source: https://github.com/LarsWerkman/HoloColorPicker
-- License: Apache License 2.0
 
 ## Google Play services
 
-- Component: Google Play services Base 18.10.0
+- Component: Google Play services Basement 18.10.0
 - Distribution: https://developers.google.com/android/guides/setup
 - Terms: https://developers.google.com/terms
 
 This component supplies the security-provider update and service-availability APIs used on older
 Android versions.
 
-## Signpost
+## Other test-only dependencies
 
-- Component: Signpost Core 2.1.1
-- Source: https://github.com/mttkay/signpost
-- License: Apache License 2.0
-
-## Test-only dependencies
-
+- AndroidX Test Core 1.7.0, Runner 1.7.0, and Ext JUnit 1.3.0 — Apache License 2.0: https://github.com/android/android-test
 - JUnit 4.13.2 — Eclipse Public License 1.0: https://github.com/junit-team/junit4
 - JSON-java 20260522 — JSON License: https://github.com/stleary/JSON-java
 

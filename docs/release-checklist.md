@@ -14,8 +14,11 @@ Run these checks from the repository root:
 ./gradlew assembleDebugAndroidTest
 ```
 
-Expected result: all unit tests pass, Android lint reports no issues, and the complete minified
+Expected result: all unit tests pass, Android lint reports zero errors, and the complete minified
 release build succeeds, including `lintVitalRelease`; the instrumentation APK must also compile.
+Review every lint warning rather than treating warnings as a failed command: update-availability,
+complex-vector, and large edit-layout warnings are accepted only while the dependency and device
+performance checks below remain current.
 GitHub Actions runs those checks on every push and pull request and executes the Android smoke suite
 serially on Gradle-managed API 27 and API 35 devices. Where local emulator provisioning is
 available, the same connected gate is:
@@ -23,6 +26,9 @@ available, the same connected gate is:
 ```bash
 ./gradlew pixel2Api27DebugAndroidTest pixel2Api35DebugAndroidTest
 ```
+
+The dated records below are historical results, not the expected warning count or artifacts for the
+current release candidate.
 
 Final simplification verification on 2026-07-12: 205 test executions passed, lint reported no
 issues, and the minified unsigned release APK built successfully. Device, ANT, Garmin, document

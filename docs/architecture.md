@@ -91,9 +91,10 @@ entry definition, compression, buffering, transferred-stream closure, JSON/path 
 its production codec before persistence. `AtomicJsonDataset` journals the prior generation and
 rolls back all three files after a write failure or interrupted process. Backup snapshots, restore
 commits, delete-user commits, and ordinary writes share the repository's single executor, preventing
-mixed-generation archives and interleaved dataset replacement. Picker Fragments only open streams
-off the main thread and present results. CSV document creation and UTF-8 row encoding use the same
-ViewModel I/O boundary; a success event is emitted only after the writer flushes and closes cleanly.
+mixed-generation archives and interleaved dataset replacement. Fragments only launch document
+pickers through Android's Activity Result APIs and pass the selected URI to the ViewModel. The ViewModel
+creates/opens provider documents and performs backup, restore, and CSV encoding on its I/O
+executor; a success event is emitted only after the writer flushes and closes cleanly.
 
 `ForegroundUploadManager` is retained by the activity-scoped ViewModel and owns one executor,
 cancellation, immutable progress state, and one-shot results. It uses application context for file,
@@ -147,9 +148,8 @@ every summary. Notification progress is emitted only when the whole-number perce
 ## ANT boundary
 
 `AntServiceClient` owns Android service discovery, binding, the ANT data broadcast receiver,
-channel commands,
-and idempotent cleanup. It forwards incoming protocol messages without holding a Fragment or
-Activity.
+channel commands, and idempotent cleanup. It forwards incoming protocol messages without holding a
+Fragment or Activity.
 
 `AntMessageParser` validates and decodes ANT pages. `AntWeightSession` is the Android-free protocol
 state machine. `AntWeightController` coordinates the service and state machine, applies timeouts,
