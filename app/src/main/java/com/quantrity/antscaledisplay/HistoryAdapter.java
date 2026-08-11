@@ -186,18 +186,16 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
                 if ((user.gc_user != null) && (user.gc_pass != null) && (!user.gc_user.isEmpty()) && (!user.gc_pass.isEmpty())) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_garmin_connect_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
-                        ForegroundUpload upload = new ForegroundUpload(
-                                (MainActivity) mContext, weight, user, true, false);
-                        upload.execute();
+                        ((MainActivity) mContext).startForegroundUpload(
+                                weight, user, true, false);
                         return true;
                     });
                 }
                 if ((user.email_to != null) && !user.email_to.isEmpty()) {
                     mi = contextMenu.add(0, view.getId(), 0, String.format(mContext.getString(R.string.users_fragment_user_contextmenu_upload_to), mContext.getString(R.string.edit_user_fragment_email_category)));
                     mi.setOnMenuItemClickListener(menuItem -> {
-                        ForegroundUpload upload = new ForegroundUpload(
-                                (MainActivity) mContext, weight, user, false, true);
-                        upload.execute();
+                        ((MainActivity) mContext).startForegroundUpload(
+                                weight, user, false, true);
                         return true;
                     });
                 }

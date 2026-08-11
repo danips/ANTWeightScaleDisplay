@@ -1,6 +1,7 @@
 package com.quantrity.antscaledisplay;
 
 import android.app.Activity;
+import android.content.Context;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -12,12 +13,17 @@ final class GarminForegroundSession {
     private final GarminWeightService weightService;
 
     GarminForegroundSession(User user, ArrayList<User> users, Activity activity) {
+        this(user, users, activity, new DialogMfaCodeProvider(activity));
+    }
+
+    GarminForegroundSession(User user, ArrayList<User> users, Context context,
+                            MfaCodeProvider mfaCodeProvider) {
         this.user = user;
         GarminHttpClient http = new GarminHttpClient(true);
         GarminTokenStore tokenStore = new GarminTokenStore(
-                activity.getApplicationContext(), user, users);
+                context.getApplicationContext(), user, users);
         authenticator = new GarminAuthenticator(
-                http, tokenStore, new DialogMfaCodeProvider(activity));
+                http, tokenStore, mfaCodeProvider);
         weightService = new GarminWeightService(http, authenticator);
     }
 

@@ -52,12 +52,14 @@ public final class AppStateViewModel extends AndroidViewModel {
     private final MutableLiveData<OperationEvent<OperationResult>> csvResult =
             new MutableLiveData<>();
     private final Object loadLock = new Object();
+    private final ForegroundUploadManager foregroundUpload;
     private boolean loading;
     private AntWeightController antWeightController;
 
     public AppStateViewModel(@NonNull Application application) {
         super(application);
         repository = AppRepository.get(application);
+        foregroundUpload = new ForegroundUploadManager(application);
     }
 
     LiveData<RepositoryResult<Void>> loadResult() {
@@ -257,6 +259,31 @@ public final class AppStateViewModel extends AndroidViewModel {
 
     AntWeightController antWeightController() { return antWeightController; }
 
+    LiveData<ForegroundUploadState> foregroundUploadState() {
+        return foregroundUpload.state();
+    }
+
+    LiveData<OperationEvent<UploadResult>> foregroundUploadResult() {
+        return foregroundUpload.result();
+    }
+
+    void attachForegroundUpload(MainActivity activity) {
+        foregroundUpload.attach(activity);
+    }
+
+    void detachForegroundUpload(MainActivity activity) {
+        foregroundUpload.detach(activity);
+    }
+
+    boolean startForegroundUpload(Weight weight, User user,
+                                  boolean tryGarmin, boolean tryEmail) {
+        return foregroundUpload.start(weight, user, tryGarmin, tryEmail);
+    }
+
+    void cancelForegroundUpload() {
+        foregroundUpload.cancel();
+    }
+
     AntWeightController selectedAntWeightController() {
         User selectedUser = repository.selectedUser();
         return antWeightController != null
@@ -281,6 +308,7 @@ public final class AppStateViewModel extends AndroidViewModel {
         if (antWeightController != null && antWeightController.isRunning()) {
             antWeightController.cancel();
         }
+        foregroundUpload.close();
         ioExecutor.shutdownNow();
         super.onCleared();
     }

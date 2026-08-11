@@ -132,6 +132,9 @@ Repeat the failure-sensitive cases at least three times on a representative supp
       notification; confirm old, replayed, unrelated, pre-dialog, and post-cancellation codes do not
       autofill, while one fresh Garmin code received during the visible dialog does.
 - [ ] Upload with active and expired access tokens.
+- [ ] Rotate, background, and destroy/recreate the Activity during Garmin sign-in, upload, and email
+      preparation; confirm one retained operation, a replaceable progress dialog, one result, no
+      leaked window, and functional Cancel behavior.
 - [ ] Upload representative app-generated FIT files to Garmin Connect: one weight-only file and one
       containing every supported optional measurement.
 - [ ] Observe background renewal across a complete access-token cycle.

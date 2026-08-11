@@ -13,10 +13,15 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.CheckedTextView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.ActionBar;
@@ -41,6 +46,8 @@ public class MainActivity extends AppCompatActivity
     private AppStateViewModel state;
     private UserSpinnerController userSpinnerController;
     private ActivityMainBinding binding;
+    private AlertDialog uploadProgressDialog;
+    private ProgressBar uploadProgressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,6 +69,9 @@ public class MainActivity extends AppCompatActivity
                     view -> navigate(destination));
         }
         state = new ViewModelProvider(this).get(AppStateViewModel.class);
+        state.attachForegroundUpload(this);
+        state.foregroundUploadState().observe(this, this::renderForegroundUploadState);
+        state.foregroundUploadResult().observe(this, this::renderForegroundUploadResult);
         userSpinnerController = new UserSpinnerController(this, state);
         state.loadResult().observe(this, this::onRepositoryLoaded);
 
@@ -417,13 +427,99 @@ public class MainActivity extends AppCompatActivity
     }
 
     public static void uploadButton(MainActivity activity, Weight weight, User user) {
-        if (!isOnline(activity)) {
-            activity.showMessage(R.string.weight_fragment_msg_problem_no_internet_connection);
+        activity.startForegroundUpload(weight, user, true, true);
+    }
+
+    void startForegroundUpload(Weight weight, User user,
+                               boolean tryGarmin, boolean tryEmail) {
+        if (!isOnline(this)) {
+            showMessage(R.string.weight_fragment_msg_problem_no_internet_connection);
             return;
         }
+        state.startForegroundUpload(weight, user, tryGarmin, tryEmail);
+    }
 
-        ForegroundUpload upload = new ForegroundUpload(activity, weight, user, true, true);
-        upload.execute();
+    private void renderForegroundUploadState(ForegroundUploadState uploadState) {
+        if (!uploadState.running) {
+            dismissUploadProgress();
+            return;
+        }
+        if (uploadProgressDialog == null) showUploadProgress(uploadState.total);
+        if (uploadProgressBar != null) {
+            uploadProgressBar.setMax(uploadState.total);
+            uploadProgressBar.setProgress(uploadState.completed);
+        }
+    }
+
+    private void renderForegroundUploadResult(OperationEvent<UploadResult> event) {
+        UploadResult result = event.consume();
+        if (result == null) return;
+        if (result.garminSucceeded) {
+            Toast.makeText(this, String.format(
+                    getString(R.string.weight_fragment_msg_updating_success),
+                    getString(R.string.edit_user_fragment_garmin_connect_category)),
+                    Toast.LENGTH_SHORT).show();
+        }
+        StringBuilder errors = new StringBuilder();
+        appendUploadError(errors, getString(
+                R.string.edit_user_fragment_garmin_connect_category), result.garminError);
+        appendUploadError(errors, getString(R.string.edit_user_fragment_email_category),
+                result.emailError);
+        if (errors.length() > 0) showMessage(errors.toString());
+        if (result.emailMessage != null) {
+            MeasurementTextFormatter.EmailMessage message = result.emailMessage;
+            Intent emailIntent = new Intent(Intent.ACTION_SEND);
+            emailIntent.setType("vnd.android.cursor.dir/email");
+            emailIntent.putExtra(Intent.EXTRA_EMAIL, new String[]{message.recipient});
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT, message.subject);
+            emailIntent.putExtra(Intent.EXTRA_TEXT, message.body);
+            startActivity(Intent.createChooser(emailIntent, "Send email..."));
+        }
+    }
+
+    private void showUploadProgress(int max) {
+        LinearLayout layout = new LinearLayout(this);
+        layout.setOrientation(LinearLayout.VERTICAL);
+        layout.setPadding(50, 40, 50, 10);
+        layout.setLayoutParams(new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT));
+        TextView message = new TextView(this);
+        message.setText(R.string.weight_fragment_msg_uploading);
+        message.setPadding(0, 0, 0, 20);
+        layout.addView(message);
+        uploadProgressBar = new ProgressBar(this, null,
+                android.R.attr.progressBarStyleHorizontal);
+        uploadProgressBar.setIndeterminate(false);
+        uploadProgressBar.setMax(max);
+        layout.addView(uploadProgressBar);
+        uploadProgressDialog = new AlertDialog.Builder(this)
+                .setView(layout)
+                .setNegativeButton(android.R.string.cancel,
+                        (dialog, which) -> state.cancelForegroundUpload())
+                .setCancelable(false)
+                .create();
+        uploadProgressDialog.show();
+    }
+
+    private void dismissUploadProgress() {
+        if (uploadProgressDialog != null && uploadProgressDialog.isShowing()) {
+            uploadProgressDialog.dismiss();
+        }
+        uploadProgressDialog = null;
+        uploadProgressBar = null;
+    }
+
+    private static void appendUploadError(StringBuilder output, String category, String error) {
+        if (error == null || error.isEmpty()) return;
+        if (output.length() > 0) output.append('\n');
+        output.append(category).append(": ").append(error);
+    }
+
+    @Override
+    protected void onDestroy() {
+        dismissUploadProgress();
+        if (state != null) state.detachForegroundUpload(this);
+        super.onDestroy();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.quantrity.antscaledisplay;
 
+import android.content.Context;
 import android.util.Log;
 
 import java.io.File;
@@ -22,8 +23,9 @@ final class UploadCoordinator {
         this.textFormatter = textFormatter;
     }
 
-    UploadResult run(MainActivity activity, Weight weight, User user, boolean uploadToGarmin,
-                     boolean prepareEmail, ProgressCallback progress) {
+    UploadResult run(Context context, Weight weight, User user, boolean uploadToGarmin,
+                     boolean prepareEmail, ProgressCallback progress,
+                     MfaCodeProvider mfaCodeProvider) {
         boolean garminSucceeded = false;
         String garminError = null;
         MeasurementTextFormatter.EmailMessage email = null;
@@ -32,19 +34,19 @@ final class UploadCoordinator {
         if (uploadToGarmin && !Thread.currentThread().isInterrupted()) {
             try {
                 File fitFile = fitFileFactory.create(
-                        new File(activity.getFilesDir(), "weight.fit"), weight);
+                        new File(context.getFilesDir(), "weight.fit"), weight);
                 GarminForegroundSession garmin = new GarminForegroundSession(user,
-                        AppRepository.get(activity).usersSnapshot(), activity);
+                        AppRepository.get(context).usersSnapshot(), context, mfaCodeProvider);
                 GarminAuthenticator.SignInReport signIn = garmin.signInDetailed();
                 if (signIn.isSuccess()) {
                     garminError = garmin.upload(fitFile);
                     garminSucceeded = garminError == null;
                 } else {
-                    garminError = GarminAuthenticationMessages.failure(activity, signIn);
+                    garminError = GarminAuthenticationMessages.failure(context, signIn);
                 }
             } catch (RuntimeException exception) {
                 Log.e(TAG, "Unable to create or upload the FIT file", exception);
-                garminError = activity.getString(
+                garminError = context.getString(
                         R.string.weight_fragment_msg_uploading_encoding_failure);
             } finally {
                 progress.operationCompleted();
@@ -57,7 +59,7 @@ final class UploadCoordinator {
         if (prepareEmail && !Thread.currentThread().isInterrupted()) {
             try {
                 email = textFormatter.email(
-                        new MeasurementTextFormatter.AndroidStrings(activity), user, weight);
+                        new MeasurementTextFormatter.AndroidStrings(context), user, weight);
             } catch (RuntimeException exception) {
                 Log.e(TAG, "Unable to format the measurement email", exception);
                 emailError = exception.getMessage();

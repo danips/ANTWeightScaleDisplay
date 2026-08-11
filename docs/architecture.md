@@ -90,9 +90,13 @@ mixed-generation archives and interleaved dataset replacement. Picker Fragments 
 off the main thread and present results. CSV document creation and UTF-8 row encoding use the same
 ViewModel I/O boundary; a success event is emitted only after the writer flushes and closes cleanly.
 
-`ForegroundUpload` is the UI owner for an interactive upload. It owns the progress dialog, one
-executor, cancellation, and final user-visible results. Pure FIT construction and message formatting
-remain in `FitFileFactory` and `MeasurementTextFormatter`.
+`ForegroundUploadManager` is retained by the activity-scoped ViewModel and owns one executor,
+cancellation, immutable progress state, and one-shot results. It uses application context for file,
+repository, and formatting work and holds only a weak reference to the current Activity for
+interactive MFA/provider repair. `MainActivity` renders a replaceable cancelable progress dialog and
+the final result, so rotation does not duplicate work or strand completion on the old Activity. Pure
+FIT construction and message formatting remain in `FitFileFactory` and
+`MeasurementTextFormatter`.
 
 ## Garmin boundary
 
