@@ -216,11 +216,9 @@ public class AppRepositoryTest {
     }
 
     @Test
-    public void asynchronousMutationReportsDiskFailureAndRetainsMemorySnapshot() throws Exception {
+    public void failedAddLeavesMemoryAndDiskAtCommittedState() throws Exception {
         assertTrue(repository.reloadState().isSuccess());
-        File historyDirectory = new File(temporaryFolder.getRoot(), "history");
-        assertTrue(historyDirectory.mkdir());
-        Files.write(new File(historyDirectory, "blocker").toPath(), new byte[]{1});
+        blockWrites("history");
         Weight weight = new Weight();
         weight.uuid = "user";
         weight.date = 456;
@@ -235,6 +233,58 @@ public class AppRepositoryTest {
 
         assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
         assertFalse(callbackResult[0].isSuccess());
+        assertTrue(repository.weightsSnapshot().isEmpty());
+        unblockWrites("history");
+        assertTrue(repository.loadWeights().value.isEmpty());
+        assertTrue(repository.reloadState().isSuccess());
+        assertTrue(repository.weightsSnapshot().isEmpty());
+    }
+
+    @Test
+    public void failedEditLeavesMemoryAndDiskAtCommittedState() throws Exception {
+        Weight original = weight(456, 75);
+        assertTrue(repository.saveWeightsSynchronously(Collections.singletonList(original)).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+        Weight edited = weight(456, 80);
+        blockWrites("history");
+        CountDownLatch completed = new CountDownLatch(1);
+        RepositoryResult<?>[] callbackResult = new RepositoryResult<?>[1];
+
+        repository.upsertWeight(edited, true, result -> {
+            callbackResult[0] = result;
+            completed.countDown();
+        });
+
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        assertFalse(callbackResult[0].isSuccess());
+        assertEquals(75, repository.weightsSnapshot().get(0).weight, 0);
+        unblockWrites("history");
+        assertEquals(75, repository.loadWeights().value.get(0).weight, 0);
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals(75, repository.weightsSnapshot().get(0).weight, 0);
+    }
+
+    @Test
+    public void failedDeleteLeavesMemoryAndDiskAtCommittedState() throws Exception {
+        Weight original = weight(456, 75);
+        assertTrue(repository.saveWeightsSynchronously(Collections.singletonList(original)).isSuccess());
+        assertTrue(repository.reloadState().isSuccess());
+        Weight stored = repository.weightsSnapshot().get(0);
+        blockWrites("history");
+        CountDownLatch completed = new CountDownLatch(1);
+        RepositoryResult<?>[] callbackResult = new RepositoryResult<?>[1];
+
+        repository.deleteWeight(stored, result -> {
+            callbackResult[0] = result;
+            completed.countDown();
+        });
+
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        assertFalse(callbackResult[0].isSuccess());
+        assertEquals(1, repository.weightsSnapshot().size());
+        unblockWrites("history");
+        assertEquals(1, repository.loadWeights().value.size());
+        assertTrue(repository.reloadState().isSuccess());
         assertEquals(1, repository.weightsSnapshot().size());
     }
 
@@ -275,9 +325,71 @@ public class AppRepositoryTest {
         assertEquals(2, repository.loadWeights().value.size());
     }
 
+    @Test
+    public void queuedMutationExcludesEarlierFailedCandidate() throws Exception {
+        assertTrue(repository.reloadState().isSuccess());
+        Weight failed = weight(1, 70);
+        Weight accepted = weight(2, 71);
+        blockWrites("history");
+        CountDownLatch completed = new CountDownLatch(2);
+        RepositoryResult<?>[] callbackResults = new RepositoryResult<?>[2];
+        int[] stateSizes = new int[2];
+        int[] diskSizes = new int[2];
+
+        repository.upsertWeight(failed, false, result -> {
+            callbackResults[0] = result;
+            stateSizes[0] = repository.weightsSnapshot().size();
+            unblockWrites("history");
+            diskSizes[0] = repository.loadWeights().value.size();
+            completed.countDown();
+        });
+        repository.upsertWeight(accepted, false, result -> {
+            callbackResults[1] = result;
+            stateSizes[1] = repository.weightsSnapshot().size();
+            diskSizes[1] = repository.loadWeights().value.size();
+            completed.countDown();
+        });
+
+        assertTrue(completed.await(5, java.util.concurrent.TimeUnit.SECONDS));
+        assertFalse(callbackResults[0].isSuccess());
+        assertTrue(callbackResults[1].isSuccess());
+        assertEquals(0, stateSizes[0]);
+        assertEquals(0, diskSizes[0]);
+        assertEquals(1, stateSizes[1]);
+        assertEquals(1, diskSizes[1]);
+        assertEquals(accepted.date, repository.weightsSnapshot().get(0).date);
+        assertEquals(accepted.date, repository.loadWeights().value.get(0).date);
+        assertTrue(repository.reloadState().isSuccess());
+        assertEquals(accepted.date, repository.weightsSnapshot().get(0).date);
+    }
+
     private void writeFixture(String filename, String fixture) throws Exception {
         Files.write(new File(temporaryFolder.getRoot(), filename).toPath(),
                 FixtureLoader.load(fixture).getBytes(StandardCharsets.UTF_8));
+    }
+
+    private static Weight weight(long date, double value) {
+        Weight weight = new Weight();
+        weight.uuid = "user";
+        weight.date = date;
+        weight.weight = value;
+        return weight;
+    }
+
+    private void blockWrites(String filename) throws Exception {
+        File temporaryDirectory = new File(temporaryFolder.getRoot(), filename + ".tmp");
+        assertTrue(temporaryDirectory.mkdir());
+        Files.write(new File(temporaryDirectory, "blocker").toPath(), new byte[]{1});
+    }
+
+    private void unblockWrites(String filename) {
+        try {
+            File temporaryDirectory = new File(temporaryFolder.getRoot(), filename + ".tmp");
+            Files.delete(new File(temporaryDirectory, "blocker").toPath());
+            Files.delete(temporaryDirectory.toPath());
+        } catch (Exception e) {
+            throw new AssertionError("Could not remove write blocker", e);
+        }
     }
 
     private static void clearLegacyGarminTokens(User user) {

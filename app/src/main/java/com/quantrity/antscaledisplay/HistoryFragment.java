@@ -132,7 +132,13 @@ public class HistoryFragment extends Fragment implements MenuProvider,
     }
 
     void deleteWeight(Weight weight) {
-        state.deleteWeight(weight, this::showMutationFailure);
+        state.deleteWeight(weight, result -> {
+            if (showMutationFailure(result)) return;
+            User selectedUser = state.selectedUser();
+            if (mAdapter != null && selectedUser != null) {
+                mAdapter.replaceAll(state.selectedWeights(), selectedUser);
+            }
+        });
     }
 
     void editWeight(Weight weight, User user) {

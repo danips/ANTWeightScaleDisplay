@@ -179,13 +179,7 @@ class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.ViewHolder> {
             contextMenu.setHeaderTitle(R.string.users_fragment_user_contextmenu_title);
             MenuItem mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_delete);
             mi.setOnMenuItemClickListener(menuItem -> {
-                int position = mDataset.indexOf(weight);
-                if (position != -1) {
-                    mDataset.remove(weight);
-                    expandedStates.delete(position); // Remove state for deleted item
-                    notifyItemRemoved(position);
-                    parent.deleteWeight(weight);
-                }
+                parent.deleteWeight(weight);
                 return true;
             });
 

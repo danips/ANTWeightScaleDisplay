@@ -72,15 +72,7 @@ class UsersAdapter extends RecyclerView.Adapter<UsersAdapter.ViewHolder> {
             contextMenu.setHeaderTitle(R.string.users_fragment_user_contextmenu_title);
             MenuItem mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_delete);//groupId, itemId, order, title
             mi.setOnMenuItemClickListener(menuItem -> {
-
-                int pos = mDataset.indexOf(user);
-                //Delete user weights
                 usersFragment.deleteUser(user);
-                if (pos != -1) {
-                    mDataset.remove(pos);
-                    notifyItemRemoved(pos);
-                }
-                usersFragment.requireActivity().supportInvalidateOptionsMenu();
                 return true;
             });
             mi = contextMenu.add(0, view.getId(), 0, R.string.users_fragment_user_contextmenu_edit);

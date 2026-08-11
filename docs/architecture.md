@@ -12,8 +12,10 @@ data files directly. The repository keeps in-memory snapshots, serializes writes
 returns `RepositoryResult` values for operations that can fail. UI mutations use
 `AppRepository.MutationCallback`: work is serialized on the repository executor and
 `AppStateViewModel` delivers completion on the main thread. Callers never receive an ignored
-`Future`, and every failure reaches a visible handler. Failed writes retain the optimistic in-memory
-snapshot so queued mutations are not rolled back over one another.
+`Future`, and every failure reaches a visible handler. Each queued mutation derives a candidate from
+the latest successfully committed in-memory state when it reaches the executor, persists that
+candidate, and publishes it only after the write succeeds. A failed write leaves live state
+unchanged, and later mutations cannot persist the rejected candidate as a side effect.
 
 Three codecs define the persisted JSON contract:
 

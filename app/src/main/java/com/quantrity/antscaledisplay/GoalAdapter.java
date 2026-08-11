@@ -71,7 +71,6 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
             MenuItem item = menu.add(0, view.getId(), 0,
                     R.string.users_fragment_user_contextmenu_delete);
             item.setOnMenuItemClickListener(ignored -> {
-                remove(goal);
                 parent.deleteGoal(goal);
                 return true;
             });
@@ -87,12 +86,6 @@ class GoalAdapter extends RecyclerView.Adapter<GoalAdapter.ViewHolder> {
     public void add(int position, Goal item) {
         dataset.add(position, item);
         notifyItemInserted(position);
-    }
-
-    private void remove(Goal item) {
-        int position = dataset.indexOf(item);
-        dataset.remove(item);
-        notifyItemRemoved(position);
     }
 
     void replaceAll(ArrayList<Goal> dataset, User user) {

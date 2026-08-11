@@ -135,14 +135,16 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void closeEditUserFragment(User user) {
-        if (user != null) {
-            state.saveUser(user, result -> {
-                if (handleMutationFailure(result)) return;
-                GarminTokenRefreshScheduler.schedule(this, user);
-            });
-        }
         dismissKeyboard();
-        navigate(NavigationDestination.USERS);
+        if (user == null) {
+            navigate(NavigationDestination.USERS);
+            return;
+        }
+        state.saveUser(user, result -> {
+            if (handleMutationFailure(result)) return;
+            GarminTokenRefreshScheduler.schedule(this, user);
+            navigate(NavigationDestination.USERS);
+        });
     }
 
     public void openEditWeightFragment(Weight weight, User user, boolean edit) {
@@ -165,19 +167,18 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void closeEditWeightFragment(Weight weight, User user, boolean edit, boolean change) {
-        if (weight != null) {
-            state.saveWeight(weight, edit, result -> {
-                if (handleMutationFailure(result)) return;
-                if (user != null && user.autoupload && change) uploadButton(this, weight, user);
-            });
-        }
-
         dismissKeyboard();
-
-        if (edit)
-            navigate(NavigationDestination.HISTORY);
-        else
-            navigate(NavigationDestination.WEIGHT);
+        NavigationDestination destination = edit
+                ? NavigationDestination.HISTORY : NavigationDestination.WEIGHT;
+        if (weight == null) {
+            navigate(destination);
+            return;
+        }
+        state.saveWeight(weight, edit, result -> {
+            if (handleMutationFailure(result)) return;
+            navigate(destination);
+            if (user != null && user.autoupload && change) uploadButton(this, weight, user);
+        });
     }
 
     public void openEditGoalFragment(Goal goal) {
@@ -200,9 +201,14 @@ public class MainActivity extends AppCompatActivity
     }
 
     public void closeEditGoalFragment(Goal goal) {
-        if (goal != null) state.saveGoal(goal, this::handleMutationFailure);
         dismissKeyboard();
-        navigate(NavigationDestination.GOALS);
+        if (goal == null) {
+            navigate(NavigationDestination.GOALS);
+            return;
+        }
+        state.saveGoal(goal, result -> {
+            if (!handleMutationFailure(result)) navigate(NavigationDestination.GOALS);
+        });
     }
 
     public boolean handleMutationFailure(RepositoryResult<Void> result) {

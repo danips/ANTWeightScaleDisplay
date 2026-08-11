@@ -203,94 +203,166 @@ final class AppRepository {
     }
 
     void upsertUser(User user, MutationCallback callback) {
-        ArrayList<User> snapshot;
-        synchronized (stateLock) {
-            User existing = findUser(users, user.uuid);
-            if (existing == null) users.add(user);
-            else if (existing != user) users.set(users.indexOf(existing), user);
-            sortUsers(users);
-            selectedUserUuid = user.uuid;
-            persistSelectedUserUuid(selectedUserUuid);
-            snapshot = new ArrayList<>(users);
-        }
-        execute(() -> saveUsersPreservingNewerTokens(copyUsers(snapshot)), callback);
+        execute(() -> {
+            ArrayList<User> candidate;
+            synchronized (stateLock) {
+                candidate = new ArrayList<>(users);
+            }
+            User existing = findUser(candidate, user.uuid);
+            if (existing == null) candidate.add(user);
+            else if (existing != user) candidate.set(candidate.indexOf(existing), user);
+            sortUsers(candidate);
+
+            ArrayList<User> persistedCandidate = copyUsers(candidate);
+            RepositoryResult<Void> result = saveUsersPreservingNewerTokens(persistedCandidate);
+            if (!result.isSuccess()) return result;
+
+            synchronized (stateLock) {
+                users.clear();
+                users.addAll(persistedCandidate);
+                selectedUserUuid = user.uuid;
+                persistSelectedUserUuid(selectedUserUuid);
+            }
+            return result;
+        }, callback);
     }
 
     void upsertWeight(Weight weight, boolean editing, MutationCallback callback) {
-        ArrayList<Weight> snapshot;
-        synchronized (stateLock) {
-            Weight existing = findWeight(weight.uuid, weight.date);
-            if (!editing && existing == null) weights.add(weight);
-            else if (existing != null && existing != weight) weights.set(weights.indexOf(existing), weight);
-            Collections.sort(weights, new Weight.DateComparator());
-            snapshot = new ArrayList<>(weights);
-        }
-        execute(() -> writeWeights(snapshot), callback);
+        execute(() -> {
+            ArrayList<Weight> candidate;
+            synchronized (stateLock) {
+                candidate = new ArrayList<>(weights);
+            }
+            Weight existing = findWeight(candidate, weight.uuid, weight.date);
+            if (!editing && existing == null) candidate.add(weight);
+            else if (existing != null && existing != weight) {
+                candidate.set(candidate.indexOf(existing), weight);
+            }
+            Collections.sort(candidate, new Weight.DateComparator());
+
+            RepositoryResult<Void> result = writeWeights(candidate);
+            if (!result.isSuccess()) return result;
+            synchronized (stateLock) {
+                weights.clear();
+                weights.addAll(candidate);
+            }
+            return result;
+        }, callback);
     }
 
     void upsertGoal(Goal goal, MutationCallback callback) {
-        ArrayList<Goal> snapshot;
-        synchronized (stateLock) {
-            if (!goals.contains(goal)) goals.add(goal);
-            snapshot = new ArrayList<>(goals);
-        }
-        execute(() -> writeGoals(snapshot), callback);
+        execute(() -> {
+            ArrayList<Goal> candidate;
+            synchronized (stateLock) {
+                candidate = new ArrayList<>(goals);
+            }
+            if (!candidate.contains(goal)) candidate.add(goal);
+
+            RepositoryResult<Void> result = writeGoals(candidate);
+            if (!result.isSuccess()) return result;
+            synchronized (stateLock) {
+                goals.clear();
+                goals.addAll(candidate);
+            }
+            return result;
+        }, callback);
     }
 
     void replaceWeights(List<Weight> replacement, MutationCallback callback) {
-        ArrayList<Weight> snapshot;
-        synchronized (stateLock) {
-            weights.clear();
-            weights.addAll(replacement);
-            Collections.sort(weights, new Weight.DateComparator());
-            snapshot = new ArrayList<>(weights);
-        }
-        execute(() -> writeWeights(snapshot), callback);
+        ArrayList<Weight> requested = new ArrayList<>(replacement);
+        execute(() -> {
+            ArrayList<Weight> candidate = new ArrayList<>(requested);
+            Collections.sort(candidate, new Weight.DateComparator());
+
+            RepositoryResult<Void> result = writeWeights(candidate);
+            if (!result.isSuccess()) return result;
+            synchronized (stateLock) {
+                weights.clear();
+                weights.addAll(candidate);
+            }
+            return result;
+        }, callback);
     }
 
     void deleteWeight(Weight weight, MutationCallback callback) {
-        ArrayList<Weight> snapshot;
-        synchronized (stateLock) {
-            weights.remove(weight);
-            snapshot = new ArrayList<>(weights);
-        }
-        execute(() -> writeWeights(snapshot), callback);
+        execute(() -> {
+            ArrayList<Weight> candidate;
+            synchronized (stateLock) {
+                candidate = new ArrayList<>(weights);
+            }
+            candidate.remove(weight);
+
+            RepositoryResult<Void> result = writeWeights(candidate);
+            if (!result.isSuccess()) return result;
+            synchronized (stateLock) {
+                weights.clear();
+                weights.addAll(candidate);
+            }
+            return result;
+        }, callback);
     }
 
     void deleteGoal(Goal goal, MutationCallback callback) {
-        ArrayList<Goal> snapshot;
-        synchronized (stateLock) {
-            goals.remove(goal);
-            snapshot = new ArrayList<>(goals);
-        }
-        execute(() -> writeGoals(snapshot), callback);
+        execute(() -> {
+            ArrayList<Goal> candidate;
+            synchronized (stateLock) {
+                candidate = new ArrayList<>(goals);
+            }
+            candidate.remove(goal);
+
+            RepositoryResult<Void> result = writeGoals(candidate);
+            if (!result.isSuccess()) return result;
+            synchronized (stateLock) {
+                goals.clear();
+                goals.addAll(candidate);
+            }
+            return result;
+        }, callback);
     }
 
     void deleteUser(User user, MutationCallback callback) {
-        ArrayList<User> userSnapshot;
-        ArrayList<Weight> weightSnapshot;
-        ArrayList<Goal> goalSnapshot;
-        synchronized (stateLock) {
-            users.remove(user);
-            for (Iterator<Weight> iterator = weights.iterator(); iterator.hasNext();) {
+        execute(() -> {
+            ArrayList<User> userCandidate;
+            ArrayList<Weight> weightCandidate;
+            ArrayList<Goal> goalCandidate;
+            String previousSelection;
+            synchronized (stateLock) {
+                userCandidate = new ArrayList<>(users);
+                weightCandidate = new ArrayList<>(weights);
+                goalCandidate = new ArrayList<>(goals);
+                previousSelection = selectedUserUuid;
+            }
+            User candidateUser = findUser(userCandidate, user.uuid);
+            if (candidateUser != null) userCandidate.remove(candidateUser);
+            for (Iterator<Weight> iterator = weightCandidate.iterator(); iterator.hasNext();) {
                 if (user.uuid.equals(iterator.next().uuid)) iterator.remove();
             }
-            for (Iterator<Goal> iterator = goals.iterator(); iterator.hasNext();) {
+            for (Iterator<Goal> iterator = goalCandidate.iterator(); iterator.hasNext();) {
                 if (user.uuid.equals(iterator.next().uuid)) iterator.remove();
             }
-            if (user.uuid.equals(selectedUserUuid)) {
-                selectedUserUuid = users.isEmpty() ? null : users.get(0).uuid;
+            String candidateSelection = user.uuid.equals(previousSelection)
+                    ? (userCandidate.isEmpty() ? null : userCandidate.get(0).uuid)
+                    : previousSelection;
+            ArrayList<User> persistedUsers = copyUsers(userCandidate);
+
+            RepositoryResult<Void> result = saveUsersPreservingNewerTokens(persistedUsers);
+            if (!result.isSuccess()) return result;
+            result = writeWeights(weightCandidate);
+            if (!result.isSuccess()) return result;
+            result = writeGoals(goalCandidate);
+            if (!result.isSuccess()) return result;
+
+            synchronized (stateLock) {
+                users.clear();
+                users.addAll(persistedUsers);
+                weights.clear();
+                weights.addAll(weightCandidate);
+                goals.clear();
+                goals.addAll(goalCandidate);
+                selectedUserUuid = candidateSelection;
                 persistSelectedUserUuid(selectedUserUuid);
             }
-            userSnapshot = new ArrayList<>(users);
-            weightSnapshot = new ArrayList<>(weights);
-            goalSnapshot = new ArrayList<>(goals);
-        }
-        execute(() -> {
-            RepositoryResult<Void> result = saveUsersPreservingNewerTokens(copyUsers(userSnapshot));
-            if (!result.isSuccess()) return result;
-            result = writeWeights(weightSnapshot);
-            return result.isSuccess() ? writeGoals(goalSnapshot) : result;
+            return result;
         }, callback);
     }
 
@@ -407,6 +479,14 @@ final class AppRepository {
     private static User findUser(List<User> users, String uuid) {
         if (uuid == null) return null;
         for (User user : users) if (uuid.equals(user.uuid)) return user;
+        return null;
+    }
+
+    private static Weight findWeight(List<Weight> weights, String userUuid, long date) {
+        if (userUuid == null) return null;
+        for (Weight weight : weights) {
+            if (date == weight.date && userUuid.equals(weight.uuid)) return weight;
+        }
         return null;
     }
 
