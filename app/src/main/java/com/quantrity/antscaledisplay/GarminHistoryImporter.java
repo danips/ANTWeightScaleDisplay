@@ -5,7 +5,9 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Converts Garmin weight-history JSON into the app model and removes existing measurements. */
 final class GarminHistoryImporter {
@@ -19,11 +21,13 @@ final class GarminHistoryImporter {
         final ArrayList<Weight> weights;
         final int received;
         final int added;
+        final int comparisons;
 
-        Result(ArrayList<Weight> weights, int received, int added) {
+        Result(ArrayList<Weight> weights, int received, int added, int comparisons) {
             this.weights = weights;
             this.received = received;
             this.added = added;
+            this.comparisons = comparisons;
         }
     }
 
@@ -31,6 +35,7 @@ final class GarminHistoryImporter {
                          ProgressCallback progress) throws Exception {
         JSONArray summaries = new JSONObject(json).getJSONArray("dailyWeightSummaries");
         ArrayList<Weight> imported = new ArrayList<>();
+        DuplicateIndex duplicates = new DuplicateIndex(user.uuid, existing);
 
         for (int index = 0; index < summaries.length(); index++) {
             if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
@@ -46,19 +51,20 @@ final class GarminHistoryImporter {
             }
 
             Weight weight = decode(measurement);
-            if (isDuplicate(weight, date, user.uuid, existing)) continue;
+            if (duplicates.contains(weight, date)) continue;
             weight.date = date;
             weight.uuid = user.uuid;
             weight.height = user.height_cm;
             weight.age = user.age;
             weight.isMale = user.isMale;
             imported.add(weight);
+            duplicates.add(weight);
         }
 
         ArrayList<Weight> merged = new ArrayList<>(existing);
         merged.addAll(imported);
         Collections.sort(merged, new Weight.DateComparator());
-        return new Result(merged, summaries.length(), imported.size());
+        return new Result(merged, summaries.length(), imported.size(), duplicates.comparisons);
     }
 
     private static Weight decode(JSONObject source) throws Exception {
@@ -85,40 +91,68 @@ final class GarminHistoryImporter {
         return source.isNull(key) ? -1 : source.getDouble(key);
     }
 
-    /** Preserves the matching tolerances used by the pre-coordinator history workflow. */
-    private static boolean isDuplicate(Weight candidate, long date, String userUuid,
-                                       List<Weight> existing) {
-        for (Weight weight : existing) {
-            long signedDelta = date - weight.date;
-            if (signedDelta > DUPLICATE_WINDOW_MILLIS) break;
-            if (!userUuid.equals(weight.uuid)
-                    || Math.abs(signedDelta) > DUPLICATE_WINDOW_MILLIS) continue;
-
-            boolean repeated = Math.abs(candidate.weight - weight.weight) < 0.05;
-            if (repeated && candidate.percentFat != -1) {
-                repeated = Math.abs(candidate.percentFat - weight.percentFat) < 0.01;
-            }
-            if (repeated && candidate.percentHydration != -1) {
-                repeated = Math.abs(candidate.percentHydration - weight.percentHydration) < 0.01;
-            }
-            if (repeated && candidate.boneMass != -1) {
-                repeated = Math.abs(candidate.boneMass - weight.boneMass) < 0.01;
-            }
-            if (repeated && candidate.muscleMass != -1) {
-                repeated = Math.abs(candidate.muscleMass - weight.muscleMass) < 0.01;
-            }
-            if (repeated && candidate.physiqueRating != -1) {
-                repeated = candidate.physiqueRating == weight.physiqueRating;
-            }
-            if (repeated && candidate.percentFat != -1) {
-                repeated = Math.round(candidate.visceralFatRating)
-                        == Math.round(weight.visceralFatRating);
-            }
-            if (repeated && candidate.metabolicAge != -1) {
-                repeated = candidate.metabolicAge - weight.metabolicAge <= 1;
-            }
-            if (repeated) return true;
+    /** Preserves established optional-field tolerances while fixing asymmetric comparisons. */
+    private static boolean matches(Weight candidate, Weight existing) {
+        boolean repeated = Math.abs(candidate.weight - existing.weight) < 0.05;
+        if (repeated && candidate.percentFat != -1) {
+            repeated = Math.abs(candidate.percentFat - existing.percentFat) < 0.01;
         }
-        return false;
+        if (repeated && candidate.percentHydration != -1) {
+            repeated = Math.abs(candidate.percentHydration - existing.percentHydration) < 0.01;
+        }
+        if (repeated && candidate.boneMass != -1) {
+            repeated = Math.abs(candidate.boneMass - existing.boneMass) < 0.01;
+        }
+        if (repeated && candidate.muscleMass != -1) {
+            repeated = Math.abs(candidate.muscleMass - existing.muscleMass) < 0.01;
+        }
+        if (repeated && candidate.physiqueRating != -1) {
+            repeated = candidate.physiqueRating == existing.physiqueRating;
+        }
+        if (repeated && candidate.visceralFatRating != -1) {
+            repeated = Math.round(candidate.visceralFatRating)
+                    == Math.round(existing.visceralFatRating);
+        }
+        if (repeated && candidate.metabolicAge != -1) {
+            repeated = Math.abs((long) candidate.metabolicAge - existing.metabolicAge) <= 1;
+        }
+        return repeated;
+    }
+
+    private static final class DuplicateIndex {
+        private final Map<Long, ArrayList<Weight>> buckets = new HashMap<>();
+        int comparisons;
+
+        DuplicateIndex(String userUuid, List<Weight> existing) {
+            for (Weight weight : existing) {
+                if (userUuid.equals(weight.uuid)) add(weight);
+            }
+        }
+
+        void add(Weight weight) {
+            long bucket = Math.floorDiv(weight.date, DUPLICATE_WINDOW_MILLIS);
+            ArrayList<Weight> values = buckets.get(bucket);
+            if (values == null) {
+                values = new ArrayList<>();
+                buckets.put(bucket, values);
+            }
+            values.add(weight);
+        }
+
+        boolean contains(Weight candidate, long date) {
+            long candidateBucket = Math.floorDiv(date, DUPLICATE_WINDOW_MILLIS);
+            for (long bucket = candidateBucket - 1; bucket <= candidateBucket + 1; bucket++) {
+                List<Weight> possible = buckets.get(bucket);
+                if (possible == null) continue;
+                for (Weight existing : possible) {
+                    comparisons++;
+                    long delta = date - existing.date;
+                    if (delta < -DUPLICATE_WINDOW_MILLIS
+                            || delta > DUPLICATE_WINDOW_MILLIS) continue;
+                    if (matches(candidate, existing)) return true;
+                }
+            }
+            return false;
+        }
     }
 }

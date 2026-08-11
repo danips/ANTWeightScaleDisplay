@@ -52,6 +52,7 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final NotificationManager notificationManager;
     private final NotificationCompat.Builder notification;
+    private final ProgressUpdateThrottler progressUpdates = new ProgressUpdateThrottler();
 
     private Future<?> task;
     private volatile boolean running;
@@ -104,6 +105,7 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
 
         if (!installSecurityProvider(activity)) return false;
         running = true;
+        progressUpdates.reset();
         showProgress(0, 1);
         ArrayList<Weight> historySnapshot = new ArrayList<>(existing);
         task = executor.submit(() -> download(user, users, historySnapshot));
@@ -194,9 +196,10 @@ final class GarminHistoryDownloadCoordinator implements DefaultLifecycleObserver
     }
 
     private void showProgress(int completed, int total) {
-        if (closed || !canPostNotifications()) return;
+        if (closed || !canPostNotifications()
+                || !progressUpdates.shouldReport(completed, total)) return;
         notification.setContentText(context.getString(R.string.history_fragment_download_in_progress))
-                .setProgress(Math.max(total, 1), completed, false);
+                .setProgress(Math.max(total, 1), Math.max(completed, 0), false);
         notifySafely();
     }
 

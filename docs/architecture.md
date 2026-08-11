@@ -99,7 +99,10 @@ Interactive history download is owned by `GarminHistoryDownloadCoordinator`, whi
 History view lifecycle and owns its executor, cancellation, notification channel, progress updates,
 and main-thread result delivery. Leaving the History view cancels the task and removes its pending
 callbacks and notification. `GarminHistoryImporter` separately parses the response and applies the
-established duplicate-detection rules without Android UI dependencies.
+established duplicate-detection rules without Android UI dependencies. It indexes measurements for
+the selected user into duplicate-window date buckets, including newly accepted Garmin records in
+that index, so matching is independent of history sort order and does not rescan all history for
+every summary. Notification progress is emitted only when the whole-number percentage changes.
 
 ## ANT boundary
 
