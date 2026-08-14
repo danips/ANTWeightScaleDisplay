@@ -45,13 +45,12 @@ final class FitFileFactory {
                 "percent hydration");
         addOptionalScaled(weightFields, 4, weight.boneMass, 100, "bone mass");
         addOptionalScaled(weightFields, 5, weight.muscleMass, 100, "muscle mass");
+        addOptionalScaled(weightFields, 7, weight.basalMet, 4, "basal metabolism");
         addOptionalUint8(weightFields, 8, weight.physiqueRating, "physique rating");
+        addOptionalScaled(weightFields, 9, weight.activeMet, 4, "active metabolism");
         addOptionalRoundedUint8(weightFields, 11, weight.visceralFatRating,
                 "visceral fat rating");
         addOptionalUint8(weightFields, 10, weight.metabolicAge, "metabolic age");
-
-        double activeMet = weight.basalMet != -1 ? weight.basalMet : weight.activeMet;
-        addOptionalScaled(weightFields, 9, activeMet, 4, "active metabolism");
         if (weight.height > 0) {
             double heightMetres = weight.height / 100;
             double bmi = weight.weight / (heightMetres * heightMetres);

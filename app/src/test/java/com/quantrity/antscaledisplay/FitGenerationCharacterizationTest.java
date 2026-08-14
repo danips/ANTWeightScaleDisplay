@@ -58,8 +58,8 @@ public class FitGenerationCharacterizationTest {
         assertEquals(7, decoded.weight.getPhysiqueRating().intValue());
         assertEquals(13, decoded.weight.getVisceralFatRating().intValue());
         assertEquals(35, decoded.weight.getMetabolicAge().intValue());
-        assertEquals(1420, decoded.weight.getActiveMet(), 0.01);
-        assertNull(decoded.weight.getBasalMet());
+        assertEquals(1800, decoded.weight.getActiveMet(), 0.01);
+        assertEquals(1420, decoded.weight.getBasalMet(), 0.01);
         assertEquals(22.8, decoded.weight.getBmi(), 0.01);
     }
 
@@ -92,6 +92,7 @@ public class FitGenerationCharacterizationTest {
         assertNull(decoded.getVisceralFatRating());
         assertNull(decoded.getMetabolicAge());
         assertNull(decoded.getActiveMet());
+        assertNull(decoded.getBasalMet());
         assertNull(decoded.getBmi());
     }
 
