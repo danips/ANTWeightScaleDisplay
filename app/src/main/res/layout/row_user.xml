@@ -60,26 +60,27 @@
         <LinearLayout
             android:id="@+id/connections"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
+            android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="@id/userIV">
+            app:layout_constraintTop_toTopOf="parent">
 
             <ImageView
                 android:id="@+id/gcIV"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:contentDescription="@string/edit_user_fragment_garmin_connect_category"
-                android:padding="3dp"
+                android:padding="2dp"
                 app:srcCompat="@drawable/ic_gc" />
 
             <ImageView
                 android:id="@+id/emailIV"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
+                android:layout_width="36dp"
+                android:layout_height="36dp"
                 android:contentDescription="@string/edit_user_fragment_email_category"
-                android:padding="3dp"
+                android:padding="2dp"
                 app:srcCompat="@drawable/ic_gmail" />
         </LinearLayout>
 
