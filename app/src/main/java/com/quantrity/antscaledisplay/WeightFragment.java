@@ -558,7 +558,7 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             }
             if (info.batteryStatusCode() >= 0) {
                 message.append(getString(R.string.weight_fragment_scale_info_battery_status,
-                        info.batteryStatus().name())).append('\n');
+                        getString(batteryStatusResource(info.batteryStatus())))).append('\n');
             }
             if (info.cumulativeOperatingTimeSeconds() >= 0) {
                 message.append(getString(R.string.weight_fragment_scale_info_operating_time,
@@ -576,5 +576,20 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
         String name = AntManufacturerRegistry.nameFor(manufacturerId);
         return name == null ? getString(R.string.weight_fragment_scale_info_unknown_manufacturer)
                 : name;
+    }
+
+    private static int batteryStatusResource(AntDeviceInfo.BatteryStatus status) {
+        switch (status) {
+            case NEW: return R.string.weight_fragment_scale_info_battery_status_new;
+            case GOOD: return R.string.weight_fragment_scale_info_battery_status_good;
+            case OK: return R.string.weight_fragment_scale_info_battery_status_ok;
+            case LOW: return R.string.weight_fragment_scale_info_battery_status_low;
+            case CRITICAL: return R.string.weight_fragment_scale_info_battery_status_critical;
+            case INVALID: return R.string.weight_fragment_scale_info_battery_status_invalid;
+            case UNRECOGNIZED:
+                return R.string.weight_fragment_scale_info_battery_status_unrecognized;
+            case UNKNOWN:
+            default: return R.string.weight_fragment_scale_info_battery_status_unknown;
+        }
     }
 }

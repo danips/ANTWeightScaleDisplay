@@ -151,14 +151,18 @@ every summary. Notification progress is emitted only when the whole-number perce
 channel commands, and idempotent cleanup. It forwards incoming protocol messages without holding a
 Fragment or Activity.
 
-`AntMessageParser` validates and decodes ANT pages. `AntWeightSession` is the Android-free protocol
-state machine. `AntWeightController` coordinates the service and state machine, applies timeouts,
+`AntMessageParser` validates and decodes weight, composition, segment, and ANT common-data pages.
+Common pages 0x50–0x52 populate an `AntDeviceInfo` snapshot with manufacturer, product, revision,
+serial-number, operating-time, voltage, and battery-status fields when broadcast by the scale.
+`AntWeightSession` is the Android-free protocol state machine. `AntWeightController` coordinates
+the service and state machine, applies timeouts,
 persists only protocol-complete measurements, and reports success only after persistence completes
 through `AntWeightListener`. The activity-scoped ViewModel owns the controller so a measurement can survive
 Activity recreation; `WeightFragment` attaches only while its UI is active and the controller's
 profile matches the selected profile. Rendering, editing, and upload actions use that same selected
-controller boundary. A delivered completion remains editable across recreation and navigation for
-its profile, then is discarded when the user selects another profile.
+controller boundary. The weight screen exposes received scale information without persisting it. A
+delivered completion remains editable across recreation and navigation for its profile, then is
+discarded when the user selects another profile.
 
 Built-in ANT support does not depend on USB. External ANT adapters use Android USB host mode, which
 is advertised as an optional capability so distribution does not exclude built-in-ANT devices.
