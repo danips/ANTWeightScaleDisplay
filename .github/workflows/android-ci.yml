@@ -39,7 +39,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
       - name: Provision managed-device system images
         run: |
-          sdkmanager --install \
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install \
             "system-images;android-27;default;x86" \
             "system-images;android-35;default;x86_64"
           test -d "$ANDROID_HOME/system-images/android-27/default/x86"
