@@ -14,8 +14,8 @@
     <string name="auth_notification_permission_skip">Skip</string>
     <string name="auth_notification_permission_title">Enable Auto-Verification?</string>
     <!-- Garmin diagnostics intentionally use the English fallback until translations are added. -->
-    <string name="garmin_login_test" tools:ignore="MissingTranslation">Test Garmin login</string>
-    <string name="garmin_login_testing" tools:ignore="MissingTranslation">Contacting Garmin…</string>
+    <string name="garmin_login_test" tools:ignore="MissingTranslation">Verify Garmin connection</string>
+    <string name="garmin_login_testing" tools:ignore="MissingTranslation">Verifying Garmin connection…</string>
     <string name="garmin_login_success_direct" tools:ignore="MissingTranslation">Garmin login succeeded without a verification code.</string>
     <string name="garmin_login_success_mfa" tools:ignore="MissingTranslation">Garmin login and email/SMS verification succeeded.</string>
     <string name="garmin_login_invalid_credentials" tools:ignore="MissingTranslation">Garmin rejected the username, password, or verification code.</string>
