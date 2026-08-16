@@ -52,6 +52,9 @@ final class AntWeightController implements AntServiceClient.Listener {
     void setProfile(User user) { this.user = user; }
     synchronized void attachListener(AntWeightListener listener) {
         listenerRef = new WeakReference<>(listener);
+        if (session != null && session.deviceInfo().hasAnyInfo()) {
+            listener.onAntDeviceInfo(session.deviceInfo());
+        }
         deliverSuccessIfPending();
         if (finished && !successful && lastFailure != null && !failureDelivered) {
             failureDelivered = true;
@@ -86,6 +89,9 @@ final class AntWeightController implements AntServiceClient.Listener {
     void unregisterReceivers() { service.unregisterReceivers(); }
     AntWeightSession.State state() {
         return session == null ? AntWeightSession.State.IDLE : session.state();
+    }
+    synchronized AntDeviceInfo deviceInfo() {
+        return session == null ? new AntDeviceInfo() : session.deviceInfo();
     }
 
     @Override
@@ -122,6 +128,7 @@ final class AntWeightController implements AntServiceClient.Listener {
     public synchronized void onAntMessage(byte[] message) {
         if (finished || session == null) return;
         execute(session.onMessage(message));
+        if (AntMessageParser.isCommonDataPage(message)) notifyDeviceInfo();
     }
 
     private void execute(AntWeightSession.Action action) {
@@ -231,6 +238,11 @@ final class AntWeightController implements AntServiceClient.Listener {
     private synchronized void notifyPersistenceFailure(String message) {
         AntWeightListener listener = listenerRef.get();
         if (listener != null) listener.onAntPersistenceFailure(message);
+    }
+
+    private synchronized void notifyDeviceInfo() {
+        AntWeightListener listener = listenerRef.get();
+        if (listener != null && session != null) listener.onAntDeviceInfo(session.deviceInfo());
     }
 
     private synchronized void fail(AntWeightSession.Failure failure, String detail) {

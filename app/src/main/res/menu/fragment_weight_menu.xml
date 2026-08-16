@@ -16,4 +16,9 @@
         android:icon="@drawable/ic_action_upload"
         android:title="@string/weight_fragment_action_upload"
         app:showAsAction="ifRoom|withText"/>
+    <item
+        android:id="@+id/action_scale_info"
+        android:title="@string/weight_fragment_action_scale_info"
+        android:visible="false"
+        app:showAsAction="never"/>
 </menu>

@@ -128,8 +128,10 @@ final class AntWeightSession {
 
     private Action searching(byte[] message) {
         if (message.length > 3 && message[1] == (byte) 0x4e) {
-            int page = message[3] & 0xff;
-            if (page == 0x50 || page == 0x51) return Action.of(ActionType.NONE);
+            if (AntMessageParser.isCommonDataPage(message)) {
+                parser.apply(message, weight);
+                return Action.of(ActionType.NONE);
+            }
             state = State.WAITING_PROFILE_CONFIRMATION;
             return Action.of(ActionType.SEND_PROFILE);
         }
@@ -147,6 +149,10 @@ final class AntWeightSession {
         if (eventFailure != null) {
             state = State.FINISHED;
             return Action.fail(eventFailure, AntServiceClient.messageToString(message));
+        }
+        if (AntMessageParser.isCommonDataPage(message)) {
+            parser.apply(message, weight);
+            return Action.of(ActionType.NONE);
         }
         if (message.length > 5 && message[1] == (byte) 0x4e
                 && message[4] == (byte) ((profileId >> 8) & 0xff)
@@ -200,6 +206,7 @@ final class AntWeightSession {
     }
 
     Weight weight() { return weight; }
+    AntDeviceInfo deviceInfo() { return parser.deviceInfo(); }
     State state() { return state; }
     boolean hasCompleteMeasurement() { return parser.isComplete() && weight.weight != -1; }
     void finish() { state = State.FINISHED; }

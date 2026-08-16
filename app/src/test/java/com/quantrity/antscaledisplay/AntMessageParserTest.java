@@ -79,6 +79,37 @@ public class AntMessageParserTest {
         assertTrue(parser.isComplete());
     }
 
+    @Test
+    public void decodesCommonMetadataAndBatteryPages() {
+        AntMessageParser parser = new AntMessageParser(() -> 2L);
+        Weight weight = new Weight();
+
+        assertEquals(AntMessageParser.Outcome.UPDATED,
+                parser.apply(page(0x50, 0xff, 0xff, 0x12, 0x34, 0x56, 0x78, 0x9a), weight));
+        parser.apply(page(0x51, 0xff, 0xff, 0x23, 0x78, 0x56, 0x34, 0x12), weight);
+        parser.apply(page(0x52, 0xff, 0x21, 0x01, 0x02, 0x03, 0x80, 0x23), weight);
+
+        AntDeviceInfo info = parser.deviceInfo();
+        assertEquals(0x12, info.hardwareRevision());
+        assertEquals(0x5634, info.manufacturerId());
+        assertEquals(0x9a78, info.modelNumber());
+        assertEquals(0x23, info.softwareRevision());
+        assertEquals(0x12345678L, info.serialNumber());
+        assertEquals(2, info.batteryIdentifier());
+        assertEquals(1, info.batteryCount());
+        assertEquals(0x030201L * 2, info.cumulativeOperatingTimeSeconds());
+        assertEquals(3.5, info.batteryVoltage(), 0.001);
+        assertEquals(AntDeviceInfo.BatteryStatus.GOOD, info.batteryStatus());
+    }
+
+    @Test
+    public void resolvesKnownManufacturerNamesWithoutGuessingUnknownIds() {
+        assertEquals("Tanita", AntManufacturerRegistry.nameFor(11));
+        assertEquals("A&D Medical", AntManufacturerRegistry.nameFor(21));
+        assertEquals("Development / unassigned", AntManufacturerRegistry.nameFor(255));
+        assertEquals(null, AntManufacturerRegistry.nameFor(0x1234));
+    }
+
     private static byte[] special(int type, int flags, int low1, int high1,
                                   int low2, int high2) {
         return page(0xf1, flags, type, low1, high1, 0, low2, high2);

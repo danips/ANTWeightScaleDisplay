@@ -9,6 +9,7 @@ final class AntMessageParser {
     }
 
     private final Clock clock;
+    private final AntDeviceInfo deviceInfo = new AntDeviceInfo();
     private boolean weightPage;
     private boolean compositionPage;
     private boolean massPage;
@@ -72,8 +73,12 @@ final class AntMessageParser {
                 weight.muscleMass = unsigned16(message[8], message[9]) / 100.0;
             }
             if (message[10] != (byte) 0xff) weight.boneMass = (message[10] & 0xff) / 10.0;
-        } else if (page == 0x50 || page == 0x51) {
-            return Outcome.IGNORED;
+        } else if (page == 0x50) {
+            applyManufacturerPage(message);
+        } else if (page == 0x51) {
+            applyProductPage(message);
+        } else if (page == 0x52) {
+            applyBatteryPage(message);
         }
 
         if (!complete && weightPage && compositionPage && massPage && bonePage && metabolicPage
@@ -136,11 +141,59 @@ final class AntMessageParser {
         return Outcome.UPDATED;
     }
 
+    private void applyManufacturerPage(byte[] message) {
+        int hardwareRevision = message[6] & 0xff;
+        int manufacturerId = (int) unsigned16(message[7], message[8]);
+        int modelNumber = (int) unsigned16(message[9], message[10]);
+        deviceInfo.updateManufacturer(
+                hardwareRevision == 0xff ? -1 : hardwareRevision,
+                manufacturerId == 0xffff ? -1 : manufacturerId,
+                modelNumber == 0xffff ? -1 : modelNumber);
+    }
+
+    private void applyProductPage(byte[] message) {
+        int softwareRevision = message[6] & 0xff;
+        long serialNumber = unsigned32(message[7], message[8], message[9], message[10]);
+        deviceInfo.updateProduct(
+                softwareRevision == 0xff ? -1 : softwareRevision,
+                serialNumber == 0xffffffffL ? -1 : serialNumber);
+    }
+
+    private void applyBatteryPage(byte[] message) {
+        int identifierAndCount = message[5] & 0xff;
+        long operatingTime = unsigned24(message[6], message[7], message[8]);
+        int fractionalVoltage = message[9] & 0xff;
+        int descriptiveVoltage = message[10] & 0xff;
+        int voltageInteger = descriptiveVoltage & 0x0f;
+        int statusCode = (descriptiveVoltage >> 4) & 0x07;
+        int batteryIdentifier = (identifierAndCount >> 4) & 0x0f;
+        int batteryCount = identifierAndCount & 0x0f;
+        if (identifierAndCount == 0xff) {
+            batteryIdentifier = -1;
+            batteryCount = -1;
+        }
+        double voltage = voltageInteger == 0x0f
+                ? -1 : voltageInteger + fractionalVoltage / 256.0;
+        deviceInfo.updateBattery(
+                batteryIdentifier,
+                batteryCount,
+                operatingTime == 0xffffffL ? -1 : operatingTime * 2,
+                voltage,
+                statusCode == 0x07 ? -1 : statusCode);
+    }
+
     private static boolean isSegmentType(int type) {
         return type == 0xc5 || type == 0xbc || type == 0xc8 || type == 0xb9 || type == 0xb0;
     }
     private static double unsigned16(byte low, byte high) {
         return (low & 0xff) + 256.0 * (high & 0xff);
+    }
+    private static long unsigned24(byte low, byte middle, byte high) {
+        return (low & 0xffL) | ((middle & 0xffL) << 8) | ((high & 0xffL) << 16);
+    }
+    private static long unsigned32(byte b0, byte b1, byte b2, byte b3) {
+        return (b0 & 0xffL) | ((b1 & 0xffL) << 8) | ((b2 & 0xffL) << 16)
+                | ((b3 & 0xffL) << 24);
     }
     private static boolean both(byte first, byte second, byte value) {
         return first == value && second == value;
@@ -150,4 +203,11 @@ final class AntMessageParser {
     }
 
     boolean isComplete() { return complete; }
+    AntDeviceInfo deviceInfo() { return deviceInfo.copy(); }
+
+    static boolean isCommonDataPage(byte[] message) {
+        return message != null && message.length >= 11 && message[1] == (byte) 0x4e
+                && (message[3] == (byte) 0x50 || message[3] == (byte) 0x51
+                || message[3] == (byte) 0x52);
+    }
 }

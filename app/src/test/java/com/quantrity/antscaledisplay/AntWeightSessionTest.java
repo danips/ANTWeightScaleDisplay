@@ -64,6 +64,24 @@ public class AntWeightSessionTest {
     }
 
     @Test
+    public void capturesCommonPagesBeforeProfileConfirmation() {
+        AntWeightSession session = new AntWeightSession(
+                user(), new AntMessageParser(() -> 10L), (short) 0x1234);
+        session.start();
+        session.onMessage(startup());
+        for (int i = 0; i < 7; i++) session.onMessage(ok());
+
+        assertAction(AntWeightSession.ActionType.NONE,
+                session.onMessage(AntMessageParserTest.page(
+                        0x50, 0xff, 0xff, 1, 0x34, 0x12, 0x78, 0x56)));
+        assertEquals(AntWeightSession.State.SEARCHING, session.state());
+        assertEquals(0x1234, session.deviceInfo().manufacturerId());
+
+        assertAction(AntWeightSession.ActionType.SEND_PROFILE,
+                session.onMessage(AntMessageParserTest.page(1, 0, 0, 0, 0, 0, 0xfe, 0xff)));
+    }
+
+    @Test
     public void unavailableCompositionCompletesWithWeight() {
         AntWeightSession session = receivingSession();
         assertAction(AntWeightSession.ActionType.MEASUREMENT_STARTED,

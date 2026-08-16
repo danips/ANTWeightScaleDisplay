@@ -27,6 +27,7 @@ import com.quantrity.antscaledisplay.databinding.ItemMetricCardBinding;
 import com.quantrity.antscaledisplay.databinding.ItemSegmentBinding;
 
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class WeightFragment extends Fragment implements MenuProvider, AntWeightListener {
     //private static final String TAG = "WeightFragment";
@@ -344,6 +345,9 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             MenuItem upload = menu.findItem(R.id.action_weight_upload);
             upload.setVisible(false);
         }
+        AntWeightController controller = state == null ? null : state.selectedAntWeightController();
+        MenuItem scaleInfo = menu.findItem(R.id.action_scale_info);
+        scaleInfo.setVisible(controller != null && controller.deviceInfo().hasAnyInfo());
     }
 
     private final AdapterView.OnItemSelectedListener oisListener = new AdapterView.OnItemSelectedListener() {
@@ -394,6 +398,12 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             enableUploadButton = false;
             if (getActivity() != null) getActivity().invalidateOptionsMenu();
             return true;
+        } else if (itemId == R.id.action_scale_info) {
+            AntWeightController controller = state.selectedAntWeightController();
+            if (controller != null && controller.deviceInfo().hasAnyInfo()) {
+                showScaleInfo(controller.deviceInfo());
+            }
+            return true;
         }
         return false;
     }
@@ -423,6 +433,14 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
             } else {
                 antProgressDialog.setMessage(getString(message));
             }
+        });
+    }
+
+    @Override
+    public void onAntDeviceInfo(AntDeviceInfo deviceInfo) {
+        if (!isAdded()) return;
+        requireActivity().runOnUiThread(() -> {
+            if (isAdded()) requireActivity().invalidateOptionsMenu();
         });
     }
 
@@ -496,5 +514,67 @@ public class WeightFragment extends Fragment implements MenuProvider, AntWeightL
     private void dismissAntProgress() {
         if (antProgressDialog != null) antProgressDialog.dismiss();
         antProgressDialog = null;
+    }
+
+    private void showScaleInfo(AntDeviceInfo info) {
+        StringBuilder message = new StringBuilder();
+        if (info.hasManufacturerInfo()) {
+            if (info.hardwareRevision() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_hardware,
+                        info.hardwareRevision())).append('\n');
+            }
+            if (info.manufacturerId() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_manufacturer,
+                        manufacturerDescription(info.manufacturerId()),
+                        String.format(Locale.US, "%04X", info.manufacturerId()))).append('\n');
+            }
+            if (info.modelNumber() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_model,
+                        String.format(Locale.US, "%04X", info.modelNumber()))).append('\n');
+            }
+        }
+        if (info.hasProductInfo()) {
+            if (info.softwareRevision() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_software,
+                        info.softwareRevision())).append('\n');
+            }
+            if (info.serialNumber() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_serial,
+                        String.format(Locale.US, "%08X", info.serialNumber()))).append('\n');
+            }
+        }
+        if (info.hasBatteryStatus()) {
+            if (info.batteryIdentifier() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_battery_identifier,
+                        info.batteryIdentifier())).append('\n');
+            }
+            if (info.batteryCount() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_battery_count,
+                        info.batteryCount())).append('\n');
+            }
+            if (info.batteryVoltage() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_battery_voltage,
+                        info.batteryVoltage())).append('\n');
+            }
+            if (info.batteryStatusCode() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_battery_status,
+                        info.batteryStatus().name())).append('\n');
+            }
+            if (info.cumulativeOperatingTimeSeconds() >= 0) {
+                message.append(getString(R.string.weight_fragment_scale_info_operating_time,
+                        info.cumulativeOperatingTimeSeconds())).append('\n');
+            }
+        }
+        new AlertDialog.Builder(requireContext())
+                .setTitle(R.string.weight_fragment_scale_info_title)
+                .setMessage(message.toString().trim())
+                .setPositiveButton(android.R.string.ok, null)
+                .show();
+    }
+
+    private String manufacturerDescription(int manufacturerId) {
+        String name = AntManufacturerRegistry.nameFor(manufacturerId);
+        return name == null ? getString(R.string.weight_fragment_scale_info_unknown_manufacturer)
+                : name;
     }
 }

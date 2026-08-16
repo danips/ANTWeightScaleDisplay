@@ -169,6 +169,7 @@
 	<string name="weight_edit_fragment_years_tag">years</string>
 	<string name="weight_fragment_action_upload">Upload</string>
 	<string name="weight_fragment_action_weight">Weight</string>
+	<string name="weight_fragment_action_scale_info" tools:ignore="MissingTranslation">Scale info</string>
 	<string name="weight_fragment_bmi_tag">BMI</string>
 	<string name="weight_fragment_icon_desc_activeMet">Active Metabolic Rate</string>
 	<string name="weight_fragment_icon_desc_basalMet">Basal Metabolic Rate</string>
@@ -193,6 +194,18 @@
 	<string name="weight_fragment_msg_uploading">Uploading</string>
 	<string name="weight_fragment_msg_uploading_encoding_failure">There has been a problem generating the FIT file</string>
 	<string name="weight_fragment_msg_waiting">Waiting for weight measurement</string>
+	<string name="weight_fragment_scale_info_title" tools:ignore="MissingTranslation">ANT+ scale information</string>
+	<string name="weight_fragment_scale_info_hardware" tools:ignore="MissingTranslation">Hardware revision: %1$d</string>
+	<string name="weight_fragment_scale_info_manufacturer" tools:ignore="MissingTranslation">Manufacturer: %1$s (ANT+ ID 0x%2$s)</string>
+	<string name="weight_fragment_scale_info_unknown_manufacturer" tools:ignore="MissingTranslation">Unknown manufacturer</string>
+	<string name="weight_fragment_scale_info_model" tools:ignore="MissingTranslation">Model code: 0x%1$s (manufacturer-defined)</string>
+	<string name="weight_fragment_scale_info_software" tools:ignore="MissingTranslation">Software revision: %1$d</string>
+	<string name="weight_fragment_scale_info_serial" tools:ignore="MissingTranslation">Serial number: %1$s</string>
+	<string name="weight_fragment_scale_info_battery_identifier" tools:ignore="MissingTranslation">Battery identifier: %1$d</string>
+	<string name="weight_fragment_scale_info_battery_count" tools:ignore="MissingTranslation">Battery count: %1$d</string>
+	<string name="weight_fragment_scale_info_battery_voltage" tools:ignore="MissingTranslation">Battery voltage: %1$.2f V</string>
+	<string name="weight_fragment_scale_info_battery_status" tools:ignore="MissingTranslation">Battery status: %1$s</string>
+	<string name="weight_fragment_scale_info_operating_time" tools:ignore="MissingTranslation">Operating time: %1$d seconds</string>
 	<string name="weight_fragment_percent_tag"><xliff:g id="number">%1$.1f</xliff:g> <xliff:g id="percent">%%</xliff:g></string>
     <string name="weight_fragment_years_tag" tools:ignore="PluralsCandidate"><xliff:g id="number">%1$d</xliff:g> years</string>
 	<string name="weight_process_msg_error">Error</string>
